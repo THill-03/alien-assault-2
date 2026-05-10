@@ -494,6 +494,8 @@ body {
     text-align: right;
     margin-bottom: 3px;
 }
+#weapon-display.dual         { color: #ffcc44; text-shadow: 0 0 8px #ffcc4466; }
+#weapon-display.assault      { color: #88ddff; text-shadow: 0 0 8px #88ddff66; }
 #weapon-display.rocket       { color: #ff8833; text-shadow: 0 0 8px #ff883366; }
 #weapon-display.fireball     { color: #ff5500; text-shadow: 0 0 8px #ff550066; }
 #weapon-display.laser        { color: #00ccff; text-shadow: 0 0 8px #00ccff66; }
@@ -529,6 +531,41 @@ body {
 #pickup-notice.fireball { color: #ff5500; }
 #pickup-notice.laser    { color: #00ccff; }
 #pickup-notice.shop     { color: #ffcc00; }
+
+/* ─── Dual Pistols overlay ──────────────────────────────────── */
+#gun-hud.dual #gun-barrel {
+    width: 10px;
+    box-shadow: -18px 0 0 10px #2a2a3a, 0 0 10px #ffcc4433;
+    background: linear-gradient(to right, #2a2a3a, #3a3a4a, #252530);
+}
+#gun-hud.dual #gun-body {
+    width: 120px;
+    background: linear-gradient(to bottom, #3a3822, #252518);
+    box-shadow: inset 0 2px 4px rgba(255,200,0,0.08), 0 0 14px #ffcc4422;
+}
+#gun-hud.dual #gun-muzzle-flash {
+    background: radial-gradient(ellipse, #ffffc0 0%, #ffcc44 40%, transparent 80%);
+}
+
+/* ─── Assault Rifle overlay ─────────────────────────────────── */
+#gun-hud.assault #gun-barrel {
+    width: 18px;
+    height: 110px;
+    background: linear-gradient(to right, #1a2535, #2a3a50, #151e2a);
+    box-shadow: 0 0 12px #88ddff33;
+}
+#gun-hud.assault #gun-body {
+    width: 115px;
+    background: linear-gradient(to bottom, #1e2d3d, #141e28);
+    box-shadow: inset 0 2px 4px rgba(100,200,255,0.08), 0 0 14px #88ddff22;
+}
+#gun-hud.assault #gun-accent {
+    background: linear-gradient(to bottom, #2255aa, #1a3a77);
+    width: 70px;
+}
+#gun-hud.assault #gun-muzzle-flash {
+    background: radial-gradient(ellipse, #ffffff 0%, #88ddff 40%, transparent 80%);
+}
 
 /* ─── Rocket gun overlay ────────────────────────────────────── */
 #gun-hud.rocket #gun-barrel {
@@ -953,6 +990,8 @@ const SHOP_DURATION  = 30;
 // ─── Weapon Definitions ───────────────────────────────────────────────────────
 const WEAPONS_DEF = {
     pistol:       { name: 'PISTOL',           maxAmmo: 30,  reload: 1.8,  css: '',           mCol: 0xffaa44 },
+    dual_pistol:  { name: 'DUAL PISTOLS',    maxAmmo: 60,  reload: 2.2,  css: 'dual',       mCol: 0xffcc44 },
+    assault_rifle:{ name: 'ASSAULT RIFLE',  maxAmmo: 45,  reload: 2.0,  css: 'assault',    mCol: 0x88ddff },
     rocket:       { name: 'ROCKET LAUNCHER',  maxAmmo: 5,   reload: 0,    css: 'rocket',     mCol: 0xff4400 },
     fireball:     { name: 'FIREBALL',         maxAmmo: 3,   reload: 0,    css: 'fireball',   mCol: 0xff5500 },
     laser:        { name: 'LASER CANNON',     maxAmmo: 8,   reload: 0,    css: 'laser',      mCol: 0x00ffff },
@@ -982,7 +1021,8 @@ const SHOP_WEAPONS = [
 ];
 
 const SHOP_WEAPON_IDS = new Set(SHOP_WEAPONS.map(w => w.id));
-const ALL_CSS_CLASSES = ['rocket','fireball','laser','shotgun','sniper','plasma','minigun','grenade','frost','lightning','flame','blackhole','railgun'];
+const PICKUP_WEAPONS  = new Set(['rocket', 'fireball', 'laser']);
+const ALL_CSS_CLASSES = ['dual','assault','rocket','fireball','laser','shotgun','sniper','plasma','minigun','grenade','frost','lightning','flame','blackhole','railgun'];
 
 const LEVEL_CONFIG = [
     { enemies: 5,  speedBase: 2.5, healthBase: 50  },
@@ -2432,6 +2472,16 @@ function shoot() {
     const startPos = yawObject.position.clone().addScaledVector(fwd, 1.0);
 
     switch (wid) {
+        case 'dual_pistol': {
+            // Two simultaneous shots with slight spread
+            spreadRaycast(2, 0.05, SHOT_DAMAGE, 0xffcc44);
+            break;
+        }
+        case 'assault_rifle': {
+            // 3-round burst, tight grouping
+            spreadRaycast(3, 0.025, Math.floor(SHOT_DAMAGE * 0.75), 0x88ddff);
+            break;
+        }
         case 'pistol': case 'sniper': {
             if (hits.length > 0) {
                 const e = targetMap.get(hits[0].object);
@@ -2533,20 +2583,20 @@ function shoot() {
     }
 
     // Muzzle light
-    const ml = new THREE.PointLight(def.mCol, wid === 'pistol' ? 3 : 7, wid === 'pistol' ? 12 : 22);
+    const isLight = (wid === 'pistol' || wid === 'dual_pistol' || wid === 'assault_rifle');
+    const ml = new THREE.PointLight(def.mCol, isLight ? 3 : 7, isLight ? 12 : 22);
     ml.position.copy(yawObject.position).addScaledVector(fwd, 2); scene.add(ml);
-    setTimeout(() => scene.remove(ml), wid === 'pistol' ? 60 : 220);
+    setTimeout(() => scene.remove(ml), isLight ? 60 : 220);
 
     // Post-shot state
     if (wep.ammo <= 0) {
-        if (SHOP_WEAPON_IDS.has(wid) || wid === 'pistol') {
-            startReload();
-        } else {
-            // Remove pickup weapon from inventory when empty
+        if (PICKUP_WEAPONS.has(wid)) {
             player.inventory.splice(player.invIdx, 1);
             if (player.invIdx >= player.inventory.length) player.invIdx = 0;
             syncWeapon();
             showPickupNotice(def.name + ' EMPTY', 'health');
+        } else {
+            startReload();
         }
     }
 
@@ -2648,6 +2698,94 @@ function showLevelBanner(text) {
     bannerTimeout = setTimeout(() => el.classList.remove('show'), 2200);
 }
 
+// ─── Companion (ZIPP) ─────────────────────────────────────────────────────────
+const companion = { mesh: null, shootTimer: 0, shootCooldown: 1.8, damage: 22 };
+
+function createCompanionMesh() {
+    const g = new THREE.Group();
+    const bodyMat = new THREE.MeshPhongMaterial({ color: 0x2255cc, emissive: 0x112266, shininess: 120 });
+    g.add(new THREE.Mesh(new THREE.SphereGeometry(0.18, 10, 10), bodyMat));
+
+    const visorMat = new THREE.MeshPhongMaterial({ color: 0x44ddff, emissive: 0x22aacc, shininess: 200 });
+    const visor = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.10, 0.04), visorMat);
+    visor.position.set(0, 0.03, 0.16);
+    g.add(visor);
+
+    const eyeMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    [-0.065, 0.065].forEach(x => {
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.025, 6, 6), eyeMat);
+        eye.position.set(x, 0.03, 0.19);
+        g.add(eye);
+    });
+
+    const antMat = new THREE.MeshPhongMaterial({ color: 0x3399ff, emissive: 0x1155aa });
+    const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.18, 6), antMat);
+    stick.position.set(0, 0.27, 0);
+    g.add(stick);
+    const tip = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 8), new THREE.MeshBasicMaterial({ color: 0x44ffff }));
+    tip.position.set(0, 0.37, 0);
+    g.add(tip);
+
+    const wingMat = new THREE.MeshPhongMaterial({ color: 0x1a3366, emissive: 0x081122 });
+    [-1, 1].forEach(s => {
+        const wing = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.06, 0.10), wingMat);
+        wing.position.set(s * 0.28, -0.04, 0);
+        g.add(wing);
+    });
+
+    const glow = new THREE.PointLight(0x44aaff, 0.9, 4);
+    g.add(glow);
+    return g;
+}
+
+function findNearestEnemy(maxDist) {
+    let nearest = null, minDist = maxDist !== undefined ? maxDist : Infinity;
+    enemies.forEach(e => {
+        if (e.dead) return;
+        const d = yawObject.position.distanceTo(e.mesh.position);
+        if (d < minDist) { minDist = d; nearest = e; }
+    });
+    return nearest;
+}
+
+function companionShoot(target) {
+    if (!target || target.dead) return;
+    const fromPos = companion.mesh.position.clone();
+    const toPos = target.mesh.position.clone().add(new THREE.Vector3(0, 0.5, 0));
+    buildBeam(fromPos, toPos, 0x44ffff, 0x2299ff, 220);
+    const fl = new THREE.PointLight(0x44aaff, 5, 7);
+    fl.position.copy(fromPos);
+    scene.add(fl);
+    setTimeout(() => scene.remove(fl), 120);
+    target.health -= companion.damage;
+    showHitMarker();
+    if (target.health <= 0) killEnemy(target);
+}
+
+function updateCompanion(delta, time) {
+    if (!companion.mesh || gameState !== 'PLAYING') return;
+    const angle = yawObject.rotation.y;
+    const rx = Math.cos(angle) * 1.2 + Math.sin(angle) * 0.5;
+    const rz = -Math.sin(angle) * 1.2 + Math.cos(angle) * 0.5;
+    companion.mesh.position.set(
+        yawObject.position.x + rx,
+        yawObject.position.y + 0.4 + Math.sin(time * 2.8) * 0.09,
+        yawObject.position.z + rz
+    );
+    const target = findNearestEnemy(35);
+    if (target) {
+        companion.mesh.lookAt(target.mesh.position);
+        companion.shootTimer -= delta;
+        if (companion.shootTimer <= 0) {
+            companionShoot(target);
+            companion.shootTimer = companion.shootCooldown;
+        }
+    } else {
+        companion.mesh.rotation.y = yawObject.rotation.y + Math.PI;
+    }
+    companion.mesh.rotation.z = Math.sin(time * 1.8) * 0.12;
+}
+
 // ─── SECTION 9: State Transitions ────────────────────────────────────────────
 function startGame() {
     // Read player name from input
@@ -2659,12 +2797,15 @@ function startGame() {
     player.reloading = false;
     player.reloadTimer = 0;
     player.score = 0;
-    player.weapon = 'pistol';
+    player.weapon = 'dual_pistol';
     player.velocityY = 0;
     player.isGrounded = true;
     player.sprint = SPRINT_MAX;
     player.sprinting = false;
-    player.inventory = [{ id: 'pistol', ammo: MAX_AMMO, maxAmmo: MAX_AMMO }];
+    player.inventory = [
+        { id: 'dual_pistol',   ammo: 60, maxAmmo: 60 },
+        { id: 'assault_rifle', ammo: 45, maxAmmo: 45 },
+    ];
     player.invIdx = 0;
     playerCoins = 0;
 
@@ -2687,6 +2828,12 @@ function startGame() {
     document.getElementById('hud').classList.add('visible');
     document.getElementById('damage-vignette').className = '';
     document.getElementById('gun-hud').style.display = 'block';
+
+    // Spawn companion ZIPP
+    if (companion.mesh) scene.remove(companion.mesh);
+    companion.mesh = createCompanionMesh();
+    companion.shootTimer = companion.shootCooldown;
+    scene.add(companion.mesh);
 
     initLevel(1);
     updateHUD();
@@ -2741,6 +2888,7 @@ function triggerGameOver() {
     document.getElementById('boss-bar').classList.add('hidden');
     document.getElementById('shop-overlay').classList.add('hidden');
 
+    if (companion.mesh) { scene.remove(companion.mesh); companion.mesh = null; }
     saveScore(playerName, player.score, currentLevel);
 }
 
@@ -2910,6 +3058,7 @@ function mainLoop(ts) {
         updatePowerups(delta, ts / 1000);
         updateProjectiles(delta);
         updateHitParticles(delta);
+        updateCompanion(delta, ts / 1000);
         drawMinimap();
     } else if (gameState === 'SHOP') {
         const delta = Math.min((ts - lastTime) / 1000, 0.05);
