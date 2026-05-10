@@ -494,9 +494,19 @@ body {
     text-align: right;
     margin-bottom: 3px;
 }
-#weapon-display.rocket   { color: #ff8833; text-shadow: 0 0 8px #ff883366; }
-#weapon-display.fireball { color: #ff5500; text-shadow: 0 0 8px #ff550066; }
-#weapon-display.laser    { color: #00ccff; text-shadow: 0 0 8px #00ccff66; }
+#weapon-display.rocket       { color: #ff8833; text-shadow: 0 0 8px #ff883366; }
+#weapon-display.fireball     { color: #ff5500; text-shadow: 0 0 8px #ff550066; }
+#weapon-display.laser        { color: #00ccff; text-shadow: 0 0 8px #00ccff66; }
+#weapon-display.shotgun      { color: #cc9944; text-shadow: 0 0 8px #cc994466; }
+#weapon-display.sniper       { color: #88aaff; text-shadow: 0 0 8px #88aaff66; }
+#weapon-display.plasma       { color: #aa44ff; text-shadow: 0 0 8px #aa44ff66; }
+#weapon-display.minigun      { color: #ffaa00; text-shadow: 0 0 8px #ffaa0066; }
+#weapon-display.grenade      { color: #88aa44; text-shadow: 0 0 8px #88aa4466; }
+#weapon-display.frost        { color: #44ddff; text-shadow: 0 0 8px #44ddff66; }
+#weapon-display.lightning    { color: #ffff44; text-shadow: 0 0 8px #ffff4466; }
+#weapon-display.flame        { color: #ff6600; text-shadow: 0 0 8px #ff660066; }
+#weapon-display.blackhole    { color: #cc44ff; text-shadow: 0 0 8px #cc44ff66; }
+#weapon-display.railgun      { color: #ffffff; text-shadow: 0 0 8px #ffffff66; }
 
 /* ─── Pickup notification ───────────────────────────────────── */
 #pickup-notice {
@@ -518,6 +528,7 @@ body {
 #pickup-notice.rocket   { color: #ff8833; }
 #pickup-notice.fireball { color: #ff5500; }
 #pickup-notice.laser    { color: #00ccff; }
+#pickup-notice.shop     { color: #ffcc00; }
 
 /* ─── Rocket gun overlay ────────────────────────────────────── */
 #gun-hud.rocket #gun-barrel {
@@ -553,6 +564,157 @@ body {
     width: 30px; height: 40px;
 }
 #gun-hud.fireball #gun-barrel::before { background: #1a0300; }
+
+/* ─── Shop Overlay ──────────────────────────────────────────── */
+#shop-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(5,5,16,0.94);
+    z-index: 100;
+    overflow-y: auto;
+    padding: 1rem 1rem 1.5rem;
+}
+#shop-overlay.hidden { display: none; }
+#shop-npc-wrap {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.8rem;
+    background: rgba(0,20,40,0.6);
+    border: 1px solid #1a3a5a;
+    padding: 0.6rem 1.2rem;
+    border-radius: 4px;
+    width: min(680px, 96vw);
+}
+.npc-avatar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+}
+.npc-head-css {
+    width: 36px; height: 36px;
+    background: #4488ff;
+    border-radius: 50%;
+    border: 2px solid #88ccff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+}
+.npc-body-css {
+    width: 30px; height: 22px;
+    background: #2255aa;
+    border-radius: 3px;
+    border: 1px solid #4477cc;
+}
+#shop-npc-name { font-size: 0.7rem; letter-spacing: 0.25em; color: #88aaff; font-weight: 700; }
+#shop-npc-speech { font-size: 0.82rem; color: #a8dadc; font-style: italic; flex: 1; }
+#shop-timer-row {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    margin-bottom: 0.8rem;
+    font-size: 0.85rem;
+    letter-spacing: 0.12em;
+}
+#shop-countdown { color: #e94560; font-weight: 700; font-size: 1.1rem; }
+#shop-coin-count { color: #ffcc00; font-weight: 700; }
+#shop-items-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.4rem;
+    width: min(680px, 96vw);
+    margin-bottom: 0.8rem;
+}
+.shop-item {
+    background: rgba(0,8,20,0.7);
+    border: 1px solid #1a2a3a;
+    padding: 0.5rem 0.7rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    border-radius: 3px;
+}
+.shop-item.owned { border-color: #22ff4455; background: rgba(0,20,10,0.5); }
+.shop-item-name { font-size: 0.78rem; font-weight: 700; color: #a8dadc; letter-spacing: 0.08em; }
+.shop-item-cost { font-size: 0.68rem; color: #ffcc00; }
+.shop-item-desc { font-size: 0.65rem; color: #445566; }
+.shop-item-ammo { font-size: 0.65rem; color: #22ff44; }
+.shop-buy-btn {
+    margin-top: 0.3rem;
+    padding: 0.25em 0.8em;
+    font-family: 'Courier New', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    border: 1px solid #22ff44;
+    background: transparent;
+    color: #22ff44;
+    cursor: pointer;
+    align-self: flex-start;
+}
+.shop-buy-btn:hover { background: #22ff44; color: #050510; }
+.shop-buy-btn:disabled { border-color: #334; color: #334; cursor: default; }
+.shop-buy-btn:disabled:hover { background: transparent; color: #334; }
+.shop-buy-btn.refill { border-color: #4499ff; color: #4499ff; }
+.shop-buy-btn.refill:hover { background: #4499ff; color: #050510; }
+#shop-inv-section {
+    width: min(680px, 96vw);
+    margin-bottom: 0.8rem;
+    font-size: 0.72rem;
+    color: #6688aa;
+    letter-spacing: 0.15em;
+}
+#shop-inv-chips { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.4rem; }
+.inv-chip {
+    padding: 0.15em 0.5em;
+    border: 1px solid #2244aa;
+    color: #88aaff;
+    font-size: 0.65rem;
+    border-radius: 2px;
+    background: rgba(34,68,255,0.1);
+}
+
+/* ─── Coin display (HUD) ─────────────────────────────────────── */
+#coin-display {
+    position: absolute;
+    top: 3.2rem;
+    left: 2rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #ffcc00;
+    letter-spacing: 0.12em;
+    text-shadow: 0 0 8px #ffcc0066;
+}
+
+/* ─── Inventory bar (HUD) ────────────────────────────────────── */
+#inventory-bar {
+    position: absolute;
+    bottom: 7.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.35rem;
+    pointer-events: none;
+}
+.inv-slot {
+    padding: 0.18em 0.55em;
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    border: 1px solid #334;
+    border-radius: 2px;
+    background: rgba(0,0,0,0.55);
+    color: #6688aa;
+    white-space: nowrap;
+}
+.inv-slot.active {
+    border-color: #22ff44;
+    color: #22ff44;
+    background: rgba(34,255,68,0.12);
+}
 
 /* ─── Sprint bar ────────────────────────────────────────────── */
 #sprint-container { margin-top: 6px; }
@@ -648,6 +810,7 @@ body {
         <span class="key">SPACE</span><span class="desc">Jump</span>
         <span class="key">LEFT CLICK</span><span class="desc">Shoot</span>
         <span class="key">R</span><span class="desc">Reload</span>
+        <span class="key">TAB</span><span class="desc">Switch weapon</span>
         <span class="key">GREEN ORB</span><span class="desc">Health pack (+35 HP)</span>
         <span class="key">ORANGE ORB</span><span class="desc">Rocket launcher (5 shots)</span>
         <span class="key">RED ORB</span><span class="desc">Fireball (3 shots)</span>
@@ -659,6 +822,30 @@ body {
     <div id="scoreboard-section">
         <div id="scoreboard-title">TOP SCORES</div>
         <div id="scoreboard"><div class="sb-empty">NO SCORES YET</div></div>
+    </div>
+</div>
+
+<!-- ─── Shop Overlay ─── -->
+<div id="shop-overlay" class="hidden">
+    <div style="font-size:clamp(1.4rem,3vw,2.2rem);font-weight:900;color:#ffcc00;letter-spacing:0.18em;margin-bottom:0.6rem;text-shadow:0 0 20px #ffcc0088;">WEAPONS SHOP</div>
+    <div id="shop-npc-wrap">
+        <div class="npc-avatar">
+            <div class="npc-head-css">🤖</div>
+            <div class="npc-body-css"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:0.3rem;">
+            <div id="shop-npc-name">ZAXON — ARMS DEALER</div>
+            <div id="shop-npc-speech">"Stock up, soldier. The horde doesn't wait."</div>
+        </div>
+    </div>
+    <div id="shop-timer-row">
+        <span>SHOP CLOSES IN: <span id="shop-countdown">30</span>s</span>
+        <span>&#9679; COINS: <span id="shop-coin-count">0</span></span>
+        <button class="btn" id="shop-ready-btn" style="padding:0.4em 1.2em;font-size:0.85rem;">READY TO FIGHT</button>
+    </div>
+    <div id="shop-items-grid"></div>
+    <div id="shop-inv-section">
+        INVENTORY<div id="shop-inv-chips"></div>
     </div>
 </div>
 
@@ -702,6 +889,8 @@ body {
 
     <div id="score-display">SCORE: 0</div>
     <div id="level-display">LEVEL 1</div>
+    <div id="coin-display">&#9679; 0 COINS</div>
+    <div id="inventory-bar"></div>
     <div id="level-banner"></div>
 
     <!-- Boss health bar -->
@@ -753,6 +942,47 @@ const SPRINT_MULT = 1.75;
 const SPRINT_MAX = 3.0;
 const SPRINT_REGEN = 0.9;
 const LASER_AMMO = 8;
+
+// ─── Currency ─────────────────────────────────────────────────────────────────
+const COIN_ALIEN     = 10;
+const COIN_BERSERKER = 25;
+const COIN_OCTOPUS   = 40;
+const COIN_BOSS      = 150;
+const SHOP_DURATION  = 30;
+
+// ─── Weapon Definitions ───────────────────────────────────────────────────────
+const WEAPONS_DEF = {
+    pistol:       { name: 'PISTOL',           maxAmmo: 30,  reload: 1.8,  css: '',           mCol: 0xffaa44 },
+    rocket:       { name: 'ROCKET LAUNCHER',  maxAmmo: 5,   reload: 0,    css: 'rocket',     mCol: 0xff4400 },
+    fireball:     { name: 'FIREBALL',         maxAmmo: 3,   reload: 0,    css: 'fireball',   mCol: 0xff5500 },
+    laser:        { name: 'LASER CANNON',     maxAmmo: 8,   reload: 0,    css: 'laser',      mCol: 0x00ffff },
+    shotgun:      { name: 'SHOTGUN',          maxAmmo: 25,  reload: 2.2,  css: 'shotgun',    mCol: 0xffcc66 },
+    sniper:       { name: 'SNIPER RIFLE',     maxAmmo: 10,  reload: 2.8,  css: 'sniper',     mCol: 0x88aaff },
+    plasma:       { name: 'PLASMA RIFLE',     maxAmmo: 15,  reload: 0,    css: 'plasma',     mCol: 0xaa44ff },
+    minigun:      { name: 'MINIGUN',          maxAmmo: 120, reload: 3.0,  css: 'minigun',    mCol: 0xffaa00 },
+    grenade:      { name: 'GRENADE LAUNCHER', maxAmmo: 8,   reload: 0,    css: 'grenade',    mCol: 0x88aa44 },
+    frost:        { name: 'FROST CANNON',     maxAmmo: 20,  reload: 1.5,  css: 'frost',      mCol: 0x44ddff },
+    lightning:    { name: 'LIGHTNING ROD',    maxAmmo: 12,  reload: 0,    css: 'lightning',  mCol: 0xffff44 },
+    flamethrower: { name: 'FLAMETHROWER',     maxAmmo: 80,  reload: 2.5,  css: 'flame',      mCol: 0xff6600 },
+    blackhole:    { name: 'BLACK HOLE GUN',   maxAmmo: 5,   reload: 0,    css: 'blackhole',  mCol: 0xcc44ff },
+    railgun:      { name: 'RAILGUN',          maxAmmo: 6,   reload: 0,    css: 'railgun',    mCol: 0xffffff },
+};
+
+const SHOP_WEAPONS = [
+    { id: 'shotgun',      cost: 200, desc: '6-pellet spread — devastating at close range' },
+    { id: 'sniper',       cost: 350, desc: 'High-damage hitscan — one-shots most enemies' },
+    { id: 'plasma',       cost: 300, desc: 'Arcing plasma projectile with splash damage' },
+    { id: 'minigun',      cost: 400, desc: '120 rounds, 3 bullets per shot, crowd shredder' },
+    { id: 'grenade',      cost: 450, desc: 'Massive explosion radius, huge splash damage' },
+    { id: 'frost',        cost: 500, desc: 'Slows hit enemy to 30% speed for 3 seconds' },
+    { id: 'lightning',    cost: 600, desc: 'Primary hit + chains to 2 nearby enemies' },
+    { id: 'flamethrower', cost: 550, desc: 'Short-range 5-ray cone, huge ammo pool' },
+    { id: 'blackhole',    cost: 750, desc: 'Pulls all nearby enemies and crushes them' },
+    { id: 'railgun',      cost: 900, desc: 'White-hot beam pierces every alien in line' },
+];
+
+const SHOP_WEAPON_IDS = new Set(SHOP_WEAPONS.map(w => w.id));
+const ALL_CSS_CLASSES = ['rocket','fireball','laser','shotgun','sniper','plasma','minigun','grenade','frost','lightning','flame','blackhole','railgun'];
 
 const LEVEL_CONFIG = [
     { enemies: 5,  speedBase: 2.5, healthBase: 50  },
@@ -957,27 +1187,28 @@ function setupLighting() {
 }
 
 // ─── SECTION 4: Game State ────────────────────────────────────────────────────
-let gameState = 'MENU'; // 'MENU' | 'PLAYING' | 'GAME_OVER'
+let gameState = 'MENU'; // 'MENU' | 'PLAYING' | 'SHOP' | 'GAME_OVER'
 let currentLevel = 1;
 let enemies = [];
 let lastTime = 0;
 let pointerLocked = false;
 let levelTransition = false;
+let shopTimer = 0;
+let nextLevelAfterShop = 1;
+let playerCoins = 0;
 
 const player = {
     health: MAX_HEALTH,
-    ammo: MAX_AMMO,
+    score: 0,
+    weapon: 'pistol',
     reloading: false,
     reloadTimer: 0,
-    score: 0,
-    weapon: 'pistol',   // 'pistol' | 'rocket' | 'fireball' | 'laser'
-    rocketAmmo: 0,
-    fireballAmmo: 0,
-    laserAmmo: 0,
     velocityY: 0,
     isGrounded: true,
     sprint: SPRINT_MAX,
     sprinting: false,
+    inventory: [],   // [{ id, ammo, maxAmmo }]
+    invIdx: 0,
 };
 
 let playerName = 'PLAYER';
@@ -985,6 +1216,39 @@ let projectiles = [];
 let hitParticles = [];
 
 const keys = { w: false, a: false, s: false, d: false, shift: false };
+
+// ─── Inventory Helpers ────────────────────────────────────────────────────────
+function curWeapon() { return player.inventory[player.invIdx] || player.inventory[0]; }
+
+function syncWeapon() {
+    const wep = curWeapon();
+    if (!wep) return;
+    player.weapon = wep.id;
+    const gunEl = document.getElementById('gun-hud');
+    ALL_CSS_CLASSES.forEach(c => gunEl.classList.remove(c));
+    const css = WEAPONS_DEF[wep.id]?.css;
+    if (css) gunEl.classList.add(css);
+}
+
+function switchWeapon(dir) {
+    if (player.inventory.length <= 1) return;
+    player.invIdx = ((player.invIdx + dir) + player.inventory.length) % player.inventory.length;
+    player.reloading = false;
+    syncWeapon();
+    updateHUD();
+}
+
+function addToInventory(id, ammoAmount) {
+    const def = WEAPONS_DEF[id];
+    if (!def) return;
+    const existing = player.inventory.find(w => w.id === id);
+    const amt = ammoAmount !== undefined ? ammoAmount : def.maxAmmo;
+    if (existing) {
+        existing.ammo = Math.min(def.maxAmmo, existing.ammo + amt);
+    } else {
+        player.inventory.push({ id, ammo: amt, maxAmmo: def.maxAmmo });
+    }
+}
 
 // ─── SECTION 5: Enemy System ──────────────────────────────────────────────────
 function createEnemy(x, z, level) {
@@ -1439,6 +1703,12 @@ function updateEnemies(delta, time) {
         const e = enemies[i];
         if (e.dead) continue;
 
+        // Frost slow countdown
+        if (e.slowTimer > 0) {
+            e.slowTimer -= delta;
+            if (e.slowTimer <= 0 && e.baseSpeed) { e.speed = e.baseSpeed; e.slowTimer = 0; }
+        }
+
         // Seek player
         const dx = px - e.mesh.position.x;
         const dz = pz - e.mesh.position.z;
@@ -1511,18 +1781,21 @@ function killEnemy(enemy) {
 
     if (enemy.isBoss) {
         player.score += 1000 + (currentLevel - 1) * 200;
+        playerCoins += COIN_BOSS;
         showLevelBanner('BOSS DEFEATED!');
-        // Big explosion on boss death
         const bigFlash = new THREE.PointLight(0xff2200, 12, 30);
         bigFlash.position.copy(enemy.mesh.position);
         scene.add(bigFlash);
         setTimeout(() => scene.remove(bigFlash), 500);
     } else if (enemy.type === 'berserker') {
         player.score += 150 + (currentLevel - 1) * 60;
+        playerCoins += COIN_BERSERKER;
     } else if (enemy.type === 'octopus') {
         player.score += 200 + (currentLevel - 1) * 80;
+        playerCoins += COIN_OCTOPUS;
     } else {
         player.score += 100 + (currentLevel - 1) * 50;
+        playerCoins += COIN_ALIEN;
     }
 
     const flash = new THREE.PointLight(0xff6600, 4, 10);
@@ -1545,13 +1818,91 @@ function checkLevelComplete() {
             showLevelBanner(`LEVEL ${currentLevel} CLEAR!`);
             setTimeout(() => {
                 player.health = Math.min(MAX_HEALTH, player.health + 30);
-                player.ammo = MAX_AMMO;
                 player.reloading = false;
-                initLevel(currentLevel + 1);
-                levelTransition = false;
+                const nxt = currentLevel + 1;
+                if (currentLevel >= 5) {
+                    openShop(nxt);
+                } else {
+                    initLevel(nxt);
+                    levelTransition = false;
+                }
             }, 2000);
         }, 400);
     }
+}
+
+// ─── Shop System ─────────────────────────────────────────────────────────────
+function openShop(nextLevel) {
+    nextLevelAfterShop = nextLevel;
+    shopTimer = SHOP_DURATION;
+    gameState = 'SHOP';
+    document.exitPointerLock();
+    document.getElementById('hud').classList.remove('visible');
+    document.getElementById('gun-hud').style.display = 'none';
+    document.getElementById('shop-overlay').classList.remove('hidden');
+    renderShop();
+}
+
+function closeShop() {
+    document.getElementById('shop-overlay').classList.add('hidden');
+    document.getElementById('hud').classList.add('visible');
+    document.getElementById('gun-hud').style.display = 'block';
+    gameState = 'PLAYING';
+    levelTransition = false;
+    initLevel(nextLevelAfterShop);
+    canvas.requestPointerLock();
+}
+
+function renderShop() {
+    document.getElementById('shop-countdown').textContent = Math.ceil(shopTimer);
+    document.getElementById('shop-coin-count').textContent = playerCoins;
+
+    const grid = document.getElementById('shop-items-grid');
+    grid.innerHTML = '';
+    SHOP_WEAPONS.forEach(sw => {
+        const def = WEAPONS_DEF[sw.id];
+        const invEntry = player.inventory.find(w => w.id === sw.id);
+        const owned = !!invEntry;
+        const canAfford = playerCoins >= sw.cost;
+        const canRefill = owned && invEntry.ammo < def.maxAmmo && playerCoins >= Math.floor(sw.cost * 0.3);
+
+        const el = document.createElement('div');
+        el.className = 'shop-item' + (owned ? ' owned' : '');
+        el.innerHTML = `
+            <div class="shop-item-name">${def.name}</div>
+            <div class="shop-item-cost">${owned ? (canRefill ? `REFILL: ${Math.floor(sw.cost*0.3)} coins` : 'OWNED') : `${sw.cost} coins`}</div>
+            <div class="shop-item-desc">${sw.desc}</div>
+            ${owned ? `<div class="shop-item-ammo">AMMO: ${invEntry.ammo} / ${def.maxAmmo}</div>` : `<div class="shop-item-ammo">Ammo: ${def.maxAmmo}</div>`}
+            ${!owned ? `<button class="shop-buy-btn" ${canAfford ? '' : 'disabled'} onclick="buyWeapon('${sw.id}')">BUY</button>`
+                     : (canRefill ? `<button class="shop-buy-btn refill" onclick="refillWeapon('${sw.id}','${Math.floor(sw.cost*0.3)}')">REFILL</button>` : '')}
+        `;
+        grid.appendChild(el);
+    });
+
+    // Inventory chips
+    const chips = document.getElementById('shop-inv-chips');
+    chips.innerHTML = player.inventory.map(w =>
+        `<span class="inv-chip">${WEAPONS_DEF[w.id]?.name || w.id} (${w.ammo})</span>`
+    ).join('');
+}
+
+function buyWeapon(id) {
+    const sw = SHOP_WEAPONS.find(w => w.id === id);
+    if (!sw || playerCoins < sw.cost) return;
+    playerCoins -= sw.cost;
+    addToInventory(id);
+    renderShop();
+}
+
+function refillWeapon(id, cost) {
+    cost = parseInt(cost);
+    if (playerCoins < cost) return;
+    const def = WEAPONS_DEF[id];
+    const inv = player.inventory.find(w => w.id === id);
+    if (!inv) return;
+    playerCoins -= cost;
+    inv.ammo = def.maxAmmo;
+    renderShop();
 }
 
 // ─── SECTION 5b: Power-up System ─────────────────────────────────────────────
@@ -1727,27 +2078,13 @@ function collectPowerup(p) {
     if (p.type === 'health') {
         player.health = Math.min(MAX_HEALTH, player.health + HEALTH_RESTORE);
         showPickupNotice(`+ ${HEALTH_RESTORE} HEALTH`, 'health');
-    } else if (p.type === 'rocket') {
-        player.weapon = 'rocket';
-        player.rocketAmmo = ROCKET_AMMO;
-        player.reloading = false;
-        document.getElementById('gun-hud').classList.remove('fireball', 'laser');
-        document.getElementById('gun-hud').classList.add('rocket');
-        showPickupNotice('ROCKET LAUNCHER!', 'rocket');
-    } else if (p.type === 'fireball') {
-        player.weapon = 'fireball';
-        player.fireballAmmo = FIREBALL_AMMO;
-        player.reloading = false;
-        document.getElementById('gun-hud').classList.remove('rocket', 'laser');
-        document.getElementById('gun-hud').classList.add('fireball');
-        showPickupNotice('FIREBALL!', 'fireball');
     } else {
-        player.weapon = 'laser';
-        player.laserAmmo = LASER_AMMO;
-        player.reloading = false;
-        document.getElementById('gun-hud').classList.remove('rocket', 'fireball');
-        document.getElementById('gun-hud').classList.add('laser');
-        showPickupNotice('LASER CANNON!', 'laser');
+        const ammoMap = { rocket: ROCKET_AMMO, fireball: FIREBALL_AMMO, laser: LASER_AMMO };
+        addToInventory(p.type, ammoMap[p.type]);
+        // Switch to the picked-up weapon
+        const idx = player.inventory.findIndex(w => w.id === p.type);
+        if (idx >= 0) { player.invIdx = idx; player.reloading = false; syncWeapon(); }
+        showPickupNotice(WEAPONS_DEF[p.type]?.name + '!', p.type);
     }
     updateHUD();
 }
@@ -1766,51 +2103,39 @@ function clearPowerups() {
     powerups = [];
 }
 
-// ─── Fireball Projectile System ───────────────────────────────────────────────
-function fireProjectile() {
-    const group = new THREE.Group();
-    // Core ball
-    const core = new THREE.Mesh(
-        new THREE.SphereGeometry(0.22, 8, 6),
-        new THREE.MeshBasicMaterial({ color: 0xff5500 })
-    );
-    group.add(core);
-    // Halo
-    const halo = new THREE.Mesh(
-        new THREE.SphereGeometry(0.35, 8, 6),
-        new THREE.MeshBasicMaterial({ color: 0xff8800, transparent: true, opacity: 0.35 })
-    );
-    group.add(halo);
-    const light = new THREE.PointLight(0xff4400, 4, 10);
-    group.add(light);
+// ─── Projectile System ────────────────────────────────────────────────────────
+const PROJ_CFG = {
+    fireball: { core: 0xff5500, halo: 0xff8800, light: 0xff4400, speed: FIREBALL_SPEED, dmg: FIREBALL_DAMAGE, splash: FIREBALL_SPLASH_RADIUS },
+    plasma:   { core: 0xaa44ff, halo: 0x8822ff, light: 0x9933ff, speed: 20,             dmg: 70,              splash: 4  },
+    grenade:  { core: 0x557700, halo: 0x88aa44, light: 0x66aa00, speed: 16,             dmg: 120,             splash: 10 },
+};
 
+function fireProjectile(type = 'fireball') {
+    const cfg = PROJ_CFG[type] || PROJ_CFG.fireball;
+    const group = new THREE.Group();
+    group.add(new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 6), new THREE.MeshBasicMaterial({ color: cfg.core })));
+    group.add(Object.assign(new THREE.Mesh(new THREE.SphereGeometry(0.35, 8, 6), new THREE.MeshBasicMaterial({ color: cfg.halo, transparent: true, opacity: 0.35 }))));
+    group.add(new THREE.PointLight(cfg.light, 4, 10));
     const dir = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion).normalize();
     group.position.copy(yawObject.position).addScaledVector(dir, 1.4);
     scene.add(group);
-
-    projectiles.push({
-        mesh: group,
-        velocity: dir.clone().multiplyScalar(FIREBALL_SPEED),
-        dead: false,
-        life: 3.5,
-    });
+    projectiles.push({ mesh: group, velocity: dir.clone().multiplyScalar(cfg.speed), dead: false, life: 3.5, projType: type, dmg: cfg.dmg, splash: cfg.splash, boomCol: cfg.light });
 }
 
-function explodeFireball(proj, hitPos) {
+function explodeProjectile(proj, hitPos) {
     proj.dead = true;
     scene.remove(proj.mesh);
     const ePos = hitPos ? hitPos.clone() : proj.mesh.position.clone();
-
-    const boom = new THREE.PointLight(0xff5500, 10, 18);
+    const boom = new THREE.PointLight(proj.boomCol || 0xff5500, 10, 18);
     boom.position.copy(ePos);
     scene.add(boom);
     setTimeout(() => scene.remove(boom), 280);
-
+    spawnHitParticles(ePos, proj.boomCol || 0xff5500);
     [...enemies].forEach(e => {
         if (e.dead) return;
         const dist = e.mesh.position.distanceTo(ePos);
-        if (dist < FIREBALL_SPLASH_RADIUS) {
-            e.health -= FIREBALL_DAMAGE * (1 - (dist / FIREBALL_SPLASH_RADIUS) * 0.55);
+        if (dist < proj.splash) {
+            e.health -= proj.dmg * (1 - (dist / proj.splash) * 0.55);
             showHitMarker();
             if (e.health <= 0) killEnemy(e);
         }
@@ -1823,26 +2148,17 @@ function updateProjectiles(delta) {
         if (proj.dead) continue;
         proj.life -= delta;
         if (proj.life <= 0) { proj.dead = true; scene.remove(proj.mesh); continue; }
-
         proj.mesh.position.addScaledVector(proj.velocity, delta);
         proj.mesh.rotation.y += delta * 6;
-
-        // Wall/ceiling/floor collision
         const p = proj.mesh.position;
         if (Math.abs(p.x) > ARENA_HALF - 0.5 || Math.abs(p.z) > ARENA_HALF - 0.5 || p.y < 0.3 || p.y > WALL_HEIGHT - 0.5) {
-            explodeFireball(proj);
-            continue;
+            explodeProjectile(proj); continue;
         }
-
-        // Enemy collision
         let hit = false;
         for (const e of enemies) {
             if (e.dead) continue;
-            const hitR = e.isBoss ? 2.8 : 1.3;
-            if (e.mesh.position.distanceTo(p) < hitR) {
-                explodeFireball(proj, e.mesh.position);
-                hit = true;
-                break;
+            if (e.mesh.position.distanceTo(p) < (e.isBoss ? 2.8 : 1.3)) {
+                explodeProjectile(proj, e.mesh.position); hit = true; break;
             }
         }
         if (hit) continue;
@@ -2039,7 +2355,8 @@ function updatePlayer(delta) {
         player.reloadTimer -= delta;
         if (player.reloadTimer <= 0) {
             player.reloading = false;
-            player.ammo = MAX_AMMO;
+            const wep = curWeapon();
+            if (wep) wep.ammo = wep.maxAmmo;
             updateHUD();
         }
     }
@@ -2055,150 +2372,197 @@ function updatePlayer(delta) {
 // ─── SECTION 7: Combat System ─────────────────────────────────────────────────
 const raycaster = new THREE.Raycaster();
 
-function shoot() {
-    const weapon = player.weapon;
-    if (gameState !== 'PLAYING') return;
-    if (weapon === 'pistol'   && (player.ammo <= 0 || player.reloading)) return;
-    if (weapon === 'rocket'   && player.rocketAmmo <= 0) return;
-    if (weapon === 'fireball' && player.fireballAmmo <= 0) return;
-    if (weapon === 'laser'    && player.laserAmmo <= 0) return;
+function buildBeam(startPos, endPos, coreCol, glowCol, dur) {
+    const bd = new THREE.Vector3().subVectors(endPos, startPos);
+    const bl = bd.length();
+    const bn = bd.clone().normalize();
+    const bm = startPos.clone().addScaledVector(bn, bl * 0.5);
+    const up = new THREE.Vector3(0, 1, 0);
+    const mk = (r, col, op) => {
+        const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, bl, 5),
+            new THREE.MeshBasicMaterial({ color: col, transparent: op < 1, opacity: op }));
+        m.position.copy(bm);
+        m.quaternion.setFromUnitVectors(up, bn);
+        scene.add(m);
+        setTimeout(() => scene.remove(m), dur);
+    };
+    mk(0.05, coreCol, 1); mk(0.18, glowCol, 0.18);
+    const lt = new THREE.PointLight(coreCol, 6, 25);
+    lt.position.copy(bm); scene.add(lt);
+    setTimeout(() => scene.remove(lt), dur - 20);
+}
 
-    if (weapon === 'pistol')   player.ammo--;
-    if (weapon === 'rocket')   player.rocketAmmo--;
-    if (weapon === 'fireball') player.fireballAmmo--;
-    if (weapon === 'laser')    player.laserAmmo--;
-
-    const isRocket = weapon === 'rocket';
-    triggerMuzzleFlash(weapon !== 'pistol');
-
-    // Raycast from camera center
-    raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+function spreadRaycast(n, spread, dmg, partCol) {
+    const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion).normalize();
+    const origin = yawObject.position.clone().addScaledVector(fwd, 0.5);
     const targetMap = new Map();
-    enemies.forEach(e => {
-        if (e.dead) return;
-        e.mesh.traverse(obj => targetMap.set(obj, e));
-    });
-    const hits = raycaster.intersectObjects([...targetMap.keys()], false);
-
-    if (weapon === 'fireball') {
-        fireProjectile();
-    } else if (weapon === 'laser') {
-        // Visible laser beam from muzzle to hit point (or max range)
-        const fwdDir = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion).normalize();
-        const startPos = yawObject.position.clone().addScaledVector(fwdDir, 1.0);
-        const endPos = hits.length > 0
-            ? hits[0].point.clone()
-            : startPos.clone().addScaledVector(fwdDir, 80);
-        const beamDir = new THREE.Vector3().subVectors(endPos, startPos);
-        const beamLen = beamDir.length();
-        const beamNorm = beamDir.clone().normalize();
-        const beamMid = startPos.clone().addScaledVector(beamNorm, beamLen * 0.5);
-        // Beam core cylinder
-        const beamMesh = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.05, 0.05, beamLen, 5),
-            new THREE.MeshBasicMaterial({ color: 0x00ffff })
-        );
-        beamMesh.position.copy(beamMid);
-        beamMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), beamNorm);
-        scene.add(beamMesh);
-        // Glow halo
-        const glowMesh = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.18, 0.18, beamLen, 5),
-            new THREE.MeshBasicMaterial({ color: 0x00aaff, transparent: true, opacity: 0.18 })
-        );
-        glowMesh.position.copy(beamMid);
-        glowMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), beamNorm.clone());
-        scene.add(glowMesh);
-        setTimeout(() => { scene.remove(beamMesh); scene.remove(glowMesh); }, 200);
-        // Laser light along beam
-        const laserLight = new THREE.PointLight(0x00ffff, 6, 25);
-        laserLight.position.copy(beamMid);
-        scene.add(laserLight);
-        setTimeout(() => scene.remove(laserLight), 180);
-        // One-shot kill
+    enemies.forEach(e => { if (!e.dead) e.mesh.traverse(o => targetMap.set(o, e)); });
+    const targets = [...targetMap.keys()];
+    for (let i = 0; i < n; i++) {
+        const d = fwd.clone().add(new THREE.Vector3((Math.random()-.5)*spread,(Math.random()-.5)*spread,(Math.random()-.5)*spread)).normalize();
+        const r = new THREE.Raycaster(origin, d);
+        const hits = r.intersectObjects(targets, false);
         if (hits.length > 0) {
-            const hitEnemy = targetMap.get(hits[0].object);
-            if (hitEnemy && !hitEnemy.dead) {
-                spawnHitParticles(hits[0].point, 0x00ffff);
-                showHitMarker();
-                hitEnemy.health = 0;
-                killEnemy(hitEnemy);
-            }
-        }
-    } else if (hits.length > 0) {
-        if (isRocket) {
-            const hitPos = hits[0].point;
-            const boom = new THREE.PointLight(0xff4400, 12, 22);
-            boom.position.copy(hitPos);
-            scene.add(boom);
-            setTimeout(() => scene.remove(boom), 300);
-            spawnHitParticles(hitPos, 0xff6600);
-            [...enemies].forEach(e => {
-                if (e.dead) return;
-                const dist = e.mesh.position.distanceTo(hitPos);
-                if (dist < ROCKET_SPLASH_RADIUS) {
-                    e.health -= ROCKET_DAMAGE * (1 - (dist / ROCKET_SPLASH_RADIUS) * 0.6);
-                    showHitMarker();
-                    if (e.health <= 0) killEnemy(e);
-                }
-            });
-        } else {
-            const hitEnemy = targetMap.get(hits[0].object);
-            if (hitEnemy && !hitEnemy.dead) {
-                hitEnemy.health -= SHOT_DAMAGE;
-                spawnHitParticles(hits[0].point, 0xffee88);
-                showHitMarker();
-                if (hitEnemy.health <= 0) killEnemy(hitEnemy);
+            const e = targetMap.get(hits[0].object);
+            if (e && !e.dead) {
+                e.health -= dmg; spawnHitParticles(hits[0].point, partCol); showHitMarker();
+                if (e.health <= 0) killEnemy(e);
             }
         }
     }
+}
 
-    // Muzzle scene light
-    const lCol = weapon === 'pistol' ? 0xffaa44 : weapon === 'rocket' ? 0xff4400 : weapon === 'laser' ? 0x00ffff : 0xff5500;
-    const lInt = weapon === 'pistol' ? 3 : 7;
-    const lDist = weapon === 'pistol' ? 12 : 22;
-    const lDur  = weapon === 'pistol' ? 60 : 220;
-    const mLight = new THREE.PointLight(lCol, lInt, lDist);
-    const ahead = new THREE.Vector3(0, 0, -2);
-    ahead.applyQuaternion(camera.quaternion);
-    mLight.position.copy(yawObject.position).add(ahead);
-    scene.add(mLight);
-    setTimeout(() => scene.remove(mLight), lDur);
+function shoot() {
+    if (gameState !== 'PLAYING') return;
+    const wep = curWeapon();
+    if (!wep || player.reloading) return;
+    if (wep.ammo <= 0) { startReload(); return; }
 
-    // Post-shot weapon state
-    if (weapon === 'laser' && player.laserAmmo <= 0) {
-        player.weapon = 'pistol';
-        player.ammo = MAX_AMMO;
-        document.getElementById('gun-hud').classList.remove('laser');
-        showPickupNotice('LASER SPENT', 'health');
-    } else if (weapon === 'fireball' && player.fireballAmmo <= 0) {
-        player.weapon = 'pistol';
-        player.ammo = MAX_AMMO;
-        document.getElementById('gun-hud').classList.remove('fireball');
-        showPickupNotice('FIREBALLS SPENT', 'health');
-    } else if (weapon === 'rocket' && player.rocketAmmo <= 0) {
-        player.weapon = 'pistol';
-        player.ammo = MAX_AMMO;
-        document.getElementById('gun-hud').classList.remove('rocket');
-        showPickupNotice('ROCKET EMPTY', 'health');
-    } else if (weapon === 'pistol' && player.ammo <= 0) {
-        startReload();
+    const wid = wep.id;
+    const def = WEAPONS_DEF[wid];
+    wep.ammo--;
+    triggerMuzzleFlash(wid !== 'pistol');
+
+    raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+    const targetMap = new Map();
+    enemies.forEach(e => { if (!e.dead) e.mesh.traverse(o => targetMap.set(o, e)); });
+    const allTargets = [...targetMap.keys()];
+    const hits = raycaster.intersectObjects(allTargets, false);
+    const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion).normalize();
+    const startPos = yawObject.position.clone().addScaledVector(fwd, 1.0);
+
+    switch (wid) {
+        case 'pistol': case 'sniper': {
+            if (hits.length > 0) {
+                const e = targetMap.get(hits[0].object);
+                if (e && !e.dead) {
+                    e.health -= (wid === 'sniper' ? 200 : SHOT_DAMAGE);
+                    spawnHitParticles(hits[0].point, wid === 'sniper' ? 0x88aaff : 0xffee88);
+                    showHitMarker(); if (e.health <= 0) killEnemy(e);
+                }
+            }
+            break;
+        }
+        case 'shotgun': spreadRaycast(6, 0.1, 22, 0xcc9944); break;
+        case 'minigun': spreadRaycast(3, 0.06, 14, 0xffaa00); break;
+        case 'flamethrower': {
+            const fwd2 = new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion).normalize();
+            const orig = yawObject.position.clone().addScaledVector(fwd2, 0.5);
+            for (let i = 0; i < 5; i++) {
+                const d = fwd2.clone().add(new THREE.Vector3((Math.random()-.5)*0.2,(Math.random()-.5)*0.2,(Math.random()-.5)*0.2)).normalize();
+                const r = new THREE.Raycaster(orig, d, 0, 8);
+                const h = r.intersectObjects(allTargets, false);
+                if (h.length > 0) {
+                    const e = targetMap.get(h[0].object);
+                    if (e && !e.dead) { e.health -= 18; spawnHitParticles(h[0].point, 0xff6600); showHitMarker(); if (e.health <= 0) killEnemy(e); }
+                }
+            }
+            break;
+        }
+        case 'rocket': {
+            if (hits.length > 0) {
+                const hp = hits[0].point;
+                const boom = new THREE.PointLight(0xff4400, 12, 22); boom.position.copy(hp); scene.add(boom);
+                setTimeout(() => scene.remove(boom), 300);
+                spawnHitParticles(hp, 0xff6600);
+                [...enemies].forEach(e => {
+                    if (e.dead) return;
+                    const dist = e.mesh.position.distanceTo(hp);
+                    if (dist < ROCKET_SPLASH_RADIUS) { e.health -= ROCKET_DAMAGE*(1-(dist/ROCKET_SPLASH_RADIUS)*0.6); showHitMarker(); if (e.health<=0) killEnemy(e); }
+                });
+            }
+            break;
+        }
+        case 'fireball': fireProjectile('fireball'); break;
+        case 'plasma':   fireProjectile('plasma');   break;
+        case 'grenade':  fireProjectile('grenade');  break;
+        case 'laser': case 'railgun': {
+            const col = wid === 'laser' ? 0x00ffff : 0xffffff;
+            const endPos = hits.length > 0 ? hits[0].point.clone() : startPos.clone().addScaledVector(fwd, 80);
+            buildBeam(startPos, endPos, col, wid === 'laser' ? 0x00aaff : 0xaaaaaa, 200);
+            if (wid === 'laser') {
+                if (hits.length > 0) { const e = targetMap.get(hits[0].object); if (e && !e.dead) { spawnHitParticles(hits[0].point, col); showHitMarker(); e.health = 0; killEnemy(e); } }
+            } else {
+                // Railgun: pierce all enemies in line
+                const allHits = raycaster.intersectObjects(allTargets, false);
+                const seen = new Set();
+                allHits.forEach(h => { const e = targetMap.get(h.object); if (e && !e.dead && !seen.has(e)) { seen.add(e); e.health -= 250; spawnHitParticles(h.point, col); showHitMarker(); if (e.health<=0) killEnemy(e); } });
+            }
+            break;
+        }
+        case 'frost': {
+            if (hits.length > 0) {
+                const e = targetMap.get(hits[0].object);
+                if (e && !e.dead) {
+                    e.health -= 45; if (!e.baseSpeed) e.baseSpeed = e.speed;
+                    e.slowTimer = 3.0; e.speed = e.baseSpeed * 0.3;
+                    spawnHitParticles(hits[0].point, 0x44ddff); showHitMarker(); if (e.health<=0) killEnemy(e);
+                }
+            }
+            break;
+        }
+        case 'lightning': {
+            if (hits.length > 0) {
+                const primary = targetMap.get(hits[0].object);
+                if (primary && !primary.dead) {
+                    primary.health -= 55; spawnHitParticles(hits[0].point, 0xffff44); showHitMarker(); if (primary.health<=0) killEnemy(primary);
+                    let chains = 0;
+                    [...enemies].forEach(e => { if (e.dead || e === primary || chains >= 2) return; if (e.mesh.position.distanceTo(primary.mesh.position) < 10) { chains++; e.health -= 40; spawnHitParticles(e.mesh.position, 0xffff44); if (e.health<=0) killEnemy(e); } });
+                }
+            }
+            break;
+        }
+        case 'blackhole': {
+            const bhPos = yawObject.position.clone().addScaledVector(fwd, 10);
+            const bhl = new THREE.PointLight(0xcc44ff, 10, 20); bhl.position.copy(bhPos); scene.add(bhl);
+            setTimeout(() => scene.remove(bhl), 400);
+            [...enemies].forEach(e => {
+                if (e.dead) return;
+                const dist = e.mesh.position.distanceTo(bhPos);
+                if (dist < 15) {
+                    e.health -= 35;
+                    const pull = new THREE.Vector3().subVectors(bhPos, e.mesh.position).normalize();
+                    e.mesh.position.addScaledVector(pull, Math.min(dist * 0.5, 6));
+                    e.mesh.position.x = Math.max(-ARENA_HALF+1, Math.min(ARENA_HALF-1, e.mesh.position.x));
+                    e.mesh.position.z = Math.max(-ARENA_HALF+1, Math.min(ARENA_HALF-1, e.mesh.position.z));
+                    spawnHitParticles(e.mesh.position, 0xcc44ff); showHitMarker(); if (e.health<=0) killEnemy(e);
+                }
+            });
+            break;
+        }
+    }
+
+    // Muzzle light
+    const ml = new THREE.PointLight(def.mCol, wid === 'pistol' ? 3 : 7, wid === 'pistol' ? 12 : 22);
+    ml.position.copy(yawObject.position).addScaledVector(fwd, 2); scene.add(ml);
+    setTimeout(() => scene.remove(ml), wid === 'pistol' ? 60 : 220);
+
+    // Post-shot state
+    if (wep.ammo <= 0) {
+        if (!SHOP_WEAPON_IDS.has(wid)) {
+            // Remove pickup weapon from inventory when empty
+            player.inventory.splice(player.invIdx, 1);
+            if (player.invIdx >= player.inventory.length) player.invIdx = 0;
+            syncWeapon();
+            showPickupNotice(def.name + ' EMPTY', 'health');
+        } else {
+            startReload();
+        }
     }
 
     // Gun kick
     const gunEl = document.getElementById('gun-hud');
-    gunEl.classList.remove('shooting');
-    void gunEl.offsetWidth;
-    gunEl.classList.add('shooting');
-    setTimeout(() => gunEl.classList.remove('shooting'), weapon === 'pistol' ? 150 : 260);
-
+    gunEl.classList.remove('shooting'); void gunEl.offsetWidth; gunEl.classList.add('shooting');
+    setTimeout(() => gunEl.classList.remove('shooting'), wid === 'pistol' ? 150 : 260);
     updateHUD();
 }
 
 function startReload() {
-    if (player.weapon !== 'pistol' || player.reloading || player.ammo === MAX_AMMO) return;
+    const wep = curWeapon();
+    const def = wep ? WEAPONS_DEF[wep.id] : null;
+    if (!wep || !def || def.reload === 0 || player.reloading || wep.ammo === wep.maxAmmo) return;
     player.reloading = true;
-    player.reloadTimer = RELOAD_TIME;
+    player.reloadTimer = def.reload;
     document.getElementById('ammo-display').textContent = 'RELOADING...';
 }
 
@@ -2233,34 +2597,28 @@ function updateHUD() {
     document.getElementById('health-bar-fill').style.background = `hsl(${pct * 1.2}, 80%, 45%)`;
     document.getElementById('health-value').textContent = Math.ceil(player.health);
 
-    // Weapon-specific ammo display
+    // Weapon / ammo display from inventory
+    const wep = curWeapon();
+    const def = wep ? WEAPONS_DEF[wep.id] : WEAPONS_DEF.pistol;
     const weaponEl = document.getElementById('weapon-display');
-    if (player.weapon === 'rocket') {
-        weaponEl.textContent = 'ROCKET LAUNCHER';
-        weaponEl.className = 'rocket';
-        document.getElementById('ammo-label').textContent = 'ROCKETS';
-        document.getElementById('ammo-display').textContent = `${player.rocketAmmo} / ${ROCKET_AMMO}`;
-    } else if (player.weapon === 'fireball') {
-        weaponEl.textContent = 'FIREBALL';
-        weaponEl.className = 'fireball';
-        document.getElementById('ammo-label').textContent = 'FIREBALLS';
-        document.getElementById('ammo-display').textContent = `${player.fireballAmmo} / ${FIREBALL_AMMO}`;
-    } else if (player.weapon === 'laser') {
-        weaponEl.textContent = 'LASER CANNON';
-        weaponEl.className = 'laser';
-        document.getElementById('ammo-label').textContent = 'SHOTS';
-        document.getElementById('ammo-display').textContent = `${player.laserAmmo} / ${LASER_AMMO}`;
-    } else {
-        weaponEl.textContent = 'PISTOL';
-        weaponEl.className = '';
-        document.getElementById('ammo-label').textContent = 'AMMO';
-        if (!player.reloading) {
-            document.getElementById('ammo-display').textContent = `${player.ammo} / ${MAX_AMMO}`;
-        }
+    weaponEl.textContent = def.name;
+    weaponEl.className = def.css || '';
+    document.getElementById('ammo-label').textContent = 'AMMO';
+    if (!player.reloading) {
+        document.getElementById('ammo-display').textContent = wep ? `${wep.ammo} / ${wep.maxAmmo}` : '—';
     }
 
     document.getElementById('score-display').textContent = `SCORE: ${player.score.toLocaleString()}`;
     document.getElementById('level-display').textContent = `LEVEL ${currentLevel}`;
+    document.getElementById('coin-display').textContent = `⬤ ${playerCoins} COINS`;
+
+    // Inventory bar
+    const bar = document.getElementById('inventory-bar');
+    if (bar) {
+        bar.innerHTML = player.inventory.map((w, i) =>
+            `<div class="inv-slot${i === player.invIdx ? ' active' : ''}">${WEAPONS_DEF[w.id]?.name || w.id} [${w.ammo}]</div>`
+        ).join('');
+    }
 
     // Low health vignette
     const v = document.getElementById('damage-vignette');
@@ -2298,26 +2656,26 @@ function startGame() {
 
     // Reset player
     player.health = MAX_HEALTH;
-    player.ammo = MAX_AMMO;
     player.reloading = false;
     player.reloadTimer = 0;
     player.score = 0;
     player.weapon = 'pistol';
-    player.rocketAmmo = 0;
-    player.fireballAmmo = 0;
-    player.laserAmmo = 0;
     player.velocityY = 0;
     player.isGrounded = true;
     player.sprint = SPRINT_MAX;
     player.sprinting = false;
+    player.inventory = [{ id: 'pistol', ammo: MAX_AMMO, maxAmmo: MAX_AMMO }];
+    player.invIdx = 0;
+    playerCoins = 0;
 
     clearPowerups();
     projectiles.forEach(p => scene.remove(p.mesh));
     projectiles = [];
     hitParticles.forEach(p => scene.remove(p.mesh));
     hitParticles = [];
-    document.getElementById('gun-hud').classList.remove('rocket', 'fireball', 'laser');
+    ALL_CSS_CLASSES.forEach(c => document.getElementById('gun-hud').classList.remove(c));
     document.getElementById('boss-bar').classList.add('hidden');
+    document.getElementById('shop-overlay').classList.add('hidden');
 
     // Reset position
     yawObject.position.set(0, PLAYER_HEIGHT, 0);
@@ -2379,8 +2737,9 @@ function triggerGameOver() {
     projectiles = [];
     hitParticles.forEach(p => scene.remove(p.mesh));
     hitParticles = [];
-    document.getElementById('gun-hud').classList.remove('rocket', 'fireball', 'laser');
+    ALL_CSS_CLASSES.forEach(c => document.getElementById('gun-hud').classList.remove(c));
     document.getElementById('boss-bar').classList.add('hidden');
+    document.getElementById('shop-overlay').classList.add('hidden');
 
     saveScore(playerName, player.score, currentLevel);
 }
@@ -2405,6 +2764,7 @@ document.addEventListener('keydown', e => {
         case 'KeyS': keys.s = true; break;
         case 'KeyD': keys.d = true; break;
         case 'ShiftLeft': case 'ShiftRight': keys.shift = true; break;
+        case 'Tab': switchWeapon(1); e.preventDefault(); break;
         case 'KeyR': startReload(); break;
         case 'Space':
             if (player.isGrounded) {
@@ -2470,6 +2830,7 @@ window.addEventListener('resize', () => {
 document.getElementById('start-btn').addEventListener('click', startGame);
 document.getElementById('restart-btn').addEventListener('click', restartGame);
 document.getElementById('menu-btn').addEventListener('click', returnToMenu);
+document.getElementById('shop-ready-btn').addEventListener('click', closeShop);
 
 // ─── Minimap ─────────────────────────────────────────────────────────────────
 function drawMinimap() {
@@ -2550,9 +2911,16 @@ function mainLoop(ts) {
         updateProjectiles(delta);
         updateHitParticles(delta);
         drawMinimap();
+    } else if (gameState === 'SHOP') {
+        const delta = Math.min((ts - lastTime) / 1000, 0.05);
+        lastTime = ts;
+        shopTimer -= delta;
+        const cdEl = document.getElementById('shop-countdown');
+        if (cdEl) cdEl.textContent = Math.max(0, Math.ceil(shopTimer));
+        if (shopTimer <= 0) closeShop();
+        yawObject.rotation.y += 0.0003;
     } else {
         lastTime = ts;
-        // Slow arena rotation for menu atmosphere
         yawObject.rotation.y += 0.0003;
     }
 
