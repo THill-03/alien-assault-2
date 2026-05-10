@@ -30,9 +30,71 @@ body {
     justify-content: center;
     background: rgba(5, 5, 16, 0.92);
     z-index: 100;
+    overflow-y: auto;
+    padding: 1.5rem 0;
 }
 
 .overlay.hidden { display: none; }
+
+/* ─── Name input ────────────────────────────────────────────── */
+#name-section { margin-bottom: 1.2rem; text-align: center; }
+#name-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    color: #6688aa;
+    margin-bottom: 0.5rem;
+}
+#player-name-input {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid #22ff44;
+    color: #22ff44;
+    font-family: 'Courier New', monospace;
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-align: center;
+    outline: none;
+    padding: 0.25em 0.6em;
+    width: 220px;
+    text-transform: uppercase;
+    caret-color: #22ff44;
+}
+#player-name-input::placeholder { color: #2a5535; }
+
+/* ─── Scoreboard ────────────────────────────────────────────── */
+#scoreboard-section {
+    width: min(420px, 90vw);
+    margin-top: 1rem;
+    border: 1px solid #1a2a3a;
+    padding: 0.7rem 1.2rem 0.9rem;
+    background: rgba(0, 8, 18, 0.65);
+}
+#scoreboard-title {
+    font-size: 0.6rem;
+    letter-spacing: 0.35em;
+    color: #445566;
+    text-align: center;
+    margin-bottom: 0.6rem;
+}
+.sb-row {
+    display: grid;
+    grid-template-columns: 1.6rem 1fr auto auto;
+    gap: 0 0.7rem;
+    padding: 0.22rem 0;
+    font-size: 0.78rem;
+    border-bottom: 1px solid #0e1a24;
+    align-items: baseline;
+}
+.sb-row:last-child { border-bottom: none; }
+.sb-rank  { color: #445566; font-size: 0.68rem; }
+.sb-name  { color: #a8dadc; font-weight: 700; letter-spacing: 0.08em; }
+.sb-score { color: #22ff44; letter-spacing: 0.05em; }
+.sb-level { color: #445566; font-size: 0.65rem; }
+.sb-row:nth-child(1) .sb-rank { color: #ffcc00; }
+.sb-row:nth-child(2) .sb-rank { color: #aaaaaa; }
+.sb-row:nth-child(3) .sb-rank { color: #cc7733; }
+.sb-empty { color: #2a3a4a; text-align: center; font-size: 0.75rem; letter-spacing: 0.2em; padding: 0.6rem 0; }
 
 .game-title {
     font-size: clamp(2.5rem, 6vw, 5rem);
@@ -285,12 +347,12 @@ body {
 #gun-hud {
     position: fixed;
     bottom: 0;
-    right: 0;
+    left: calc(50% - 140px);
     width: 280px;
     height: 200px;
     pointer-events: none;
     z-index: 11;
-    transform-origin: bottom right;
+    transform-origin: bottom center;
 }
 
 #gun-hud.walking {
@@ -432,7 +494,8 @@ body {
     text-align: right;
     margin-bottom: 3px;
 }
-#weapon-display.rocket { color: #ff8833; text-shadow: 0 0 8px #ff883366; }
+#weapon-display.rocket   { color: #ff8833; text-shadow: 0 0 8px #ff883366; }
+#weapon-display.fireball { color: #ff5500; text-shadow: 0 0 8px #ff550066; }
 
 /* ─── Pickup notification ───────────────────────────────────── */
 #pickup-notice {
@@ -450,8 +513,9 @@ body {
     text-shadow: 0 0 20px currentColor;
 }
 #pickup-notice.show { opacity: 1; }
-#pickup-notice.health { color: #22ff44; }
-#pickup-notice.rocket { color: #ff8833; }
+#pickup-notice.health   { color: #22ff44; }
+#pickup-notice.rocket   { color: #ff8833; }
+#pickup-notice.fireball { color: #ff5500; }
 
 /* ─── Rocket gun overlay ────────────────────────────────────── */
 #gun-hud.rocket #gun-barrel {
@@ -471,6 +535,22 @@ body {
     width: 32px; height: 44px;
 }
 #gun-hud.rocket #gun-barrel::before { background: #220800; }
+
+/* ─── Fireball gun overlay ──────────────────────────────────── */
+#gun-hud.fireball #gun-barrel {
+    background: linear-gradient(to right, #1a0800, #440e00, #220400);
+    box-shadow: 0 0 18px #ff440055;
+}
+#gun-hud.fireball #gun-body {
+    background: linear-gradient(to bottom, #3a0800, #220300);
+    box-shadow: inset 0 2px 4px rgba(255,100,0,0.12), 0 0 18px #ff440033;
+}
+#gun-hud.fireball #gun-body::after { background: linear-gradient(to right, #ff440033, transparent); }
+#gun-hud.fireball #gun-muzzle-flash {
+    background: radial-gradient(ellipse, #ffffff 0%, #ffaa00 25%, #ff4400 55%, transparent 85%);
+    width: 30px; height: 40px;
+}
+#gun-hud.fireball #gun-barrel::before { background: #1a0300; }
 
 /* ─── Pointer lock notice ───────────────────────────────────── */
 #lock-notice {
@@ -502,16 +582,28 @@ body {
 <div id="menu-overlay" class="overlay">
     <div class="game-title">ALIEN ASSAULT</div>
     <div class="subtitle">First Person Shooter</div>
+
+    <div id="name-section">
+        <div id="name-label">ENTER YOUR NAME</div>
+        <input type="text" id="player-name-input" placeholder="COMMANDER" maxlength="16" autocomplete="off" spellcheck="false">
+    </div>
+
     <div class="controls-grid">
         <span class="key">WASD</span><span class="desc">Move</span>
-        <span class="key">MOUSE</span><span class="desc">Look around</span>
+        <span class="key">SPACE</span><span class="desc">Jump</span>
         <span class="key">LEFT CLICK</span><span class="desc">Shoot</span>
         <span class="key">R</span><span class="desc">Reload</span>
         <span class="key">GREEN ORB</span><span class="desc">Health pack (+35 HP)</span>
         <span class="key">ORANGE ORB</span><span class="desc">Rocket launcher (5 shots)</span>
+        <span class="key">RED ORB</span><span class="desc">Fireball (3 shots)</span>
         <span class="key">LEVEL 3, 6, 9...</span><span class="desc">Boss wave</span>
     </div>
     <button class="btn" id="start-btn">START GAME</button>
+
+    <div id="scoreboard-section">
+        <div id="scoreboard-title">TOP SCORES</div>
+        <div id="scoreboard"><div class="sb-empty">NO SCORES YET</div></div>
+    </div>
 </div>
 
 <!-- ─── Game Over Overlay ─── -->
@@ -589,6 +681,12 @@ const ROCKET_AMMO = 5;
 const ROCKET_DAMAGE = 130;
 const ROCKET_SPLASH_RADIUS = 8;
 const HEALTH_RESTORE = 35;
+const FIREBALL_AMMO = 3;
+const FIREBALL_DAMAGE = 80;
+const FIREBALL_SPLASH_RADIUS = 5;
+const FIREBALL_SPEED = 22;
+const JUMP_FORCE = 8.5;
+const GRAVITY = -22;
 
 const LEVEL_CONFIG = [
     { enemies: 5,  speedBase: 2.5, healthBase: 50  },
@@ -806,9 +904,15 @@ const player = {
     reloading: false,
     reloadTimer: 0,
     score: 0,
-    weapon: 'pistol',   // 'pistol' | 'rocket'
+    weapon: 'pistol',   // 'pistol' | 'rocket' | 'fireball'
     rocketAmmo: 0,
+    fireballAmmo: 0,
+    velocityY: 0,
+    isGrounded: true,
 };
+
+let playerName = 'PLAYER';
+let projectiles = [];
 
 const keys = { w: false, a: false, s: false, d: false };
 
@@ -988,75 +1092,73 @@ function createOctopus(x, z, level) {
     eyeLight.position.set(0, -0.04, 0.6);
     headMesh.add(eyeLight);
 
-    // ── Tentacles — 8 legs arranged in a circle ──
-    const tMats = [
-        new THREE.MeshLambertMaterial({ color: 0x4a0e99 }),
-        new THREE.MeshLambertMaterial({ color: 0x3a0b77 }),
-        new THREE.MeshLambertMaterial({ color: 0x290855 }),
-    ];
+    // ── Tentacles — 8 legs that reach and walk along the floor ──
+    const tMat0 = new THREE.MeshLambertMaterial({ color: 0x4a0e99 });
+    const tMat1 = new THREE.MeshLambertMaterial({ color: 0x3a0b77 });
+    const tMat2 = new THREE.MeshLambertMaterial({ color: 0x290855 });
     const suctionMat = new THREE.MeshBasicMaterial({ color: 0xcc88ff });
 
     const tentaclePivots = [];
     for (let i = 0; i < 8; i++) {
         const angle = (i / 8) * Math.PI * 2;
-        const spreadX = Math.sin(angle) * 0.42;
-        const spreadZ = Math.cos(angle) * 0.42;
+        const spreadX = Math.sin(angle) * 0.48;
+        const spreadZ = Math.cos(angle) * 0.48;
 
-        // Base pivot — attached at underside of head, splayed outward
+        // Base pivot — splayed sharply outward (like a spider leg)
         const basePivot = new THREE.Object3D();
-        basePivot.position.set(spreadX, -0.52, spreadZ);
-        basePivot.rotation.x = Math.cos(angle) * 0.45;
-        basePivot.rotation.z = Math.sin(angle) * 0.45;
-        const baseRotX = basePivot.rotation.x;
-        const baseRotZ = basePivot.rotation.z;
+        basePivot.position.set(spreadX, -0.32, spreadZ);
+        // ~1.0 rad from vertical: leg goes out then S-curves back down
+        const baseRotX = Math.cos(angle) * 1.0;
+        const baseRotZ = Math.sin(angle) * 1.0;
+        basePivot.rotation.x = baseRotX;
+        basePivot.rotation.z = baseRotZ;
         root.add(basePivot);
 
-        // Segment 1 — thickest
+        // Segment 1 — thick, goes outward-upward (first leg of S)
         const seg1 = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.07, 0.11, 0.46, 7), tMats[0]
+            new THREE.CylinderGeometry(0.08, 0.13, 0.55, 7), tMat0
         );
-        seg1.position.y = -0.23;
+        seg1.position.y = -0.275;
         basePivot.add(seg1);
 
-        // Suction on seg1
-        const suc1 = new THREE.Mesh(new THREE.SphereGeometry(0.04, 5, 4), suctionMat);
-        suc1.position.set(0, -0.1, 0.1);
+        const suc1 = new THREE.Mesh(new THREE.SphereGeometry(0.045, 5, 4), suctionMat);
+        suc1.position.set(0, -0.12, 0.12);
         seg1.add(suc1);
 
-        // Mid pivot
+        // Mid pivot — sharp bend back toward ground (creates the S-curve)
         const midPivot = new THREE.Object3D();
-        midPivot.position.y = -0.46;
-        midPivot.rotation.x = 0.35;
+        midPivot.position.y = -0.55;
+        midPivot.rotation.x = -0.85; // reverses outward angle, curves back down
         basePivot.add(midPivot);
 
-        // Segment 2
+        // Segment 2 — medium, now heading mostly downward
         const seg2 = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.045, 0.07, 0.4, 7), tMats[1]
+            new THREE.CylinderGeometry(0.05, 0.08, 0.48, 7), tMat1
         );
-        seg2.position.y = -0.2;
+        seg2.position.y = -0.24;
         midPivot.add(seg2);
 
-        const suc2 = new THREE.Mesh(new THREE.SphereGeometry(0.03, 5, 4), suctionMat);
-        suc2.position.set(0, -0.1, 0.08);
+        const suc2 = new THREE.Mesh(new THREE.SphereGeometry(0.035, 5, 4), suctionMat);
+        suc2.position.set(0, -0.12, 0.09);
         seg2.add(suc2);
 
-        // Tip pivot
+        // Tip pivot — slight additional curl toward floor
         const tipPivot = new THREE.Object3D();
-        tipPivot.position.y = -0.4;
-        tipPivot.rotation.x = 0.55;
+        tipPivot.position.y = -0.48;
+        tipPivot.rotation.x = -0.3;
         midPivot.add(tipPivot);
 
-        // Segment 3 — tapering to a point
+        // Segment 3 — thin, nearly vertical to floor
         const seg3 = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.01, 0.044, 0.36, 6), tMats[2]
+            new THREE.CylinderGeometry(0.015, 0.05, 0.38, 6), tMat2
         );
-        seg3.position.y = -0.18;
+        seg3.position.y = -0.19;
         tipPivot.add(seg3);
 
         tentaclePivots.push({ base: basePivot, mid: midPivot, tip: tipPivot, baseRotX, baseRotZ });
     }
 
-    root.position.set(x, 1.85, z);
+    root.position.set(x, 1.45, z);
     scene.add(root);
 
     return {
@@ -1130,15 +1232,20 @@ function updateEnemies(delta, time) {
         // Per-type animation
         const t = time + e.animOffset;
         if (e.type === 'octopus') {
-            // Float and bob
-            e.mesh.position.y = 1.85 + Math.sin(t * 1.7) * 0.2;
-            // Ripple tentacles
+            // Very slight body bob — mostly stationary height since tentacles walk
+            e.mesh.position.y = 1.45 + Math.sin(t * 1.2) * 0.04;
+            // Creepy alternating-leg crawl: pairs (0+4, 1+5, 2+6, 3+7) alternate
             e.tentaclePivots.forEach((tp, idx) => {
-                const phase = t * 2.4 + idx * 0.78;
-                tp.base.rotation.x = tp.baseRotX + Math.sin(phase) * 0.2;
-                tp.base.rotation.z = tp.baseRotZ + Math.cos(phase) * 0.2;
-                tp.mid.rotation.x  = 0.35 + Math.sin(phase + 0.7) * 0.25;
-                tp.tip.rotation.x  = 0.55 + Math.cos(phase + 1.4) * 0.18;
+                // Opposite tentacles share a phase (idx % 4 groups pairs)
+                const phase = t * 2.6 + (idx % 4) * (Math.PI / 2);
+                const lift = Math.max(0, Math.sin(phase)) * 0.4;
+                // Raise the base outward during step, plant during stance
+                tp.base.rotation.x = tp.baseRotX - lift * 0.55;
+                tp.base.rotation.z = tp.baseRotZ - (idx < 4 ? 1 : -1) * lift * 0.25;
+                // Mid joint: less S-curve when lifted, more when planted
+                tp.mid.rotation.x = -0.85 + lift * 0.7;
+                // Tip drags slightly behind during lift
+                tp.tip.rotation.x = -0.3 + Math.sin(phase + 0.9) * 0.22;
             });
         } else {
             // Walk bob
@@ -1233,6 +1340,31 @@ function createHealthPackMesh() {
     return group;
 }
 
+function createFireballPackMesh() {
+    const group = new THREE.Group();
+    // Core — bright orange sphere
+    const core = new THREE.Mesh(
+        new THREE.SphereGeometry(0.38, 10, 8),
+        new THREE.MeshBasicMaterial({ color: 0xff4400 })
+    );
+    group.add(core);
+    // Outer flame halo
+    const halo = new THREE.Mesh(
+        new THREE.SphereGeometry(0.52, 10, 8),
+        new THREE.MeshBasicMaterial({ color: 0xff8800, transparent: true, opacity: 0.4 })
+    );
+    group.add(halo);
+    // Bright inner spot
+    const spot = new THREE.Mesh(
+        new THREE.SphereGeometry(0.18, 8, 6),
+        new THREE.MeshBasicMaterial({ color: 0xffff88 })
+    );
+    group.add(spot);
+    const light = new THREE.PointLight(0xff4400, 2.0, 8);
+    group.add(light);
+    return group;
+}
+
 function createRocketPackMesh() {
     const group = new THREE.Group();
     // Tube body
@@ -1264,23 +1396,31 @@ function createRocketPackMesh() {
 }
 
 function spawnPowerup(type, x, z) {
-    const mesh = type === 'health' ? createHealthPackMesh() : createRocketPackMesh();
+    const mesh = type === 'health' ? createHealthPackMesh()
+               : type === 'rocket' ? createRocketPackMesh()
+               : createFireballPackMesh();
     mesh.position.set(x, 1.3, z);
     scene.add(mesh);
     powerups.push({ mesh, type, dead: false, baseY: 1.3 });
 }
 
 function spawnLevelPowerups(level) {
-    // Always 1 health pack, position away from arena center
     const angle1 = Math.random() * Math.PI * 2;
     const r1 = 8 + Math.random() * 10;
     spawnPowerup('health', Math.cos(angle1) * r1, Math.sin(angle1) * r1);
 
-    // Rocket launcher every 2nd level
+    // Rocket every even level
     if (level % 2 === 0) {
         const angle2 = angle1 + Math.PI + (Math.random() - 0.5);
         const r2 = 8 + Math.random() * 10;
         spawnPowerup('rocket', Math.cos(angle2) * r2, Math.sin(angle2) * r2);
+    }
+
+    // Fireball every level that is 1 past a boss level (4, 7, 10…)
+    if (level >= 4 && (level - 1) % 3 === 0) {
+        const angle3 = angle1 + Math.PI * 0.5 + (Math.random() - 0.5) * 0.8;
+        const r3 = 8 + Math.random() * 10;
+        spawnPowerup('fireball', Math.cos(angle3) * r3, Math.sin(angle3) * r3);
     }
 }
 
@@ -1310,12 +1450,20 @@ function collectPowerup(p) {
     if (p.type === 'health') {
         player.health = Math.min(MAX_HEALTH, player.health + HEALTH_RESTORE);
         showPickupNotice(`+ ${HEALTH_RESTORE} HEALTH`, 'health');
-    } else {
+    } else if (p.type === 'rocket') {
         player.weapon = 'rocket';
         player.rocketAmmo = ROCKET_AMMO;
         player.reloading = false;
+        document.getElementById('gun-hud').classList.remove('fireball');
         document.getElementById('gun-hud').classList.add('rocket');
         showPickupNotice('ROCKET LAUNCHER!', 'rocket');
+    } else {
+        player.weapon = 'fireball';
+        player.fireballAmmo = FIREBALL_AMMO;
+        player.reloading = false;
+        document.getElementById('gun-hud').classList.remove('rocket');
+        document.getElementById('gun-hud').classList.add('fireball');
+        showPickupNotice('FIREBALL!', 'fireball');
     }
     updateHUD();
 }
@@ -1332,6 +1480,123 @@ function showPickupNotice(text, type) {
 function clearPowerups() {
     powerups.forEach(p => scene.remove(p.mesh));
     powerups = [];
+}
+
+// ─── Fireball Projectile System ───────────────────────────────────────────────
+function fireProjectile() {
+    const group = new THREE.Group();
+    // Core ball
+    const core = new THREE.Mesh(
+        new THREE.SphereGeometry(0.22, 8, 6),
+        new THREE.MeshBasicMaterial({ color: 0xff5500 })
+    );
+    group.add(core);
+    // Halo
+    const halo = new THREE.Mesh(
+        new THREE.SphereGeometry(0.35, 8, 6),
+        new THREE.MeshBasicMaterial({ color: 0xff8800, transparent: true, opacity: 0.35 })
+    );
+    group.add(halo);
+    const light = new THREE.PointLight(0xff4400, 4, 10);
+    group.add(light);
+
+    const dir = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion).normalize();
+    group.position.copy(yawObject.position).addScaledVector(dir, 1.4);
+    scene.add(group);
+
+    projectiles.push({
+        mesh: group,
+        velocity: dir.clone().multiplyScalar(FIREBALL_SPEED),
+        dead: false,
+        life: 3.5,
+    });
+}
+
+function explodeFireball(proj, hitPos) {
+    proj.dead = true;
+    scene.remove(proj.mesh);
+    const ePos = hitPos ? hitPos.clone() : proj.mesh.position.clone();
+
+    const boom = new THREE.PointLight(0xff5500, 10, 18);
+    boom.position.copy(ePos);
+    scene.add(boom);
+    setTimeout(() => scene.remove(boom), 280);
+
+    [...enemies].forEach(e => {
+        if (e.dead) return;
+        const dist = e.mesh.position.distanceTo(ePos);
+        if (dist < FIREBALL_SPLASH_RADIUS) {
+            e.health -= FIREBALL_DAMAGE * (1 - (dist / FIREBALL_SPLASH_RADIUS) * 0.55);
+            showHitMarker();
+            if (e.health <= 0) killEnemy(e);
+        }
+    });
+}
+
+function updateProjectiles(delta) {
+    for (let i = projectiles.length - 1; i >= 0; i--) {
+        const proj = projectiles[i];
+        if (proj.dead) continue;
+        proj.life -= delta;
+        if (proj.life <= 0) { proj.dead = true; scene.remove(proj.mesh); continue; }
+
+        proj.mesh.position.addScaledVector(proj.velocity, delta);
+        proj.mesh.rotation.y += delta * 6;
+
+        // Wall/ceiling/floor collision
+        const p = proj.mesh.position;
+        if (Math.abs(p.x) > ARENA_HALF - 0.5 || Math.abs(p.z) > ARENA_HALF - 0.5 || p.y < 0.3 || p.y > WALL_HEIGHT - 0.5) {
+            explodeFireball(proj);
+            continue;
+        }
+
+        // Enemy collision
+        let hit = false;
+        for (const e of enemies) {
+            if (e.dead) continue;
+            const hitR = e.isBoss ? 2.8 : 1.3;
+            if (e.mesh.position.distanceTo(p) < hitR) {
+                explodeFireball(proj, e.mesh.position);
+                hit = true;
+                break;
+            }
+        }
+        if (hit) continue;
+    }
+    projectiles = projectiles.filter(proj => !proj.dead);
+}
+
+// ─── Score / Leaderboard ──────────────────────────────────────────────────────
+function loadScores() {
+    try { return JSON.parse(localStorage.getItem('alienAssaultScores') || '[]'); }
+    catch { return []; }
+}
+
+function saveScore(name, score, level) {
+    const scores = loadScores();
+    scores.push({ name: name || 'PLAYER', score, level });
+    scores.sort((a, b) => b.score - a.score);
+    scores.splice(10);
+    localStorage.setItem('alienAssaultScores', JSON.stringify(scores));
+    renderScoreboard();
+}
+
+function renderScoreboard() {
+    const scores = loadScores();
+    const el = document.getElementById('scoreboard');
+    if (!el) return;
+    if (scores.length === 0) {
+        el.innerHTML = '<div class="sb-empty">NO SCORES YET — BE THE FIRST!</div>';
+        return;
+    }
+    el.innerHTML = scores.map((s, i) =>
+        `<div class="sb-row">
+            <span class="sb-rank">${i + 1}</span>
+            <span class="sb-name">${s.name.toUpperCase()}</span>
+            <span class="sb-score">${s.score.toLocaleString()}</span>
+            <span class="sb-level">LVL ${s.level}</span>
+        </div>`
+    ).join('');
 }
 
 // ─── SECTION 5c: Boss System ──────────────────────────────────────────────────
@@ -1351,14 +1616,6 @@ function createBoss(level) {
         const pl = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.9, 0.15), plateMat);
         pl.position.set(x, y, z);
         body.add(pl);
-    });
-
-    // Shoulders
-    const sMat = new THREE.MeshLambertMaterial({ color: 0x440008 });
-    [-1.55, 1.55].forEach(sx => {
-        const s = new THREE.Mesh(new THREE.SphereGeometry(0.65, 8, 6), sMat);
-        s.position.set(sx, 1.3, 0);
-        body.add(s);
     });
 
     // Head
@@ -1392,12 +1649,12 @@ function createBoss(level) {
     eyeLight.position.set(0, 2.8, 1.2);
     body.add(eyeLight);
 
-    // Arms
+    // Arms — attached directly to body sides, no shoulder joints
     const armMat = new THREE.MeshLambertMaterial({ color: 0x770011 });
-    [-1.6, 1.6].forEach(ax => {
-        const arm = new THREE.Mesh(new THREE.BoxGeometry(0.55, 2.8, 0.55), armMat);
-        arm.position.set(ax, 0.2, 0);
-        arm.rotation.z = ax < 0 ? 0.2 : -0.2;
+    [-1.25, 1.25].forEach(ax => {
+        const arm = new THREE.Mesh(new THREE.BoxGeometry(0.55, 2.9, 0.55), armMat);
+        arm.position.set(ax, 0.3, 0);
+        arm.rotation.z = ax < 0 ? 0.18 : -0.18;
         body.add(arm);
     });
 
@@ -1420,8 +1677,9 @@ function createBoss(level) {
 // ─── SECTION 6: Player Controller ────────────────────────────────────────────
 function updatePlayer(delta) {
     const moving = keys.w || keys.a || keys.s || keys.d;
-    document.getElementById('gun-hud').classList.toggle('walking', moving);
+    document.getElementById('gun-hud').classList.toggle('walking', moving && player.isGrounded);
 
+    // Horizontal movement
     const dir = new THREE.Vector3();
     if (keys.w) dir.z -= 1;
     if (keys.s) dir.z += 1;
@@ -1433,10 +1691,23 @@ function updatePlayer(delta) {
         dir.applyEuler(new THREE.Euler(0, yawObject.rotation.y, 0));
         const nx = yawObject.position.x + dir.x * PLAYER_SPEED * delta;
         const nz = yawObject.position.z + dir.z * PLAYER_SPEED * delta;
-        const margin = PLAYER_RADIUS + ARENA_HALF - ARENA_HALF; // = PLAYER_RADIUS
         const bound = ARENA_HALF - 1.2;
         yawObject.position.x = Math.max(-bound, Math.min(bound, nx));
         yawObject.position.z = Math.max(-bound, Math.min(bound, nz));
+    }
+
+    // Vertical movement (jump + gravity)
+    if (!player.isGrounded) {
+        player.velocityY += GRAVITY * delta;
+    }
+    const newY = yawObject.position.y + player.velocityY * delta;
+    if (newY <= PLAYER_HEIGHT) {
+        yawObject.position.y = PLAYER_HEIGHT;
+        player.velocityY = 0;
+        player.isGrounded = true;
+    } else {
+        yawObject.position.y = newY;
+        player.isGrounded = false;
     }
 
     // Reload timer
@@ -1454,15 +1725,18 @@ function updatePlayer(delta) {
 const raycaster = new THREE.Raycaster();
 
 function shoot() {
-    const isRocket = player.weapon === 'rocket';
+    const weapon = player.weapon;
     if (gameState !== 'PLAYING') return;
-    if (isRocket && player.rocketAmmo <= 0) return;
-    if (!isRocket && (player.ammo <= 0 || player.reloading)) return;
+    if (weapon === 'pistol'   && (player.ammo <= 0 || player.reloading)) return;
+    if (weapon === 'rocket'   && player.rocketAmmo <= 0) return;
+    if (weapon === 'fireball' && player.fireballAmmo <= 0) return;
 
-    if (isRocket) player.rocketAmmo--;
-    else player.ammo--;
+    if (weapon === 'pistol')   player.ammo--;
+    if (weapon === 'rocket')   player.rocketAmmo--;
+    if (weapon === 'fireball') player.fireballAmmo--;
 
-    triggerMuzzleFlash(isRocket);
+    const isRocket = weapon === 'rocket';
+    triggerMuzzleFlash(weapon !== 'pistol');
 
     // Raycast from camera center
     raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
@@ -1473,7 +1747,10 @@ function shoot() {
     });
     const hits = raycaster.intersectObjects([...targetMap.keys()], false);
 
-    if (hits.length > 0) {
+    // Fireball: launch projectile, skip raycasting
+    if (weapon === 'fireball') {
+        fireProjectile();
+    } else if (hits.length > 0) {
         if (isRocket) {
             // Splash damage around hit point
             const hitPos = hits[0].point;
@@ -1502,20 +1779,29 @@ function shoot() {
     }
 
     // Muzzle scene light
-    const mLight = new THREE.PointLight(isRocket ? 0xff4400 : 0xffaa44, isRocket ? 7 : 3, isRocket ? 22 : 12);
+    const lCol = weapon === 'pistol' ? 0xffaa44 : weapon === 'rocket' ? 0xff4400 : 0xff5500;
+    const lInt = weapon === 'pistol' ? 3 : 7;
+    const lDist = weapon === 'pistol' ? 12 : 22;
+    const lDur  = weapon === 'pistol' ? 60 : 220;
+    const mLight = new THREE.PointLight(lCol, lInt, lDist);
     const ahead = new THREE.Vector3(0, 0, -2);
     ahead.applyQuaternion(camera.quaternion);
     mLight.position.copy(yawObject.position).add(ahead);
     scene.add(mLight);
-    setTimeout(() => scene.remove(mLight), isRocket ? 220 : 60);
+    setTimeout(() => scene.remove(mLight), lDur);
 
-    // Post-shot state
-    if (isRocket && player.rocketAmmo <= 0) {
+    // Post-shot weapon state
+    if (weapon === 'fireball' && player.fireballAmmo <= 0) {
+        player.weapon = 'pistol';
+        player.ammo = MAX_AMMO;
+        document.getElementById('gun-hud').classList.remove('fireball');
+        showPickupNotice('FIREBALLS SPENT', 'health');
+    } else if (weapon === 'rocket' && player.rocketAmmo <= 0) {
         player.weapon = 'pistol';
         player.ammo = MAX_AMMO;
         document.getElementById('gun-hud').classList.remove('rocket');
         showPickupNotice('ROCKET EMPTY', 'health');
-    } else if (!isRocket && player.ammo <= 0) {
+    } else if (weapon === 'pistol' && player.ammo <= 0) {
         startReload();
     }
 
@@ -1524,13 +1810,13 @@ function shoot() {
     gunEl.classList.remove('shooting');
     void gunEl.offsetWidth;
     gunEl.classList.add('shooting');
-    setTimeout(() => gunEl.classList.remove('shooting'), isRocket ? 260 : 150);
+    setTimeout(() => gunEl.classList.remove('shooting'), weapon === 'pistol' ? 150 : 260);
 
     updateHUD();
 }
 
 function startReload() {
-    if (player.weapon === 'rocket' || player.reloading || player.ammo === MAX_AMMO) return;
+    if (player.weapon !== 'pistol' || player.reloading || player.ammo === MAX_AMMO) return;
     player.reloading = true;
     player.reloadTimer = RELOAD_TIME;
     document.getElementById('ammo-display').textContent = 'RELOADING...';
@@ -1574,6 +1860,11 @@ function updateHUD() {
         weaponEl.className = 'rocket';
         document.getElementById('ammo-label').textContent = 'ROCKETS';
         document.getElementById('ammo-display').textContent = `${player.rocketAmmo} / ${ROCKET_AMMO}`;
+    } else if (player.weapon === 'fireball') {
+        weaponEl.textContent = 'FIREBALL';
+        weaponEl.className = 'fireball';
+        document.getElementById('ammo-label').textContent = 'FIREBALLS';
+        document.getElementById('ammo-display').textContent = `${player.fireballAmmo} / ${FIREBALL_AMMO}`;
     } else {
         weaponEl.textContent = 'PISTOL';
         weaponEl.className = '';
@@ -1616,6 +1907,10 @@ function showLevelBanner(text) {
 
 // ─── SECTION 9: State Transitions ────────────────────────────────────────────
 function startGame() {
+    // Read player name from input
+    const nameInput = document.getElementById('player-name-input');
+    playerName = (nameInput.value.trim().toUpperCase() || 'PLAYER').slice(0, 16);
+
     // Reset player
     player.health = MAX_HEALTH;
     player.ammo = MAX_AMMO;
@@ -1624,9 +1919,14 @@ function startGame() {
     player.score = 0;
     player.weapon = 'pistol';
     player.rocketAmmo = 0;
+    player.fireballAmmo = 0;
+    player.velocityY = 0;
+    player.isGrounded = true;
 
     clearPowerups();
-    document.getElementById('gun-hud').classList.remove('rocket');
+    projectiles.forEach(p => scene.remove(p.mesh));
+    projectiles = [];
+    document.getElementById('gun-hud').classList.remove('rocket', 'fireball');
     document.getElementById('boss-bar').classList.add('hidden');
 
     // Reset position
@@ -1685,8 +1985,12 @@ function triggerGameOver() {
     enemies.forEach(e => scene.remove(e.mesh));
     enemies = [];
     clearPowerups();
-    document.getElementById('gun-hud').classList.remove('rocket');
+    projectiles.forEach(p => scene.remove(p.mesh));
+    projectiles = [];
+    document.getElementById('gun-hud').classList.remove('rocket', 'fireball');
     document.getElementById('boss-bar').classList.add('hidden');
+
+    saveScore(playerName, player.score, currentLevel);
 }
 
 function restartGame() {
@@ -1709,8 +2013,15 @@ document.addEventListener('keydown', e => {
         case 'KeyS': keys.s = true; break;
         case 'KeyD': keys.d = true; break;
         case 'KeyR': startReload(); break;
+        case 'Space':
+            if (player.isGrounded) {
+                player.velocityY = JUMP_FORCE;
+                player.isGrounded = false;
+            }
+            e.preventDefault();
+            break;
     }
-    e.preventDefault && ['Space','ArrowUp','ArrowDown'].includes(e.code) && e.preventDefault();
+    if (['ArrowUp','ArrowDown'].includes(e.code)) e.preventDefault();
 });
 
 document.addEventListener('keyup', e => {
@@ -1769,6 +2080,7 @@ document.getElementById('menu-btn').addEventListener('click', returnToMenu);
 // ─── SECTION 11 & 12: Bootstrap + Main Loop ──────────────────────────────────
 buildArena();
 setupLighting();
+renderScoreboard();
 
 function mainLoop(ts) {
     requestAnimationFrame(mainLoop);
@@ -1779,6 +2091,7 @@ function mainLoop(ts) {
         updatePlayer(delta);
         updateEnemies(delta, ts / 1000);
         updatePowerups(delta, ts / 1000);
+        updateProjectiles(delta);
     } else {
         lastTime = ts;
         // Slow arena rotation for menu atmosphere
