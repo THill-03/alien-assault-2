@@ -984,6 +984,7 @@ const LASER_AMMO = 8;
 const COIN_ALIEN     = 10;
 const COIN_BERSERKER = 25;
 const COIN_OCTOPUS   = 40;
+const COIN_PSYCHO    = 35;
 const COIN_BOSS      = 150;
 const SHOP_DURATION  = 30;
 
@@ -1703,6 +1704,150 @@ function createBerserker(x, z, level) {
     };
 }
 
+function psychoShootLaser(e) {
+    if (e.dead || gameState !== 'PLAYING') return;
+    const fromPos = e.mesh.position.clone().add(new THREE.Vector3(0, 0.1, 0));
+    const toPos   = yawObject.position.clone().add(new THREE.Vector3(0, 0.3, 0));
+    buildBeam(fromPos, toPos, 0xee44ff, 0xaa00ff, 350);
+    const fl = new THREE.PointLight(0xcc44ff, 8, 14);
+    fl.position.copy(fromPos);
+    scene.add(fl);
+    setTimeout(() => scene.remove(fl), 180);
+    player.health -= e.laserDamage;
+    player.health = Math.max(0, player.health);
+    showDamageFlash();
+    updateHUD();
+    if (player.health <= 0 && gameState === 'PLAYING') triggerGameOver();
+}
+
+function createPsychoAlien(x, z, level) {
+    const cfg     = getLevelConfig(level);
+    const hoverY  = 2.6 + Math.random() * 0.4;
+
+    const bodyMat = new THREE.MeshLambertMaterial({ color: 0x5511aa });
+    const headMat = new THREE.MeshLambertMaterial({ color: 0x6622bb });
+    const legMat  = new THREE.MeshLambertMaterial({ color: 0x440099 });
+    const kneeMat = new THREE.MeshLambertMaterial({ color: 0x3300aa });
+    const armMat  = new THREE.MeshLambertMaterial({ color: 0x4400aa });
+
+    const root = new THREE.Group();
+
+    // Torso
+    const body = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.80, 0.60), bodyMat);
+    root.add(body);
+
+    // Glowing chest emblem
+    const emblem = new THREE.Mesh(
+        new THREE.SphereGeometry(0.11, 6, 5),
+        new THREE.MeshBasicMaterial({ color: 0xcc44ff })
+    );
+    emblem.position.set(0, 0.1, 0.32);
+    body.add(emblem);
+
+    // Head
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.36, 10, 8), headMat);
+    head.position.y = 0.72;
+    root.add(head);
+
+    // Closed eyes — dark lid slabs with purple eyelid crease (meditating)
+    const lidMat  = new THREE.MeshLambertMaterial({ color: 0x220044 });
+    const lineMat = new THREE.MeshBasicMaterial({ color: 0xcc44ff });
+    [-0.14, 0.14].forEach(ex => {
+        const lid = new THREE.Mesh(new THREE.BoxGeometry(0.21, 0.052, 0.072), lidMat);
+        lid.position.set(ex, 0.04, 0.335);
+        head.add(lid);
+        const crease = new THREE.Mesh(new THREE.BoxGeometry(0.20, 0.015, 0.074), lineMat);
+        crease.position.set(ex, 0.018, 0.343);
+        head.add(crease);
+    });
+
+    // Subtle purple eye-glow (psychic energy leaking through closed lids)
+    const eyeGlow = new THREE.PointLight(0xcc44ff, 0.5, 3);
+    eyeGlow.position.set(0, 0.04, 0.45);
+    head.add(eyeGlow);
+
+    // Arms — meditation pose, resting forward-down onto knees
+    [-1, 1].forEach(side => {
+        const pivot = new THREE.Object3D();
+        pivot.position.set(side * 0.44, 0.14, 0.04);
+        pivot.rotation.x = 0.78;
+        pivot.rotation.z = side * 0.32;
+        root.add(pivot);
+        const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.07, 0.52, 7), armMat);
+        arm.position.y = -0.26;
+        pivot.add(arm);
+        const hand = new THREE.Mesh(
+            new THREE.SphereGeometry(0.095, 7, 6),
+            new THREE.MeshLambertMaterial({ color: 0x330088 })
+        );
+        hand.position.y = -0.56;
+        pivot.add(hand);
+    });
+
+    // Cross-legged legs (criss-cross applesauce)
+    // Left thigh stretches rightward; right thigh stretches leftward and crosses on top
+    const leftThigh = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.62, 7), legMat);
+    leftThigh.rotation.set(0.15, 0, Math.PI / 2);
+    leftThigh.position.set(0.06, -0.55, 0.14);
+    root.add(leftThigh);
+
+    const rightThigh = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.62, 7), legMat);
+    rightThigh.rotation.set(-0.15, 0, Math.PI / 2);
+    rightThigh.position.set(-0.06, -0.47, 0.14);
+    root.add(rightThigh);
+
+    // Knees (where the legs cross/rest)
+    const lKnee = new THREE.Mesh(new THREE.SphereGeometry(0.125, 7, 6), kneeMat);
+    lKnee.position.set(0.36, -0.52, 0.22);
+    root.add(lKnee);
+    const rKnee = new THREE.Mesh(new THREE.SphereGeometry(0.125, 7, 6), kneeMat);
+    rKnee.position.set(-0.36, -0.44, 0.22);
+    root.add(rKnee);
+
+    // Shins — left shin goes back-left from right side, right shin goes back-right from left side
+    const lShin = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.085, 0.50, 7), legMat);
+    lShin.rotation.set(0.18, 0.38, Math.PI / 2);
+    lShin.position.set(-0.18, -0.62, 0.24);
+    root.add(lShin);
+
+    const rShin = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.085, 0.50, 7), legMat);
+    rShin.rotation.set(0.18, -0.38, Math.PI / 2);
+    rShin.position.set(0.18, -0.54, 0.24);
+    root.add(rShin);
+
+    // Feet
+    const footMat = new THREE.MeshLambertMaterial({ color: 0x330077 });
+    const lFoot = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.10, 0.20), footMat);
+    lFoot.position.set(-0.44, -0.64, 0.30);
+    root.add(lFoot);
+    const rFoot = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.10, 0.20), footMat);
+    rFoot.position.set(0.44, -0.56, 0.30);
+    root.add(rFoot);
+
+    // Ambient purple body glow
+    const bodyGlow = new THREE.PointLight(0xaa33ff, 0.8, 6);
+    root.add(bodyGlow);
+
+    root.position.set(x, hoverY, z);
+    scene.add(root);
+
+    return {
+        mesh: root,
+        health: cfg.healthBase * 0.72,
+        maxHealth: cfg.healthBase * 0.72,
+        speed: cfg.speedBase * 0.55,
+        damage: 0,
+        attackRange: 0.5,
+        hoverY,
+        shotTimer: 1.5,
+        shotCooldown: 2.5,
+        laserDamage: 18,
+        dead: false,
+        type: 'psycho',
+        animOffset: Math.random() * Math.PI * 2,
+    };
+}
+
 function getSpawnPosition() {
     // Spawn at arena edges, push slightly inward
     const edge = Math.floor(Math.random() * 4);
@@ -1719,15 +1864,17 @@ function getSpawnPosition() {
 function spawnEnemies(count, level) {
     enemies.forEach(e => scene.remove(e.mesh));
     enemies = [];
-    const octopusChance  = level >= 2 ? Math.min(0.5, 0.12 + (level - 2) * 0.065) : 0;
-    // Berserker = 1/4 of the remaining pool → spawns ~3x less than green alien
-    const berserkerChance = (1 - octopusChance) / 4;
+    const octopusChance   = level >= 2 ? Math.min(0.4, 0.10 + (level - 2) * 0.055) : 0;
+    const psychoChance    = level >= 4 ? Math.min(0.18, 0.06 + (level - 4) * 0.025) : 0;
+    const berserkerChance = (1 - octopusChance - psychoChance) / 4;
     for (let i = 0; i < count; i++) {
         const [x, z] = getSpawnPosition();
         const roll = Math.random();
         if (roll < octopusChance) {
             enemies.push(createOctopus(x, z, level));
-        } else if (roll < octopusChance + berserkerChance) {
+        } else if (roll < octopusChance + psychoChance) {
+            enemies.push(createPsychoAlien(x, z, level));
+        } else if (roll < octopusChance + psychoChance + berserkerChance) {
             enemies.push(createBerserker(x, z, level));
         } else {
             enemies.push(createEnemy(x, z, level));
@@ -1765,12 +1912,21 @@ function updateEnemies(delta, time) {
             e.mesh.position.z = Math.max(-ARENA_HALF + 1, Math.min(ARENA_HALF - 1, nz2));
         }
 
-        // Face player
-        e.mesh.lookAt(new THREE.Vector3(px, e.mesh.position.y, pz));
+        // Face player (psycho floats without turning — eyes closed, psychic sense)
+        if (e.type !== 'psycho') e.mesh.lookAt(new THREE.Vector3(px, e.mesh.position.y, pz));
 
         // Per-type animation
         const t = time + e.animOffset;
-        if (e.type === 'octopus') {
+        if (e.type === 'psycho') {
+            // Hover and meditate
+            e.mesh.position.y = e.hoverY + Math.sin(t * 1.5) * 0.18;
+            e.mesh.rotation.y += delta * 0.22;
+            e.shotTimer -= delta;
+            if (e.shotTimer <= 0) {
+                psychoShootLaser(e);
+                e.shotTimer = e.shotCooldown;
+            }
+        } else if (e.type === 'octopus') {
             // Very slight body bob — mostly stationary height since tentacles walk
             e.mesh.position.y = 1.45 + Math.sin(t * 1.2) * 0.04;
             // Creepy alternating-leg crawl: pairs (0+4, 1+5, 2+6, 3+7) alternate
@@ -1833,6 +1989,9 @@ function killEnemy(enemy) {
     } else if (enemy.type === 'octopus') {
         player.score += 200 + (currentLevel - 1) * 80;
         playerCoins += COIN_OCTOPUS;
+    } else if (enemy.type === 'psycho') {
+        player.score += 175 + (currentLevel - 1) * 70;
+        playerCoins += COIN_PSYCHO;
     } else {
         player.score += 100 + (currentLevel - 1) * 50;
         playerCoins += COIN_ALIEN;
@@ -2869,27 +3028,53 @@ function triggerGameOver() {
     gameState = 'GAME_OVER';
     document.exitPointerLock();
 
+    // ── Death explosion — shockwave nukes every remaining alien ──────────────
+    const deathPos = yawObject.position.clone();
+    [0xffffff, 0xff8800, 0xff4400, 0xcc1100].forEach((col, i) => {
+        setTimeout(() => {
+            const boom = new THREE.PointLight(col, 22 - i * 3, 65 - i * 8);
+            boom.position.copy(deathPos);
+            scene.add(boom);
+            setTimeout(() => scene.remove(boom), 500);
+        }, i * 130);
+    });
+    [...enemies].forEach(e => {
+        if (e.dead) return;
+        e.dead = true;
+        setTimeout(() => {
+            spawnHitParticles(e.mesh.position.clone(), 0xff5500);
+            const fl = new THREE.PointLight(0xff6600, 6, 14);
+            fl.position.copy(e.mesh.position);
+            scene.add(fl);
+            setTimeout(() => scene.remove(fl), 350);
+            scene.remove(e.mesh);
+        }, Math.random() * 700);
+    });
+    // ─────────────────────────────────────────────────────────────────────────
+
     document.getElementById('hud').classList.remove('visible');
     document.getElementById('gun-hud').style.display = 'none';
     document.getElementById('damage-vignette').className = '';
     document.getElementById('go-score-text').textContent = `SCORE: ${player.score.toLocaleString()}`;
     document.getElementById('go-level-text').textContent = `REACHED LEVEL ${currentLevel}`;
-    document.getElementById('gameover-overlay').classList.remove('hidden');
 
-    // Clean up
-    enemies.forEach(e => scene.remove(e.mesh));
-    enemies = [];
-    clearPowerups();
-    projectiles.forEach(p => scene.remove(p.mesh));
-    projectiles = [];
-    hitParticles.forEach(p => scene.remove(p.mesh));
-    hitParticles = [];
-    ALL_CSS_CLASSES.forEach(c => document.getElementById('gun-hud').classList.remove(c));
-    document.getElementById('boss-bar').classList.add('hidden');
-    document.getElementById('shop-overlay').classList.add('hidden');
+    // Show game over screen after explosion settles
+    setTimeout(() => document.getElementById('gameover-overlay').classList.remove('hidden'), 900);
 
-    if (companion.mesh) { scene.remove(companion.mesh); companion.mesh = null; }
-    saveScore(playerName, player.score, currentLevel);
+    // Final cleanup after explosion finishes
+    setTimeout(() => {
+        enemies = [];
+        clearPowerups();
+        projectiles.forEach(p => scene.remove(p.mesh));
+        projectiles = [];
+        hitParticles.forEach(p => scene.remove(p.mesh));
+        hitParticles = [];
+        ALL_CSS_CLASSES.forEach(c => document.getElementById('gun-hud').classList.remove(c));
+        document.getElementById('boss-bar').classList.add('hidden');
+        document.getElementById('shop-overlay').classList.add('hidden');
+        if (companion.mesh) { scene.remove(companion.mesh); companion.mesh = null; }
+        saveScore(playerName, player.score, currentLevel);
+    }, 1100);
 }
 
 function restartGame() {
@@ -3011,7 +3196,7 @@ function drawMinimap() {
         if (e.dead) return;
         const ex = cx + e.mesh.position.x * scale;
         const ey = cy + e.mesh.position.z * scale;
-        ctx.fillStyle = e.isBoss ? '#ff3333' : e.type === 'octopus' ? '#cc55ff' : e.type === 'berserker' ? '#ff6622' : '#22ff44';
+        ctx.fillStyle = e.isBoss ? '#ff3333' : e.type === 'psycho' ? '#ff44ee' : e.type === 'octopus' ? '#cc55ff' : e.type === 'berserker' ? '#ff6622' : '#22ff44';
         ctx.beginPath();
         ctx.arc(ex, ey, e.isBoss ? 4.5 : 2.5, 0, Math.PI * 2);
         ctx.fill();
