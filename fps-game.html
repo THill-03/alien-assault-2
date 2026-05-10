@@ -496,6 +496,7 @@ body {
 }
 #weapon-display.rocket   { color: #ff8833; text-shadow: 0 0 8px #ff883366; }
 #weapon-display.fireball { color: #ff5500; text-shadow: 0 0 8px #ff550066; }
+#weapon-display.laser    { color: #00ccff; text-shadow: 0 0 8px #00ccff66; }
 
 /* ─── Pickup notification ───────────────────────────────────── */
 #pickup-notice {
@@ -516,6 +517,7 @@ body {
 #pickup-notice.health   { color: #22ff44; }
 #pickup-notice.rocket   { color: #ff8833; }
 #pickup-notice.fireball { color: #ff5500; }
+#pickup-notice.laser    { color: #00ccff; }
 
 /* ─── Rocket gun overlay ────────────────────────────────────── */
 #gun-hud.rocket #gun-barrel {
@@ -551,6 +553,58 @@ body {
     width: 30px; height: 40px;
 }
 #gun-hud.fireball #gun-barrel::before { background: #1a0300; }
+
+/* ─── Sprint bar ────────────────────────────────────────────── */
+#sprint-container { margin-top: 6px; }
+#sprint-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: #6688aa;
+    margin-bottom: 4px;
+}
+#sprint-bar-bg {
+    width: 180px;
+    height: 6px;
+    background: #1a1a2e;
+    border: 1px solid #334;
+    border-radius: 2px;
+    overflow: hidden;
+}
+#sprint-bar-fill {
+    height: 100%;
+    width: 100%;
+    background: #44aaff;
+    transition: width 0.05s;
+    border-radius: 2px;
+}
+
+/* ─── Laser gun overlay ─────────────────────────────────────── */
+#gun-hud.laser #gun-barrel {
+    background: linear-gradient(to right, #001833, #002255, #001122);
+    box-shadow: 0 0 18px #00ccff55;
+}
+#gun-hud.laser #gun-body {
+    background: linear-gradient(to bottom, #002244, #001133);
+    box-shadow: inset 0 2px 4px rgba(0,200,255,0.12), 0 0 18px #00ccff33;
+}
+#gun-hud.laser #gun-body::after { background: linear-gradient(to right, #00ccff33, transparent); }
+#gun-hud.laser #gun-muzzle-flash {
+    background: radial-gradient(ellipse, #ffffff 0%, #88ffff 25%, #00ccff 55%, transparent 85%);
+    width: 28px; height: 36px;
+}
+#gun-hud.laser #gun-barrel::before { background: #001122; }
+
+/* ─── Minimap ────────────────────────────────────────────────── */
+#minimap-canvas {
+    position: absolute;
+    top: 4rem;
+    right: 2rem;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 2px solid rgba(100,150,255,0.4);
+    box-shadow: 0 0 10px rgba(100,150,255,0.2);
+}
 
 /* ─── Pointer lock notice ───────────────────────────────────── */
 #lock-notice {
@@ -590,12 +644,14 @@ body {
 
     <div class="controls-grid">
         <span class="key">WASD</span><span class="desc">Move</span>
+        <span class="key">SHIFT</span><span class="desc">Sprint (limited)</span>
         <span class="key">SPACE</span><span class="desc">Jump</span>
         <span class="key">LEFT CLICK</span><span class="desc">Shoot</span>
         <span class="key">R</span><span class="desc">Reload</span>
         <span class="key">GREEN ORB</span><span class="desc">Health pack (+35 HP)</span>
         <span class="key">ORANGE ORB</span><span class="desc">Rocket launcher (5 shots)</span>
         <span class="key">RED ORB</span><span class="desc">Fireball (3 shots)</span>
+        <span class="key">SILVER ORB</span><span class="desc">Laser beam (every 5 levels)</span>
         <span class="key">LEVEL 3, 6, 9...</span><span class="desc">Boss wave</span>
     </div>
     <button class="btn" id="start-btn">START GAME</button>
@@ -630,7 +686,13 @@ body {
         <div id="health-label">HEALTH</div>
         <div id="health-bar-bg"><div id="health-bar-fill"></div></div>
         <div id="health-value">100</div>
+        <div id="sprint-container">
+            <div id="sprint-label">SPRINT</div>
+            <div id="sprint-bar-bg"><div id="sprint-bar-fill"></div></div>
+        </div>
     </div>
+
+    <canvas id="minimap-canvas" width="120" height="120"></canvas>
 
     <div style="position:absolute;bottom:2rem;right:2rem;text-align:right;">
         <div id="weapon-display">PISTOL</div>
@@ -687,6 +749,10 @@ const FIREBALL_SPLASH_RADIUS = 5;
 const FIREBALL_SPEED = 22;
 const JUMP_FORCE = 8.5;
 const GRAVITY = -22;
+const SPRINT_MULT = 1.75;
+const SPRINT_MAX = 3.0;
+const SPRINT_REGEN = 0.9;
+const LASER_AMMO = 8;
 
 const LEVEL_CONFIG = [
     { enemies: 5,  speedBase: 2.5, healthBase: 50  },
@@ -904,17 +970,21 @@ const player = {
     reloading: false,
     reloadTimer: 0,
     score: 0,
-    weapon: 'pistol',   // 'pistol' | 'rocket' | 'fireball'
+    weapon: 'pistol',   // 'pistol' | 'rocket' | 'fireball' | 'laser'
     rocketAmmo: 0,
     fireballAmmo: 0,
+    laserAmmo: 0,
     velocityY: 0,
     isGrounded: true,
+    sprint: SPRINT_MAX,
+    sprinting: false,
 };
 
 let playerName = 'PLAYER';
 let projectiles = [];
+let hitParticles = [];
 
-const keys = { w: false, a: false, s: false, d: false };
+const keys = { w: false, a: false, s: false, d: false, shift: false };
 
 // ─── SECTION 5: Enemy System ──────────────────────────────────────────────────
 function createEnemy(x, z, level) {
@@ -1395,10 +1465,47 @@ function createRocketPackMesh() {
     return group;
 }
 
+function createSpaceshipMesh() {
+    const group = new THREE.Group();
+    const silverMat  = new THREE.MeshLambertMaterial({ color: 0xccccdd, emissive: 0x222233 });
+    const chromeMat  = new THREE.MeshLambertMaterial({ color: 0xaabbcc });
+    const domeMat    = new THREE.MeshLambertMaterial({ color: 0x88aacc, transparent: true, opacity: 0.7 });
+    // Disc hull
+    const disc = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.15, 14), silverMat);
+    group.add(disc);
+    // Rim ring (slightly wider, slightly flattened)
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.06, 5, 16), chromeMat);
+    rim.rotation.x = Math.PI / 2;
+    group.add(rim);
+    // Upper dome
+    const dome = new THREE.Mesh(new THREE.SphereGeometry(0.28, 10, 7, 0, Math.PI * 2, 0, Math.PI / 2), domeMat);
+    dome.position.y = 0.08;
+    group.add(dome);
+    // Underside detail rings
+    [0.25, 0.42].forEach(r => {
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(r, 0.025, 4, 12), chromeMat);
+        ring.rotation.x = Math.PI / 2;
+        ring.position.y = -0.07;
+        group.add(ring);
+    });
+    // Cyan glow light
+    const light = new THREE.PointLight(0x00ccff, 2.0, 8);
+    group.add(light);
+    // Pulsing cyan underbelly glow
+    const glow = new THREE.Mesh(
+        new THREE.SphereGeometry(0.22, 8, 6),
+        new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.6 })
+    );
+    glow.position.y = -0.12;
+    group.add(glow);
+    return group;
+}
+
 function spawnPowerup(type, x, z) {
-    const mesh = type === 'health' ? createHealthPackMesh()
-               : type === 'rocket' ? createRocketPackMesh()
-               : createFireballPackMesh();
+    const mesh = type === 'health'   ? createHealthPackMesh()
+               : type === 'rocket'   ? createRocketPackMesh()
+               : type === 'fireball' ? createFireballPackMesh()
+               : createSpaceshipMesh();
     mesh.position.set(x, 1.3, z);
     scene.add(mesh);
     powerups.push({ mesh, type, dead: false, baseY: 1.3 });
@@ -1422,6 +1529,13 @@ function spawnLevelPowerups(level) {
         const r3 = 8 + Math.random() * 10;
         spawnPowerup('fireball', Math.cos(angle3) * r3, Math.sin(angle3) * r3);
     }
+
+    // Laser every 5th level
+    if (level % 5 === 0) {
+        const angle4 = angle1 - Math.PI * 0.5 + (Math.random() - 0.5) * 0.8;
+        const r4 = 8 + Math.random() * 10;
+        spawnPowerup('laser', Math.cos(angle4) * r4, Math.sin(angle4) * r4);
+    }
 }
 
 function updatePowerups(delta, time) {
@@ -1441,7 +1555,8 @@ function updatePowerups(delta, time) {
 
 function collectPowerup(p) {
     p.dead = true;
-    const flash = new THREE.PointLight(p.type === 'health' ? 0x22ff44 : 0xff6600, 6, 14);
+    const flashCol = p.type === 'health' ? 0x22ff44 : p.type === 'laser' ? 0x00ccff : 0xff6600;
+    const flash = new THREE.PointLight(flashCol, 6, 14);
     flash.position.copy(p.mesh.position);
     scene.add(flash);
     setTimeout(() => scene.remove(flash), 220);
@@ -1454,16 +1569,23 @@ function collectPowerup(p) {
         player.weapon = 'rocket';
         player.rocketAmmo = ROCKET_AMMO;
         player.reloading = false;
-        document.getElementById('gun-hud').classList.remove('fireball');
+        document.getElementById('gun-hud').classList.remove('fireball', 'laser');
         document.getElementById('gun-hud').classList.add('rocket');
         showPickupNotice('ROCKET LAUNCHER!', 'rocket');
-    } else {
+    } else if (p.type === 'fireball') {
         player.weapon = 'fireball';
         player.fireballAmmo = FIREBALL_AMMO;
         player.reloading = false;
-        document.getElementById('gun-hud').classList.remove('rocket');
+        document.getElementById('gun-hud').classList.remove('rocket', 'laser');
         document.getElementById('gun-hud').classList.add('fireball');
         showPickupNotice('FIREBALL!', 'fireball');
+    } else {
+        player.weapon = 'laser';
+        player.laserAmmo = LASER_AMMO;
+        player.reloading = false;
+        document.getElementById('gun-hud').classList.remove('rocket', 'fireball');
+        document.getElementById('gun-hud').classList.add('laser');
+        showPickupNotice('LASER CANNON!', 'laser');
     }
     updateHUD();
 }
@@ -1564,6 +1686,36 @@ function updateProjectiles(delta) {
         if (hit) continue;
     }
     projectiles = projectiles.filter(proj => !proj.dead);
+}
+
+// ─── Hit Particles ────────────────────────────────────────────────────────────
+function spawnHitParticles(pos, color) {
+    const mat = new THREE.MeshBasicMaterial({ color });
+    for (let i = 0; i < 7; i++) {
+        const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.055, 4, 3), mat);
+        mesh.position.copy(pos);
+        scene.add(mesh);
+        const vel = new THREE.Vector3(
+            (Math.random() - 0.5) * 2,
+            Math.random() * 1.5 + 0.5,
+            (Math.random() - 0.5) * 2
+        ).normalize().multiplyScalar(3 + Math.random() * 4);
+        hitParticles.push({ mesh, velocity: vel, life: 0.28 + Math.random() * 0.18 });
+    }
+}
+
+function updateHitParticles(delta) {
+    for (let i = hitParticles.length - 1; i >= 0; i--) {
+        const p = hitParticles[i];
+        p.life -= delta;
+        if (p.life <= 0) {
+            scene.remove(p.mesh);
+            hitParticles.splice(i, 1);
+            continue;
+        }
+        p.mesh.position.addScaledVector(p.velocity, delta);
+        p.velocity.y -= 9 * delta;
+    }
 }
 
 // ─── Score / Leaderboard ──────────────────────────────────────────────────────
@@ -1679,6 +1831,16 @@ function updatePlayer(delta) {
     const moving = keys.w || keys.a || keys.s || keys.d;
     document.getElementById('gun-hud').classList.toggle('walking', moving && player.isGrounded);
 
+    // Sprint stamina
+    if (moving && keys.shift && player.sprint > 0) {
+        player.sprinting = true;
+        player.sprint = Math.max(0, player.sprint - delta);
+    } else {
+        player.sprinting = false;
+        if (!keys.shift) player.sprint = Math.min(SPRINT_MAX, player.sprint + SPRINT_REGEN * delta);
+    }
+    const sprintFactor = player.sprinting ? SPRINT_MULT : 1;
+
     // Horizontal movement
     const dir = new THREE.Vector3();
     if (keys.w) dir.z -= 1;
@@ -1689,8 +1851,8 @@ function updatePlayer(delta) {
     if (dir.lengthSq() > 0) {
         dir.normalize();
         dir.applyEuler(new THREE.Euler(0, yawObject.rotation.y, 0));
-        const nx = yawObject.position.x + dir.x * PLAYER_SPEED * delta;
-        const nz = yawObject.position.z + dir.z * PLAYER_SPEED * delta;
+        const nx = yawObject.position.x + dir.x * PLAYER_SPEED * sprintFactor * delta;
+        const nz = yawObject.position.z + dir.z * PLAYER_SPEED * sprintFactor * delta;
         const bound = ARENA_HALF - 1.2;
         yawObject.position.x = Math.max(-bound, Math.min(bound, nx));
         yawObject.position.z = Math.max(-bound, Math.min(bound, nz));
@@ -1719,6 +1881,13 @@ function updatePlayer(delta) {
             updateHUD();
         }
     }
+
+    // Sprint bar HUD
+    const sprintFill = document.getElementById('sprint-bar-fill');
+    if (sprintFill) {
+        sprintFill.style.width = (player.sprint / SPRINT_MAX * 100) + '%';
+        sprintFill.style.background = player.sprinting ? '#00ffff' : player.sprint < SPRINT_MAX * 0.25 ? '#ff4444' : '#44aaff';
+    }
 }
 
 // ─── SECTION 7: Combat System ─────────────────────────────────────────────────
@@ -1730,10 +1899,12 @@ function shoot() {
     if (weapon === 'pistol'   && (player.ammo <= 0 || player.reloading)) return;
     if (weapon === 'rocket'   && player.rocketAmmo <= 0) return;
     if (weapon === 'fireball' && player.fireballAmmo <= 0) return;
+    if (weapon === 'laser'    && player.laserAmmo <= 0) return;
 
     if (weapon === 'pistol')   player.ammo--;
     if (weapon === 'rocket')   player.rocketAmmo--;
     if (weapon === 'fireball') player.fireballAmmo--;
+    if (weapon === 'laser')    player.laserAmmo--;
 
     const isRocket = weapon === 'rocket';
     triggerMuzzleFlash(weapon !== 'pistol');
@@ -1747,18 +1918,59 @@ function shoot() {
     });
     const hits = raycaster.intersectObjects([...targetMap.keys()], false);
 
-    // Fireball: launch projectile, skip raycasting
     if (weapon === 'fireball') {
         fireProjectile();
+    } else if (weapon === 'laser') {
+        // Visible laser beam from muzzle to hit point (or max range)
+        const fwdDir = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion).normalize();
+        const startPos = yawObject.position.clone().addScaledVector(fwdDir, 1.0);
+        const endPos = hits.length > 0
+            ? hits[0].point.clone()
+            : startPos.clone().addScaledVector(fwdDir, 80);
+        const beamDir = new THREE.Vector3().subVectors(endPos, startPos);
+        const beamLen = beamDir.length();
+        const beamNorm = beamDir.clone().normalize();
+        const beamMid = startPos.clone().addScaledVector(beamNorm, beamLen * 0.5);
+        // Beam core cylinder
+        const beamMesh = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.05, 0.05, beamLen, 5),
+            new THREE.MeshBasicMaterial({ color: 0x00ffff })
+        );
+        beamMesh.position.copy(beamMid);
+        beamMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), beamNorm);
+        scene.add(beamMesh);
+        // Glow halo
+        const glowMesh = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.18, 0.18, beamLen, 5),
+            new THREE.MeshBasicMaterial({ color: 0x00aaff, transparent: true, opacity: 0.18 })
+        );
+        glowMesh.position.copy(beamMid);
+        glowMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), beamNorm.clone());
+        scene.add(glowMesh);
+        setTimeout(() => { scene.remove(beamMesh); scene.remove(glowMesh); }, 200);
+        // Laser light along beam
+        const laserLight = new THREE.PointLight(0x00ffff, 6, 25);
+        laserLight.position.copy(beamMid);
+        scene.add(laserLight);
+        setTimeout(() => scene.remove(laserLight), 180);
+        // One-shot kill
+        if (hits.length > 0) {
+            const hitEnemy = targetMap.get(hits[0].object);
+            if (hitEnemy && !hitEnemy.dead) {
+                spawnHitParticles(hits[0].point, 0x00ffff);
+                showHitMarker();
+                hitEnemy.health = 0;
+                killEnemy(hitEnemy);
+            }
+        }
     } else if (hits.length > 0) {
         if (isRocket) {
-            // Splash damage around hit point
             const hitPos = hits[0].point;
             const boom = new THREE.PointLight(0xff4400, 12, 22);
             boom.position.copy(hitPos);
             scene.add(boom);
             setTimeout(() => scene.remove(boom), 300);
-            // Copy array so kills mid-loop don't confuse iteration
+            spawnHitParticles(hitPos, 0xff6600);
             [...enemies].forEach(e => {
                 if (e.dead) return;
                 const dist = e.mesh.position.distanceTo(hitPos);
@@ -1772,6 +1984,7 @@ function shoot() {
             const hitEnemy = targetMap.get(hits[0].object);
             if (hitEnemy && !hitEnemy.dead) {
                 hitEnemy.health -= SHOT_DAMAGE;
+                spawnHitParticles(hits[0].point, 0xffee88);
                 showHitMarker();
                 if (hitEnemy.health <= 0) killEnemy(hitEnemy);
             }
@@ -1779,7 +1992,7 @@ function shoot() {
     }
 
     // Muzzle scene light
-    const lCol = weapon === 'pistol' ? 0xffaa44 : weapon === 'rocket' ? 0xff4400 : 0xff5500;
+    const lCol = weapon === 'pistol' ? 0xffaa44 : weapon === 'rocket' ? 0xff4400 : weapon === 'laser' ? 0x00ffff : 0xff5500;
     const lInt = weapon === 'pistol' ? 3 : 7;
     const lDist = weapon === 'pistol' ? 12 : 22;
     const lDur  = weapon === 'pistol' ? 60 : 220;
@@ -1791,7 +2004,12 @@ function shoot() {
     setTimeout(() => scene.remove(mLight), lDur);
 
     // Post-shot weapon state
-    if (weapon === 'fireball' && player.fireballAmmo <= 0) {
+    if (weapon === 'laser' && player.laserAmmo <= 0) {
+        player.weapon = 'pistol';
+        player.ammo = MAX_AMMO;
+        document.getElementById('gun-hud').classList.remove('laser');
+        showPickupNotice('LASER SPENT', 'health');
+    } else if (weapon === 'fireball' && player.fireballAmmo <= 0) {
         player.weapon = 'pistol';
         player.ammo = MAX_AMMO;
         document.getElementById('gun-hud').classList.remove('fireball');
@@ -1865,6 +2083,11 @@ function updateHUD() {
         weaponEl.className = 'fireball';
         document.getElementById('ammo-label').textContent = 'FIREBALLS';
         document.getElementById('ammo-display').textContent = `${player.fireballAmmo} / ${FIREBALL_AMMO}`;
+    } else if (player.weapon === 'laser') {
+        weaponEl.textContent = 'LASER CANNON';
+        weaponEl.className = 'laser';
+        document.getElementById('ammo-label').textContent = 'SHOTS';
+        document.getElementById('ammo-display').textContent = `${player.laserAmmo} / ${LASER_AMMO}`;
     } else {
         weaponEl.textContent = 'PISTOL';
         weaponEl.className = '';
@@ -1920,13 +2143,18 @@ function startGame() {
     player.weapon = 'pistol';
     player.rocketAmmo = 0;
     player.fireballAmmo = 0;
+    player.laserAmmo = 0;
     player.velocityY = 0;
     player.isGrounded = true;
+    player.sprint = SPRINT_MAX;
+    player.sprinting = false;
 
     clearPowerups();
     projectiles.forEach(p => scene.remove(p.mesh));
     projectiles = [];
-    document.getElementById('gun-hud').classList.remove('rocket', 'fireball');
+    hitParticles.forEach(p => scene.remove(p.mesh));
+    hitParticles = [];
+    document.getElementById('gun-hud').classList.remove('rocket', 'fireball', 'laser');
     document.getElementById('boss-bar').classList.add('hidden');
 
     // Reset position
@@ -1987,7 +2215,9 @@ function triggerGameOver() {
     clearPowerups();
     projectiles.forEach(p => scene.remove(p.mesh));
     projectiles = [];
-    document.getElementById('gun-hud').classList.remove('rocket', 'fireball');
+    hitParticles.forEach(p => scene.remove(p.mesh));
+    hitParticles = [];
+    document.getElementById('gun-hud').classList.remove('rocket', 'fireball', 'laser');
     document.getElementById('boss-bar').classList.add('hidden');
 
     saveScore(playerName, player.score, currentLevel);
@@ -2012,6 +2242,7 @@ document.addEventListener('keydown', e => {
         case 'KeyA': keys.a = true; break;
         case 'KeyS': keys.s = true; break;
         case 'KeyD': keys.d = true; break;
+        case 'ShiftLeft': case 'ShiftRight': keys.shift = true; break;
         case 'KeyR': startReload(); break;
         case 'Space':
             if (player.isGrounded) {
@@ -2030,6 +2261,7 @@ document.addEventListener('keyup', e => {
         case 'KeyA': keys.a = false; break;
         case 'KeyS': keys.s = false; break;
         case 'KeyD': keys.d = false; break;
+        case 'ShiftLeft': case 'ShiftRight': keys.shift = false; break;
     }
 });
 
@@ -2077,6 +2309,68 @@ document.getElementById('start-btn').addEventListener('click', startGame);
 document.getElementById('restart-btn').addEventListener('click', restartGame);
 document.getElementById('menu-btn').addEventListener('click', returnToMenu);
 
+// ─── Minimap ─────────────────────────────────────────────────────────────────
+function drawMinimap() {
+    const mmCanvas = document.getElementById('minimap-canvas');
+    if (!mmCanvas) return;
+    const ctx = mmCanvas.getContext('2d');
+    const w = mmCanvas.width, h = mmCanvas.height;
+    const cx = w / 2, cy = h / 2;
+    const scale = w / ARENA_SIZE; // 120 / 60 = 2 px per unit
+
+    ctx.clearRect(0, 0, w, h);
+
+    // Clip to circle
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, cx - 1, 0, Math.PI * 2);
+    ctx.clip();
+
+    // Background
+    ctx.fillStyle = 'rgba(5,5,20,0.82)';
+    ctx.fillRect(0, 0, w, h);
+
+    // Arena walls (square)
+    ctx.strokeStyle = 'rgba(80,120,200,0.4)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(1, 1, w - 2, h - 2);
+
+    // Enemies
+    enemies.forEach(e => {
+        if (e.dead) return;
+        const ex = cx + e.mesh.position.x * scale;
+        const ey = cy + e.mesh.position.z * scale;
+        ctx.fillStyle = e.isBoss ? '#ff3333' : e.type === 'octopus' ? '#cc55ff' : '#22ff44';
+        ctx.beginPath();
+        ctx.arc(ex, ey, e.isBoss ? 4.5 : 2.5, 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    // Player position & direction
+    const px = cx + yawObject.position.x * scale;
+    const pz = cy + yawObject.position.z * scale;
+    const yaw = yawObject.rotation.y;
+    const arrowLen = 9;
+    const adx = -Math.sin(yaw) * arrowLen;
+    const ady = -Math.cos(yaw) * arrowLen;
+
+    // Direction line
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(px, pz);
+    ctx.lineTo(px + adx, pz + ady);
+    ctx.stroke();
+
+    // Player dot
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(px, pz, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+}
+
 // ─── SECTION 11 & 12: Bootstrap + Main Loop ──────────────────────────────────
 buildArena();
 setupLighting();
@@ -2092,6 +2386,8 @@ function mainLoop(ts) {
         updateEnemies(delta, ts / 1000);
         updatePowerups(delta, ts / 1000);
         updateProjectiles(delta);
+        updateHitParticles(delta);
+        drawMinimap();
     } else {
         lastTime = ts;
         // Slow arena rotation for menu atmosphere
