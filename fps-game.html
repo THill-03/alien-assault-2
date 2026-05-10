@@ -2539,14 +2539,14 @@ function shoot() {
 
     // Post-shot state
     if (wep.ammo <= 0) {
-        if (!SHOP_WEAPON_IDS.has(wid)) {
+        if (SHOP_WEAPON_IDS.has(wid) || wid === 'pistol') {
+            startReload();
+        } else {
             // Remove pickup weapon from inventory when empty
             player.inventory.splice(player.invIdx, 1);
             if (player.invIdx >= player.inventory.length) player.invIdx = 0;
             syncWeapon();
             showPickupNotice(def.name + ' EMPTY', 'health');
-        } else {
-            startReload();
         }
     }
 
