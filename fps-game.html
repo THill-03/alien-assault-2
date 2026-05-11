@@ -2841,7 +2841,8 @@ function buildBeam(startPos, endPos, coreCol, glowCol, dur) {
 }
 
 function spreadRaycast(n, spread, dmg, partCol) {
-    const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion).normalize();
+    const fwd = new THREE.Vector3();
+    camera.getWorldDirection(fwd);
     const origin = yawObject.position.clone().addScaledVector(fwd, 0.5);
     const targetMap = new Map();
     enemies.forEach(e => { if (!e.dead) e.mesh.traverse(o => targetMap.set(o, e)); });
@@ -2876,7 +2877,8 @@ function shoot() {
     enemies.forEach(e => { if (!e.dead) e.mesh.traverse(o => targetMap.set(o, e)); });
     const allTargets = [...targetMap.keys()];
     const hits = raycaster.intersectObjects(allTargets, false);
-    const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion).normalize();
+    const fwd = new THREE.Vector3();
+    camera.getWorldDirection(fwd);
     const startPos = yawObject.position.clone().addScaledVector(fwd, 1.0);
 
     switch (wid) {
@@ -2904,7 +2906,8 @@ function shoot() {
         case 'shotgun': spreadRaycast(6, 0.1, 22, 0xcc9944); break;
         case 'minigun': spreadRaycast(3, 0.06, 14, 0xffaa00); break;
         case 'flamethrower': {
-            const fwd2 = new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion).normalize();
+            const fwd2 = new THREE.Vector3();
+            camera.getWorldDirection(fwd2);
             const orig = yawObject.position.clone().addScaledVector(fwd2, 0.5);
             for (let i = 0; i < 5; i++) {
                 const d = fwd2.clone().add(new THREE.Vector3((Math.random()-.5)*0.2,(Math.random()-.5)*0.2,(Math.random()-.5)*0.2)).normalize();
