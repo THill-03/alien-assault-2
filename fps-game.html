@@ -257,6 +257,37 @@ body {
     font-weight: 700;
     color: #a8dadc;
     margin-top: 4px;
+
+}
+
+/* Shield bar */
+#shield-container { margin-top: 6px; }
+#shield-label {
+    font-size: 0.60rem;
+    letter-spacing: 0.2em;
+    color: #4488bb;
+    margin-bottom: 3px;
+}
+#shield-bar-bg {
+    width: 180px;
+    height: 8px;
+    background: #0a1020;
+    border: 1px solid #224;
+    border-radius: 2px;
+    overflow: hidden;
+}
+#shield-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(to right, #2255aa, #44aaff);
+    transition: width 0.12s;
+    border-radius: 2px;
+}
+#shield-value {
+    font-size: 1.0rem;
+    font-weight: 700;
+    color: #44aaff;
+    margin-top: 2px;
 }
 
 /* Ammo (bottom-right) */
@@ -531,6 +562,7 @@ body {
 #pickup-notice.fireball { color: #ff5500; }
 #pickup-notice.laser    { color: #00ccff; }
 #pickup-notice.shop     { color: #ffcc00; }
+#pickup-notice.shield   { color: #44aaff; }
 
 /* ─── Dual Pistols overlay ──────────────────────────────────── */
 #gun-hud.dual #gun-barrel {
@@ -910,6 +942,11 @@ body {
         <div id="health-label">HEALTH</div>
         <div id="health-bar-bg"><div id="health-bar-fill"></div></div>
         <div id="health-value">100</div>
+        <div id="shield-container">
+            <div id="shield-label">SHIELD</div>
+            <div id="shield-bar-bg"><div id="shield-bar-fill"></div></div>
+            <div id="shield-value">0</div>
+        </div>
         <div id="sprint-container">
             <div id="sprint-label">SPRINT</div>
             <div id="sprint-bar-bg"><div id="sprint-bar-fill"></div></div>
@@ -965,6 +1002,8 @@ const SHOT_DAMAGE = 34;
 const RELOAD_TIME = 1.8;
 const MAX_AMMO = 30;
 const MAX_HEALTH = 100;
+const SHIELD_MAX = 60;
+const SHIELD_RESTORE = 60;
 const ROCKET_AMMO = 5;
 const ROCKET_DAMAGE = 130;
 const ROCKET_SPLASH_RADIUS = 8;
@@ -1241,6 +1280,7 @@ let playerCoins = 0;
 
 const player = {
     health: MAX_HEALTH,
+    shield: 0,
     score: 0,
     weapon: 'pistol',
     reloading: false,
@@ -1714,8 +1754,7 @@ function psychoShootLaser(e) {
     fl.position.copy(fromPos);
     scene.add(fl);
     setTimeout(() => scene.remove(fl), 180);
-    player.health -= e.laserDamage;
-    player.health = Math.max(0, player.health);
+    damagePlayer(e.laserDamage);
     showDamageFlash();
     updateHUD();
     if (player.health <= 0 && gameState === 'PLAYING') triggerGameOver();
@@ -1874,8 +1913,7 @@ function malienShootLaser(e) {
     fl.position.copy(fromPos);
     scene.add(fl);
     setTimeout(() => scene.remove(fl), 160);
-    player.health -= e.laserDamage;
-    player.health = Math.max(0, player.health);
+    damagePlayer(e.laserDamage);
     showDamageFlash();
     updateHUD();
     if (player.health <= 0 && gameState === 'PLAYING') triggerGameOver();
@@ -2083,7 +2121,7 @@ function createMaLien(x, z, level) {
         hoverY,
         shotTimer: 1.0 + Math.random(),
         shotCooldown: 2.2,
-        laserDamage: 20,
+        laserDamage: 5,
         dead: false,
         type: 'malien',
         animOffset: Math.random() * Math.PI * 2,
@@ -2202,8 +2240,7 @@ function updateEnemies(delta, time) {
 
         // Attack
         if (dist < e.attackRange) {
-            player.health -= e.damage * delta;
-            player.health = Math.max(0, player.health);
+            damagePlayer(e.damage * delta);
             showDamageFlash();
             updateHUD();
             if (player.health <= 0) {
@@ -2462,8 +2499,26 @@ function createSpaceshipMesh() {
     return group;
 }
 
+function createShieldPackMesh() {
+    const g = new THREE.Group();
+    const coreMat = new THREE.MeshBasicMaterial({ color: 0x44aaff });
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0x88ddff });
+    g.add(new THREE.Mesh(new THREE.SphereGeometry(0.20, 8, 8), coreMat));
+    const ring1 = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.045, 8, 18), ringMat);
+    g.add(ring1);
+    const ring2 = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.045, 8, 18), ringMat);
+    ring2.rotation.x = Math.PI / 2;
+    g.add(ring2);
+    const ring3 = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.045, 8, 18), ringMat);
+    ring3.rotation.x = Math.PI / 4;
+    g.add(ring3);
+    g.add(new THREE.PointLight(0x44aaff, 1.4, 6));
+    return g;
+}
+
 function spawnPowerup(type, x, z) {
     const mesh = type === 'health'   ? createHealthPackMesh()
+               : type === 'shield'   ? createShieldPackMesh()
                : type === 'rocket'   ? createRocketPackMesh()
                : type === 'fireball' ? createFireballPackMesh()
                : createSpaceshipMesh();
@@ -2476,6 +2531,11 @@ function spawnLevelPowerups(level) {
     const angle1 = Math.random() * Math.PI * 2;
     const r1 = 8 + Math.random() * 10;
     spawnPowerup('health', Math.cos(angle1) * r1, Math.sin(angle1) * r1);
+
+    // Shield every level
+    const angleS = angle1 + Math.PI * 0.75 + (Math.random() - 0.5) * 0.6;
+    const rS = 8 + Math.random() * 10;
+    spawnPowerup('shield', Math.cos(angleS) * rS, Math.sin(angleS) * rS);
 
     // Rocket every even level
     if (level % 2 === 0) {
@@ -2516,7 +2576,7 @@ function updatePowerups(delta, time) {
 
 function collectPowerup(p) {
     p.dead = true;
-    const flashCol = p.type === 'health' ? 0x22ff44 : p.type === 'laser' ? 0x00ccff : 0xff6600;
+    const flashCol = p.type === 'health' ? 0x22ff44 : p.type === 'shield' ? 0x44aaff : p.type === 'laser' ? 0x00ccff : 0xff6600;
     const flash = new THREE.PointLight(flashCol, 6, 14);
     flash.position.copy(p.mesh.position);
     scene.add(flash);
@@ -2526,6 +2586,9 @@ function collectPowerup(p) {
     if (p.type === 'health') {
         player.health = Math.min(MAX_HEALTH, player.health + HEALTH_RESTORE);
         showPickupNotice(`+ ${HEALTH_RESTORE} HEALTH`, 'health');
+    } else if (p.type === 'shield') {
+        player.shield = Math.min(SHIELD_MAX, player.shield + SHIELD_RESTORE);
+        showPickupNotice(`SHIELD + ${SHIELD_RESTORE}`, 'shield');
     } else {
         const ammoMap = { rocket: ROCKET_AMMO, fireball: FIREBALL_AMMO, laser: LASER_AMMO };
         addToInventory(p.type, ammoMap[p.type]);
@@ -3039,6 +3102,16 @@ function showHitMarker() {
     setTimeout(() => ch.classList.remove('hit'), 100);
 }
 
+function damagePlayer(amount) {
+    if (player.shield > 0) {
+        const absorbed = Math.min(player.shield, amount);
+        player.shield = Math.max(0, player.shield - amount);
+        amount = Math.max(0, amount - absorbed);
+    }
+    player.health -= amount;
+    player.health = Math.max(0, player.health);
+}
+
 let damageFlashTimeout = null;
 function showDamageFlash() {
     const v = document.getElementById('damage-vignette');
@@ -3057,6 +3130,10 @@ function updateHUD() {
     document.getElementById('health-bar-fill').style.width = pct + '%';
     document.getElementById('health-bar-fill').style.background = `hsl(${pct * 1.2}, 80%, 45%)`;
     document.getElementById('health-value').textContent = Math.ceil(player.health);
+
+    const shPct = Math.max(0, player.shield / SHIELD_MAX * 100);
+    document.getElementById('shield-bar-fill').style.width = shPct + '%';
+    document.getElementById('shield-value').textContent = Math.ceil(player.shield);
 
     // Weapon / ammo display from inventory
     const wep = curWeapon();
@@ -3205,6 +3282,7 @@ function startGame() {
 
     // Reset player
     player.health = MAX_HEALTH;
+    player.shield = 0;
     player.reloading = false;
     player.reloadTimer = 0;
     player.score = 0;
