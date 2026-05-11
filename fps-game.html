@@ -854,6 +854,105 @@ body {
     border: 1px solid #334;
 }
 #lock-notice.visible { display: block; }
+
+/* ─── Alien Viewer Overlay ─────────────────────────────── */
+#alien-viewer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 5, 16, 0.97);
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 1.5rem 1rem;
+}
+#alien-viewer-overlay.hidden { display: none; }
+#viewer-close-btn {
+    position: absolute;
+    top: 1.2rem;
+    right: 1.5rem;
+    background: transparent;
+    border: 1px solid #334;
+    color: #6688aa;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.15em 0.5em;
+    font-family: 'Courier New', monospace;
+    line-height: 1;
+    transition: all 0.15s;
+}
+#viewer-close-btn:hover { border-color: #e94560; color: #e94560; }
+#viewer-title-label {
+    font-size: 0.62rem;
+    letter-spacing: 0.45em;
+    color: #445566;
+    margin-bottom: 0.1rem;
+}
+#viewer-canvas-wrap {
+    width: min(480px, 88vw);
+    height: min(340px, 44vh);
+    border: 1px solid #1a2a3a;
+    background: #050510;
+    position: relative;
+    flex-shrink: 0;
+}
+#viewer-alien-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+#viewer-name {
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    font-weight: 900;
+    letter-spacing: 0.2em;
+    color: #22ff44;
+    text-align: center;
+    text-shadow: 0 0 20px #22ff4488;
+    transition: color 0.3s, text-shadow 0.3s;
+}
+#viewer-subtitle {
+    font-size: 0.72rem;
+    letter-spacing: 0.3em;
+    color: #6688aa;
+    text-align: center;
+    text-transform: uppercase;
+}
+#viewer-desc {
+    font-size: 0.82rem;
+    color: #a8dadc;
+    text-align: center;
+    max-width: min(480px, 88vw);
+    line-height: 1.55;
+    min-height: 3.2em;
+}
+#viewer-counter {
+    font-size: 0.68rem;
+    color: #334455;
+    letter-spacing: 0.25em;
+}
+#viewer-nav {
+    display: flex;
+    gap: 0.8rem;
+}
+.viewer-nav-btn {
+    padding: 0.55em 2em;
+    font-family: 'Courier New', monospace;
+    font-size: 0.88rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    border: 1px solid #22ff44;
+    background: transparent;
+    color: #22ff44;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.viewer-nav-btn:hover {
+    background: #22ff44;
+    color: #050510;
+    box-shadow: 0 0 14px #22ff4466;
+}
 </style>
 </head>
 <body>
@@ -887,10 +986,28 @@ body {
         <span class="key">LEVEL 3, 6, 9...</span><span class="desc">Boss wave</span>
     </div>
     <button class="btn" id="start-btn">START GAME</button>
+    <button class="btn" onclick="openAlienViewer()" style="border-color:#4488ff;color:#4488ff;font-size:0.85rem;padding:0.65em 2em;">VIEW ALIENS</button>
 
     <div id="scoreboard-section">
         <div id="scoreboard-title">TOP SCORES</div>
         <div id="scoreboard"><div class="sb-empty">NO SCORES YET</div></div>
+    </div>
+</div>
+
+<!-- ─── Alien Viewer Overlay ─── -->
+<div id="alien-viewer-overlay" class="hidden">
+    <button id="viewer-close-btn" onclick="closeAlienViewer()">&#x2715;</button>
+    <div id="viewer-title-label">ALIEN CODEX</div>
+    <div id="viewer-canvas-wrap">
+        <canvas id="viewer-alien-canvas"></canvas>
+    </div>
+    <div id="viewer-name">GRUNT</div>
+    <div id="viewer-subtitle">Standard Infantry</div>
+    <div id="viewer-desc"></div>
+    <div id="viewer-counter">1 / 6</div>
+    <div id="viewer-nav">
+        <button class="viewer-nav-btn" onclick="viewerPrev()">&#9668; PREV</button>
+        <button class="viewer-nav-btn" onclick="viewerNext()">NEXT &#9658;</button>
     </div>
 </div>
 
@@ -3555,6 +3672,151 @@ function drawMinimap() {
     ctx.fill();
 
     ctx.restore();
+}
+
+// ─── SECTION: Alien Viewer ───────────────────────────────────────────────────
+const ALIEN_DEFS = [
+    {
+        name: 'GRUNT',
+        subtitle: 'Standard Infantry',
+        desc: 'The backbone of the alien army. Claws out, brain off. Appears from Wave 1 onward and comes in force.',
+        color: '#22ff44',
+        createFn() { const e = createEnemy(0, 0, 1); scene.remove(e.mesh); return e.mesh; },
+        meshPos: [0, 0.9, 0], camPos: [0, 2.1, 5.2], lookAt: [0, 1.8, 0],
+    },
+    {
+        name: 'BERSERKER',
+        subtitle: 'Assault Unit',
+        desc: 'Leaner and meaner than the Grunt. Longer reach and faster strikes. Spawns alongside Grunts from Wave 1.',
+        color: '#ff6622',
+        createFn() { const e = createBerserker(0, 0, 1); scene.remove(e.mesh); return e.mesh; },
+        meshPos: [0, 0.9, 0], camPos: [0, 2.1, 5.2], lookAt: [0, 1.8, 0],
+    },
+    {
+        name: 'OCTOPUS',
+        subtitle: 'Tentacle Horror',
+        desc: 'Eight writhing limbs and twice the health. Slower but hits harder. Surfaces from Wave 2 onward.',
+        color: '#cc55ff',
+        createFn() { const e = createOctopus(0, 0, 2); scene.remove(e.mesh); return e.mesh; },
+        meshPos: [0, 1.45, 0], camPos: [0, 2.2, 5.8], lookAt: [0, 1.8, 0],
+    },
+    {
+        name: 'PSYCHO',
+        subtitle: 'Levitating Launcher',
+        desc: 'Floats cross-legged, eyes shut, blasting purple lasers. It doesn\'t need to see you. Joins the assault from Wave 4.',
+        color: '#ff44ee',
+        createFn() { const e = createPsychoAlien(0, 0, 4); scene.remove(e.mesh); return e.mesh; },
+        meshPos: [0, 2.0, 0], camPos: [0, 2.2, 5.5], lookAt: [0, 2.2, 0],
+    },
+    {
+        name: 'MA-LIEN',
+        subtitle: 'Neon Specter',
+        desc: 'Hyperneon body, hot-pink eyes, Cheshire grin. Twice as fast as a Grunt and fires pink lasers. Debuts Wave 3.',
+        color: '#ff1188',
+        createFn() { const e = createMaLien(0, 0, 3); scene.remove(e.mesh); return e.mesh; },
+        meshPos: [0, 2.0, 0], camPos: [0, 2.2, 5.5], lookAt: [0, 2.2, 0],
+    },
+    {
+        name: 'BOSS',
+        subtitle: 'The Warlord',
+        desc: 'Armoured colossus with 500+ HP and devastating melee power. Stomps onto the battlefield every 3rd wave.',
+        color: '#ff3333',
+        createFn() { const e = createBoss(3); scene.remove(e.mesh); return e.mesh; },
+        meshPos: [0, 2.1, 0], camPos: [0, 5.0, 12.5], lookAt: [0, 4.5, 0],
+    },
+];
+
+let viewerRenderer    = null;
+let viewerScene       = null;
+let viewerCamera      = null;
+let viewerMesh        = null;
+let viewerAccentLight = null;
+let viewerIdx         = 0;
+let viewerAnimId      = null;
+
+function openAlienViewer() {
+    const overlay = document.getElementById('alien-viewer-overlay');
+    overlay.classList.remove('hidden');
+
+    const wrap   = document.getElementById('viewer-canvas-wrap');
+    const canvas = document.getElementById('viewer-alien-canvas');
+    const w = wrap.clientWidth;
+    const h = wrap.clientHeight;
+    canvas.width  = w;
+    canvas.height = h;
+
+    viewerRenderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    viewerRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    viewerRenderer.setSize(w, h, false);
+    viewerRenderer.setClearColor(0x050510, 1);
+
+    viewerScene = new THREE.Scene();
+    viewerScene.fog = new THREE.FogExp2(0x050510, 0.06);
+    viewerScene.add(new THREE.AmbientLight(0x334455, 1.4));
+    const keyL = new THREE.DirectionalLight(0xffffff, 2.0);
+    keyL.position.set(4, 10, 6);
+    viewerScene.add(keyL);
+    const fillL = new THREE.DirectionalLight(0x4488ff, 0.7);
+    fillL.position.set(-5, 2, -3);
+    viewerScene.add(fillL);
+    const rimL = new THREE.DirectionalLight(0xff6600, 0.3);
+    rimL.position.set(0, -3, -8);
+    viewerScene.add(rimL);
+
+    viewerCamera = new THREE.PerspectiveCamera(50, w / h, 0.1, 100);
+
+    viewerIdx = 0;
+    loadAlienInViewer(0);
+    viewerLoop();
+}
+
+function closeAlienViewer() {
+    document.getElementById('alien-viewer-overlay').classList.add('hidden');
+    if (viewerAnimId)     { cancelAnimationFrame(viewerAnimId); viewerAnimId = null; }
+    if (viewerAccentLight && viewerScene) { viewerScene.remove(viewerAccentLight); viewerAccentLight = null; }
+    if (viewerMesh && viewerScene)        { viewerScene.remove(viewerMesh); viewerMesh = null; }
+    if (viewerRenderer)   { viewerRenderer.dispose(); viewerRenderer = null; }
+    viewerScene  = null;
+    viewerCamera = null;
+}
+
+function loadAlienInViewer(idx) {
+    if (viewerAccentLight) { viewerScene.remove(viewerAccentLight); viewerAccentLight = null; }
+    if (viewerMesh)        { viewerScene.remove(viewerMesh); viewerMesh = null; }
+    viewerIdx = ((idx % ALIEN_DEFS.length) + ALIEN_DEFS.length) % ALIEN_DEFS.length;
+    const def = ALIEN_DEFS[viewerIdx];
+
+    viewerMesh = def.createFn();
+    const [mx, my, mz] = def.meshPos;
+    viewerMesh.position.set(mx, my, mz);
+    viewerScene.add(viewerMesh);
+
+    const [cx, cy, cz] = def.camPos;
+    const [lx, ly, lz] = def.lookAt;
+    viewerCamera.position.set(cx, cy, cz);
+    viewerCamera.lookAt(lx, ly, lz);
+
+    const accentCol = parseInt(def.color.replace('#', ''), 16);
+    viewerAccentLight = new THREE.PointLight(accentCol, 1.8, 14);
+    viewerAccentLight.position.set(0, ly + 1, 2);
+    viewerScene.add(viewerAccentLight);
+
+    document.getElementById('viewer-name').textContent      = def.name;
+    document.getElementById('viewer-name').style.color       = def.color;
+    document.getElementById('viewer-name').style.textShadow  = `0 0 22px ${def.color}88`;
+    document.getElementById('viewer-subtitle').textContent   = def.subtitle;
+    document.getElementById('viewer-desc').textContent       = def.desc;
+    document.getElementById('viewer-counter').textContent    = `${viewerIdx + 1} / ${ALIEN_DEFS.length}`;
+}
+
+function viewerNext() { loadAlienInViewer(viewerIdx + 1); }
+function viewerPrev() { loadAlienInViewer(viewerIdx - 1); }
+
+function viewerLoop() {
+    viewerAnimId = requestAnimationFrame(viewerLoop);
+    if (!viewerRenderer || !viewerScene || !viewerCamera) return;
+    if (viewerMesh) viewerMesh.rotation.y += 0.010;
+    viewerRenderer.render(viewerScene, viewerCamera);
 }
 
 // ─── SECTION 11 & 12: Bootstrap + Main Loop ──────────────────────────────────
