@@ -953,6 +953,43 @@ body {
     color: #050510;
     box-shadow: 0 0 14px #22ff4466;
 }
+
+/* ─── Alien Viewer Stats Panel ─────────────────────── */
+#viewer-stats {
+    width: min(480px, 88vw);
+    background: rgba(0, 8, 20, 0.65);
+    border: 1px solid #1a2a3a;
+    padding: 0.5rem 1.1rem 0.3rem;
+}
+.vstat {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 0.22rem 0;
+    border-bottom: 1px solid #0d1820;
+}
+.vstat:last-child { border-bottom: none; }
+.vstat-label {
+    font-size: 0.56rem;
+    letter-spacing: 0.22em;
+    color: #445566;
+    flex-shrink: 0;
+}
+.vstat-value {
+    font-size: 0.79rem;
+    font-weight: 700;
+    color: #a8dadc;
+    letter-spacing: 0.05em;
+    text-align: right;
+}
+.vstat-value.cg  { color: #22ff44; }
+.vstat-value.cy  { color: #ffcc44; }
+.vstat-value.co  { color: #ff8833; }
+.vstat-value.cr  { color: #ff4444; }
+.vstat-value.cp  { color: #cc55ff; }
+.vstat-value.cb  { color: #44aaff; }
+.vstat-value.cpk { color: #ff1188; }
 </style>
 </head>
 <body>
@@ -1004,6 +1041,7 @@ body {
     <div id="viewer-name">GRUNT</div>
     <div id="viewer-subtitle">Standard Infantry</div>
     <div id="viewer-desc"></div>
+    <div id="viewer-stats"></div>
     <div id="viewer-counter">1 / 6</div>
     <div id="viewer-nav">
         <button class="viewer-nav-btn" onclick="viewerPrev()">&#9668; PREV</button>
@@ -3679,50 +3717,106 @@ const ALIEN_DEFS = [
     {
         name: 'GRUNT',
         subtitle: 'Standard Infantry',
-        desc: 'The backbone of the alien army. Claws out, brain off. Appears from Wave 1 onward and comes in force.',
+        desc: 'The backbone of the alien army. Claws out, brain off. Appears in force from Wave 1 and never stops coming.',
         color: '#22ff44',
         createFn() { const e = createEnemy(0, 0, 1); scene.remove(e.mesh); return e.mesh; },
         meshPos: [0, 0.9, 0], camPos: [0, 2.1, 5.2], lookAt: [0, 1.8, 0],
+        stats: [
+            { label: 'HP',            value: '40',            cls: 'cg'  },
+            { label: 'SPEED',         value: 'Normal',        cls: ''    },
+            { label: 'ATTACK TYPE',   value: 'Melee',         cls: ''    },
+            { label: 'DAMAGE',        value: '12 / sec',      cls: 'co'  },
+            { label: 'ATTACK RANGE',  value: '1.4 m',         cls: ''    },
+            { label: 'FIRST APPEARS', value: 'Wave 1',        cls: 'cy'  },
+            { label: 'THREAT',        value: '★★☆☆☆  Low',  cls: 'cg'  },
+        ],
     },
     {
         name: 'BERSERKER',
         subtitle: 'Assault Unit',
-        desc: 'Leaner and meaner than the Grunt. Longer reach and faster strikes. Spawns alongside Grunts from Wave 1.',
+        desc: 'Leaner and meaner. Sprints at twice the speed of a Grunt and hits harder. Prioritise these — they close the gap fast.',
         color: '#ff6622',
         createFn() { const e = createBerserker(0, 0, 1); scene.remove(e.mesh); return e.mesh; },
         meshPos: [0, 0.9, 0], camPos: [0, 2.1, 5.2], lookAt: [0, 1.8, 0],
+        stats: [
+            { label: 'HP',            value: '34',              cls: 'cg'  },
+            { label: 'SPEED',         value: 'Very Fast (2×)',  cls: 'cy'  },
+            { label: 'ATTACK TYPE',   value: 'Melee',           cls: ''    },
+            { label: 'DAMAGE',        value: '14 / sec',        cls: 'co'  },
+            { label: 'ATTACK RANGE',  value: '1.5 m',           cls: ''    },
+            { label: 'FIRST APPEARS', value: 'Wave 1',          cls: 'cy'  },
+            { label: 'THREAT',        value: '★★★☆☆  Medium', cls: 'cy'  },
+        ],
     },
     {
         name: 'OCTOPUS',
         subtitle: 'Tentacle Horror',
-        desc: 'Eight writhing limbs and twice the health. Slower but hits harder. Surfaces from Wave 2 onward.',
+        desc: 'Eight writhing limbs and double the health. Slow, but each hit hurts more and its reach is longer than it looks.',
         color: '#cc55ff',
         createFn() { const e = createOctopus(0, 0, 2); scene.remove(e.mesh); return e.mesh; },
         meshPos: [0, 1.45, 0], camPos: [0, 2.2, 5.8], lookAt: [0, 1.8, 0],
+        stats: [
+            { label: 'HP',            value: '112 (2×)',        cls: 'co'  },
+            { label: 'SPEED',         value: 'Slow',            cls: ''    },
+            { label: 'ATTACK TYPE',   value: 'Melee',           cls: ''    },
+            { label: 'DAMAGE',        value: '16 / sec',        cls: 'co'  },
+            { label: 'ATTACK RANGE',  value: '1.7 m',           cls: ''    },
+            { label: 'FIRST APPEARS', value: 'Wave 2',          cls: 'cy'  },
+            { label: 'THREAT',        value: '★★★★☆  High',  cls: 'co'  },
+        ],
     },
     {
         name: 'PSYCHO',
         subtitle: 'Levitating Launcher',
-        desc: 'Floats cross-legged, eyes shut, blasting purple lasers. It doesn\'t need to see you. Joins the assault from Wave 4.',
+        desc: 'Floats cross-legged, eyes permanently shut — it doesn\'t need to see you. Fires purple lasers every 2.5 seconds.',
         color: '#ff44ee',
         createFn() { const e = createPsychoAlien(0, 0, 4); scene.remove(e.mesh); return e.mesh; },
         meshPos: [0, 2.0, 0], camPos: [0, 2.2, 5.5], lookAt: [0, 2.2, 0],
+        stats: [
+            { label: 'HP',            value: '66',              cls: 'cg'  },
+            { label: 'SPEED',         value: 'Slow · Hovers',  cls: ''    },
+            { label: 'ATTACK TYPE',   value: 'Purple Laser',   cls: 'cp'  },
+            { label: 'LASER DAMAGE',  value: '18 / hit',       cls: 'co'  },
+            { label: 'FIRE RATE',     value: 'Every 2.5 sec',  cls: ''    },
+            { label: 'NO MELEE',      value: 'Range only',     cls: ''    },
+            { label: 'FIRST APPEARS', value: 'Wave 4',         cls: 'cy'  },
+            { label: 'THREAT',        value: '★★★★☆  High',  cls: 'co'  },
+        ],
     },
     {
         name: 'MA-LIEN',
         subtitle: 'Neon Specter',
-        desc: 'Hyperneon body, hot-pink eyes, Cheshire grin. Twice as fast as a Grunt and fires pink lasers. Debuts Wave 3.',
+        desc: 'Hyperneon green, hot-pink eyes, Cheshire grin. Blazes across the arena at twice a Grunt\'s speed and peppers you with pink lasers.',
         color: '#ff1188',
         createFn() { const e = createMaLien(0, 0, 3); scene.remove(e.mesh); return e.mesh; },
         meshPos: [0, 2.0, 0], camPos: [0, 2.2, 5.5], lookAt: [0, 2.2, 0],
+        stats: [
+            { label: 'HP',            value: '56',                  cls: 'cg'  },
+            { label: 'SPEED',         value: 'Blazing (2× Grunt)',  cls: 'cpk' },
+            { label: 'ATTACK TYPE',   value: 'Pink Laser',          cls: 'cpk' },
+            { label: 'LASER DAMAGE',  value: '5 / hit',             cls: 'cy'  },
+            { label: 'FIRE RATE',     value: 'Every 2.2 sec',       cls: ''    },
+            { label: 'NO MELEE',      value: 'Range only',          cls: ''    },
+            { label: 'FIRST APPEARS', value: 'Wave 3',              cls: 'cy'  },
+            { label: 'THREAT',        value: '★★★☆☆  Medium',     cls: 'cy'  },
+        ],
     },
     {
         name: 'BOSS',
         subtitle: 'The Warlord',
-        desc: 'Armoured colossus with 500+ HP and devastating melee power. Stomps onto the battlefield every 3rd wave.',
+        desc: 'Armoured colossus. Grows stronger every three waves. Its HP and damage scale up with each appearance — do not underestimate it.',
         color: '#ff3333',
         createFn() { const e = createBoss(3); scene.remove(e.mesh); return e.mesh; },
         meshPos: [0, 2.1, 0], camPos: [0, 5.0, 12.5], lookAt: [0, 4.5, 0],
+        stats: [
+            { label: 'HP',            value: '700+ (scales)',        cls: 'cr'  },
+            { label: 'SPEED',         value: 'Slow',                 cls: ''    },
+            { label: 'ATTACK TYPE',   value: 'Heavy Melee',          cls: 'cr'  },
+            { label: 'DAMAGE',        value: '27 / sec (scales)',    cls: 'cr'  },
+            { label: 'ATTACK RANGE',  value: '2.8 m',                cls: ''    },
+            { label: 'SPAWNS',        value: 'Every 3rd Wave',       cls: 'cr'  },
+            { label: 'THREAT',        value: '★★★★★  EXTREME',     cls: 'cr'  },
+        ],
     },
 ];
 
@@ -3806,6 +3900,9 @@ function loadAlienInViewer(idx) {
     document.getElementById('viewer-name').style.textShadow  = `0 0 22px ${def.color}88`;
     document.getElementById('viewer-subtitle').textContent   = def.subtitle;
     document.getElementById('viewer-desc').textContent       = def.desc;
+    document.getElementById('viewer-stats').innerHTML        = def.stats.map(s =>
+        `<div class="vstat"><span class="vstat-label">${s.label}</span><span class="vstat-value${s.cls ? ' ' + s.cls : ''}">${s.value}</span></div>`
+    ).join('');
     document.getElementById('viewer-counter').textContent    = `${viewerIdx + 1} / ${ALIEN_DEFS.length}`;
 }
 
