@@ -334,10 +334,10 @@ body {
 /* Level banner (center) */
 #level-banner {
     position: absolute;
-    top: 50%;
+    top: 2.5rem;
     left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    transform: translateX(-50%);
+    font-size: clamp(1.2rem, 3vw, 2rem);
     font-weight: 900;
     color: #22ff44;
     letter-spacing: 0.2em;
@@ -993,8 +993,8 @@ body {
 
 #mute-btn {
     position: absolute;
-    top: 0.9rem;
-    right: 0.9rem;
+    top: 12.5rem;
+    right: 2rem;
     background: transparent;
     border: 1px solid #22ff4466;
     color: #22ff4488;
@@ -1009,6 +1009,59 @@ body {
 #mute-btn:hover { border-color: #22ff44; color: #22ff44; }
 #mute-btn.muted  { border-color: #e9456066; color: #e9456066; }
 #mute-btn.muted:hover { border-color: #e94560; color: #e94560; }
+
+/* ─── Menu corner UI ────────────────────────────────────── */
+#menu-top-right {
+    position: absolute;
+    top: 1.2rem;
+    right: 1.5rem;
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+    z-index: 110;
+}
+#menu-bottom-right {
+    position: absolute;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 110;
+}
+.menu-panel-wrap { position: relative; }
+.menu-corner-btn {
+    background: transparent;
+    border: 1px solid #2a3a4a;
+    color: #6688aa;
+    font-family: 'Courier New', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    padding: 0.4em 0.85em;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.menu-corner-btn:hover { border-color: #22ff44aa; color: #22ff44aa; }
+.menu-corner-btn.active { border-color: #22ff44; color: #22ff44; }
+.menu-panel {
+    display: none;
+    position: absolute;
+    top: calc(100% + 0.45rem);
+    right: 0;
+    background: rgba(3, 6, 20, 0.97);
+    border: 1px solid #1a2a3a;
+    padding: 1.1rem 1.4rem;
+    min-width: 200px;
+    z-index: 120;
+}
+.menu-panel.open { display: block; }
+#controls-panel { min-width: 320px; }
+.menu-panel-label {
+    font-size: 0.55rem;
+    letter-spacing: 0.35em;
+    color: #334455;
+    margin-bottom: 0.8rem;
+    text-transform: uppercase;
+}
 </style>
 </head>
 <body>
@@ -1020,6 +1073,43 @@ body {
 
 <!-- ─── Menu Overlay ─── -->
 <div id="menu-overlay" class="overlay">
+
+    <!-- Top-right: Controls + Settings -->
+    <div id="menu-top-right">
+        <div class="menu-panel-wrap">
+            <button class="menu-corner-btn" id="controls-corner-btn" onclick="toggleMenuPanel('controls-panel','controls-corner-btn')">CONTROLS</button>
+            <div id="controls-panel" class="menu-panel">
+                <div class="menu-panel-label">Gameplay</div>
+                <div class="controls-grid" style="margin:0;font-size:0.8rem;">
+                    <span class="key">WASD</span><span class="desc">Move</span>
+                    <span class="key">SHIFT</span><span class="desc">Sprint (limited)</span>
+                    <span class="key">SPACE</span><span class="desc">Jump</span>
+                    <span class="key">LEFT CLICK</span><span class="desc">Shoot</span>
+                    <span class="key">R</span><span class="desc">Reload</span>
+                    <span class="key">TAB</span><span class="desc">Switch weapon</span>
+                    <span class="key">M</span><span class="desc">Toggle sound on/off</span>
+                    <span class="key">GREEN ORB</span><span class="desc">Health pack (+35 HP)</span>
+                    <span class="key">ORANGE ORB</span><span class="desc">Rocket launcher (5 shots)</span>
+                    <span class="key">RED ORB</span><span class="desc">Fireball (3 shots)</span>
+                    <span class="key">SILVER ORB</span><span class="desc">Laser beam (every 5 levels)</span>
+                    <span class="key">LEVEL 3, 6, 9...</span><span class="desc">Boss wave</span>
+                </div>
+            </div>
+        </div>
+        <div class="menu-panel-wrap">
+            <button class="menu-corner-btn" id="settings-corner-btn" onclick="toggleMenuPanel('settings-panel','settings-corner-btn')">SETTINGS</button>
+            <div id="settings-panel" class="menu-panel">
+                <div class="menu-panel-label">Audio</div>
+                <button class="btn" id="menu-sound-btn" onclick="toggleMenuSound()" style="font-size:0.8rem;padding:0.5em 1.5em;width:100%;">SOUND: ON</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom-right: View Aliens -->
+    <div id="menu-bottom-right">
+        <button class="btn" onclick="openAlienViewer()" style="border-color:#4488ff;color:#4488ff;font-size:0.85rem;padding:0.65em 2em;">VIEW ALIENS</button>
+    </div>
+
     <div class="game-title">ALIEN ASSAULT</div>
     <div class="subtitle">First Person Shooter</div>
 
@@ -1028,21 +1118,7 @@ body {
         <input type="text" id="player-name-input" placeholder="COMMANDER" maxlength="16" autocomplete="off" spellcheck="false">
     </div>
 
-    <div class="controls-grid">
-        <span class="key">WASD</span><span class="desc">Move</span>
-        <span class="key">SHIFT</span><span class="desc">Sprint (limited)</span>
-        <span class="key">SPACE</span><span class="desc">Jump</span>
-        <span class="key">LEFT CLICK</span><span class="desc">Shoot</span>
-        <span class="key">R</span><span class="desc">Reload</span>
-        <span class="key">TAB</span><span class="desc">Switch weapon</span>
-        <span class="key">GREEN ORB</span><span class="desc">Health pack (+35 HP)</span>
-        <span class="key">ORANGE ORB</span><span class="desc">Rocket launcher (5 shots)</span>
-        <span class="key">RED ORB</span><span class="desc">Fireball (3 shots)</span>
-        <span class="key">SILVER ORB</span><span class="desc">Laser beam (every 5 levels)</span>
-        <span class="key">LEVEL 3, 6, 9...</span><span class="desc">Boss wave</span>
-    </div>
     <button class="btn" id="start-btn">START GAME</button>
-    <button class="btn" onclick="openAlienViewer()" style="border-color:#4488ff;color:#4488ff;font-size:0.85rem;padding:0.65em 2em;">VIEW ALIENS</button>
 
     <div id="scoreboard-section">
         <div id="scoreboard-title">TOP SCORES</div>
@@ -1535,7 +1611,9 @@ const Audio = (() => {
         return muted;
     }
 
-    return { boot, shoot, alienDeath, bossSpawn, playerHit, playerDeath, levelClear, pickup, reload, setBossMode, toggleMute };
+    function isMuted() { return muted; }
+
+    return { boot, shoot, alienDeath, bossSpawn, playerHit, playerDeath, levelClear, pickup, reload, setBossMode, toggleMute, isMuted };
 })();
 
 function toggleMuteBtn() {
@@ -1544,6 +1622,25 @@ function toggleMuteBtn() {
     if (!btn) return;
     btn.textContent = muted ? 'SFX OFF' : 'SFX ON';
     btn.classList.toggle('muted', muted);
+}
+
+function toggleMenuPanel(panelId, btnId) {
+    const panel  = document.getElementById(panelId);
+    const btn    = document.getElementById(btnId);
+    const isOpen = panel.classList.contains('open');
+    document.querySelectorAll('.menu-panel').forEach(p => p.classList.remove('open'));
+    document.querySelectorAll('.menu-corner-btn').forEach(b => b.classList.remove('active'));
+    if (!isOpen) { panel.classList.add('open'); btn.classList.add('active'); }
+}
+
+let menuSoundOn = true;
+function toggleMenuSound() {
+    menuSoundOn = !menuSoundOn;
+    const btn = document.getElementById('menu-sound-btn');
+    if (!btn) return;
+    btn.textContent = menuSoundOn ? 'SOUND: ON' : 'SOUND: OFF';
+    btn.style.borderColor = menuSoundOn ? '' : '#e94560';
+    btn.style.color       = menuSoundOn ? '' : '#e94560';
 }
 
 // ─── SECTION 1: Constants & Level Config ──────────────────────────────────────
@@ -3875,8 +3972,19 @@ function startGame() {
     pitchObject.rotation.x = 0;
 
     gameState = 'PLAYING';
+    document.querySelectorAll('.menu-panel').forEach(p => p.classList.remove('open'));
+    document.querySelectorAll('.menu-corner-btn').forEach(b => b.classList.remove('active'));
     Audio.boot();
     Audio.setBossMode(false);
+    // Sync mute state with menu sound toggle
+    if (!menuSoundOn) {
+        Audio.toggleMute();
+        const muteBtn = document.getElementById('mute-btn');
+        if (muteBtn) { muteBtn.textContent = 'SFX OFF'; muteBtn.classList.add('muted'); }
+    } else {
+        const muteBtn = document.getElementById('mute-btn');
+        if (muteBtn) { muteBtn.textContent = 'SFX ON'; muteBtn.classList.remove('muted'); }
+    }
     document.getElementById('menu-overlay').classList.add('hidden');
     document.getElementById('hud').classList.add('visible');
     document.getElementById('damage-vignette').className = '';
@@ -3984,6 +4092,14 @@ function returnToMenu() {
     document.getElementById('gameover-overlay').classList.add('hidden');
     document.getElementById('menu-overlay').classList.remove('hidden');
     gameState = 'MENU';
+    // Reset menu sound button to match current mute state
+    const btn = document.getElementById('menu-sound-btn');
+    if (btn) {
+        menuSoundOn = !Audio.isMuted();
+        btn.textContent = menuSoundOn ? 'SOUND: ON' : 'SOUND: OFF';
+        btn.style.borderColor = menuSoundOn ? '' : '#e94560';
+        btn.style.color       = menuSoundOn ? '' : '#e94560';
+    }
 }
 
 // ─── SECTION 10: Input Handlers ───────────────────────────────────────────────
