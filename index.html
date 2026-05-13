@@ -2169,7 +2169,10 @@ function updateShipPlayer(delta, time) {
     if (!shipYaw) return;
     // Animate NPC + holo
     if (shipScene.userData.npc) {
-        shipScene.userData.npc.rotation.y = Math.PI + Math.sin(time * 0.45) * 0.18;
+        const npc = shipScene.userData.npc;
+        const dx = shipYaw.position.x - npc.position.x;
+        const dz = shipYaw.position.z - npc.position.z;
+        npc.rotation.y = Math.atan2(dx, dz) + Math.sin(time * 0.45) * 0.06;
     }
     if (shipScene.userData.holoLight) {
         shipScene.userData.holoLight.intensity = 2.4 + Math.sin(time * 2.8) * 0.55;
