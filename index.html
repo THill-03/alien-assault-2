@@ -2055,15 +2055,15 @@ function buildShipScene() {
     );
     vp.position.set(0, 3.0, -SHIP_HZ + 0.06);
     shipScene.add(vp);
-    // Stars inside viewport
+    // Stars inside viewport — clamped to vp bounds (center 0,3.0 / w6 h2.8)
     for (let i = 0; i < 80; i++) {
         const star = new THREE.Mesh(
             new THREE.PlaneGeometry(0.04, 0.04),
             new THREE.MeshBasicMaterial({ color: 0xffffff })
         );
         star.position.set(
-            (Math.random() - 0.5) * 5.6,
-            2.2 + (Math.random() - 0.5) * 2.4,
+            (Math.random() - 0.5) * 5.6,          // x: -2.8 to +2.8  (vp ±3)
+            1.75 + Math.random() * 2.4,             // y: 1.75 to 4.15  (vp 1.6 to 4.4)
             -SHIP_HZ + 0.07
         );
         shipScene.add(star);
@@ -2887,29 +2887,60 @@ function createMaLien(x, z, level) {
     head.position.y = 0.78;
     root.add(head);
 
-    // Hot-pink glowing eyes — wide open
+    // Cat ears — pointed 3-sided cones with pink inner ear
+    const earOutMat = new THREE.MeshLambertMaterial({ color: 0x00cc33 });
+    const earInMat  = new THREE.MeshBasicMaterial({ color: 0xff88cc });
+    [-0.24, 0.24].forEach(ex => {
+        const ear = new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.34, 3), earOutMat);
+        ear.position.set(ex, 0.34, 0);
+        head.add(ear);
+        const earIn = new THREE.Mesh(new THREE.ConeGeometry(0.072, 0.24, 3), earInMat);
+        earIn.position.set(ex, 0.34, 0.018);
+        head.add(earIn);
+    });
+
+    // Cat eyes — hot-pink iris + vertical slit pupil
     [-0.16, 0.16].forEach(ex => {
         const eye = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 6), eyeMat);
         eye.position.set(ex, 0.09, 0.37);
         head.add(eye);
-        // Dark pupils
-        const pupil = new THREE.Mesh(
-            new THREE.SphereGeometry(0.048, 6, 5),
-            new THREE.MeshBasicMaterial({ color: 0x220011 })
-        );
-        pupil.position.set(ex, 0.09, 0.47);
-        head.add(pupil);
-        // Bright pink inner ring
+        // Bright inner ring
         const ring = new THREE.Mesh(
             new THREE.SphereGeometry(0.075, 6, 5),
             new THREE.MeshBasicMaterial({ color: 0xff55bb })
         );
         ring.position.set(ex, 0.09, 0.43);
         head.add(ring);
+        // Vertical slit pupil
+        const pupil = new THREE.Mesh(
+            new THREE.BoxGeometry(0.028, 0.115, 0.048),
+            new THREE.MeshBasicMaterial({ color: 0x110022 })
+        );
+        pupil.position.set(ex, 0.09, 0.456);
+        head.add(pupil);
     });
     const eyeGlow = new THREE.PointLight(0xff1177, 1.2, 6);
     eyeGlow.position.set(0, 0.09, 0.55);
     head.add(eyeGlow);
+
+    // Cat nose — small pink inverted triangle
+    const noseMat = new THREE.MeshBasicMaterial({ color: 0xff88cc });
+    const nose = new THREE.Mesh(new THREE.ConeGeometry(0.052, 0.062, 3), noseMat);
+    nose.rotation.z = Math.PI;
+    nose.position.set(0, -0.022, 0.400);
+    head.add(nose);
+
+    // Whiskers — 3 per side, fanning outward
+    const whiskerMat = new THREE.MeshBasicMaterial({ color: 0xddffd0 });
+    [-0.02, -0.075, -0.13].forEach((yOff, i) => {
+        [-1, 1].forEach(side => {
+            const w = new THREE.Mesh(new THREE.CylinderGeometry(0.007, 0.007, 0.54, 4), whiskerMat);
+            w.rotation.z = Math.PI / 2;
+            w.rotation.y = side * (0.06 + i * 0.08);
+            w.position.set(side * 0.35, yOff, 0.30);
+            head.add(w);
+        });
+    });
 
     // ── Cheshire cat grin (wider than the face) ──────────────────────────────
     const mouthBg = new THREE.MeshBasicMaterial({ color: 0x110022 });
