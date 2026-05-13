@@ -990,6 +990,25 @@ body {
 .vstat-value.cp  { color: #cc55ff; }
 .vstat-value.cb  { color: #44aaff; }
 .vstat-value.cpk { color: #ff1188; }
+
+#mute-btn {
+    position: absolute;
+    top: 0.9rem;
+    right: 0.9rem;
+    background: transparent;
+    border: 1px solid #22ff4466;
+    color: #22ff4488;
+    font-family: 'Courier New', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    padding: 0.3em 0.55em;
+    cursor: pointer;
+    transition: all 0.15s;
+    z-index: 10;
+}
+#mute-btn:hover { border-color: #22ff44; color: #22ff44; }
+#mute-btn.muted  { border-color: #e9456066; color: #e9456066; }
+#mute-btn.muted:hover { border-color: #e94560; color: #e94560; }
 </style>
 </head>
 <body>
@@ -1130,6 +1149,7 @@ body {
 
     <!-- Pickup notification -->
     <div id="pickup-notice"></div>
+    <button id="mute-btn" onclick="toggleMuteBtn()">SFX ON</button>
 </div>
 
 <!-- ─── Gun HUD ─── -->
@@ -1146,6 +1166,384 @@ body {
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
 <script>
+// ─── SECTION 0: Audio Engine ─────────────────────────────────────────────────
+const Audio = (() => {
+    let ctx = null, master, mus, sfx;
+    let muted = false, bossMode = false;
+    let ambientNodes = [];
+    let bassGain, musGain;
+    let lastHitTime = 0;
+    let sharedRev = null, sharedSfxRev = null;
+    let arpTimeout = null;
+
+    function boot() {
+        if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return; }
+        ctx = new (window.AudioContext || window.webkitAudioContext)();
+        master = g(1);  master.connect(ctx.destination);
+        mus    = g(0.20); mus.connect(master);
+        sfx    = g(0.60); sfx.connect(master);
+        musGain = mus;
+        startAmbient();
+    }
+
+    function g(val) { const n = ctx.createGain(); n.gain.value = val; return n; }
+
+    function makeReverb(dur, decay) {
+        const len = ctx.sampleRate * dur;
+        const buf = ctx.createBuffer(2, len, ctx.sampleRate);
+        for (let ch = 0; ch < 2; ch++) {
+            const d = buf.getChannelData(ch);
+            for (let i = 0; i < len; i++) d[i] = (Math.random()*2-1) * Math.pow(1-i/len, decay);
+        }
+        const c = ctx.createConvolver(); c.buffer = buf; return c;
+    }
+
+    function rev() {
+        if (!sharedRev) { sharedRev = makeReverb(2.5, 3); sharedRev.connect(mus); }
+        return sharedRev;
+    }
+
+    function srev() {
+        if (!sharedSfxRev) {
+            sharedSfxRev = makeReverb(0.9, 4);
+            const rg = g(0.28); sharedSfxRev.connect(rg); rg.connect(sfx);
+        }
+        return sharedSfxRev;
+    }
+
+    function makeNoise(dur) {
+        const len = Math.ceil(ctx.sampleRate * dur);
+        const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+        const d = buf.getChannelData(0);
+        for (let i = 0; i < len; i++) d[i] = Math.random()*2-1;
+        return buf;
+    }
+
+    function makeDistortion(amount) {
+        const n = 256, curve = new Float32Array(n);
+        for (let i = 0; i < n; i++) {
+            const x = (i*2)/n - 1;
+            curve[i] = ((Math.PI + amount)*x) / (Math.PI + amount*Math.abs(x));
+        }
+        return curve;
+    }
+
+    // ── Ambient music ─────────────────────────────────────────────────────────
+    function startAmbient() {
+        const t = ctx.currentTime;
+
+        // Sub-bass E0
+        const sub = ctx.createOscillator(); sub.type = 'sine'; sub.frequency.value = 20.6;
+        const subG = g(0.07); sub.connect(subG); subG.connect(mus); sub.start();
+        ambientNodes.push(sub);
+
+        // Bass drone E1 sawtooth through heavy lowpass
+        const bass = ctx.createOscillator(); bass.type = 'sawtooth'; bass.frequency.value = 41.2;
+        const bassF = ctx.createBiquadFilter(); bassF.type = 'lowpass'; bassF.frequency.value = 130; bassF.Q.value = 4;
+        bassGain = g(0.13);
+        const lfo = ctx.createOscillator(); lfo.type = 'sine'; lfo.frequency.value = 0.38;
+        const lfoG = g(0.055); lfo.connect(lfoG); lfoG.connect(bassGain.gain);
+        bass.connect(bassF); bassF.connect(bassGain); bassGain.connect(mus);
+        bass.start(); lfo.start();
+        ambientNodes.push(bass, lfo);
+
+        // Eerie half-diminished pad: E2 G2 Bb2 D3
+        [[82.4,0.025],[98.0,0.020],[116.5,0.017],[146.8,0.014]].forEach(([freq, vol]) => {
+            const o = ctx.createOscillator(); o.type = 'sine';
+            o.frequency.value = freq * (1 + (Math.random()-0.5)*0.004);
+            const og = g(vol);
+            o.connect(og); og.connect(rev()); og.connect(mus);
+            o.start(); ambientNodes.push(o);
+        });
+
+        scheduleArp();
+    }
+
+    function scheduleArp() {
+        if (!ctx) return;
+        const notes = [329.6, 392.0, 369.9, 311.1, 349.2, 293.7, 246.9];
+        const note  = notes[Math.floor(Math.random()*notes.length)];
+        const t = ctx.currentTime;
+        const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = note;
+        const og = g(0);
+        og.gain.setValueAtTime(0, t);
+        og.gain.linearRampToValueAtTime(0.013, t + 0.06);
+        og.gain.exponentialRampToValueAtTime(0.0001, t + 1.4);
+        o.connect(og); og.connect(rev());
+        o.start(t); o.stop(t + 1.5);
+        arpTimeout = setTimeout(scheduleArp, 2800 + Math.random()*4500);
+    }
+
+    function stopAmbient() {
+        ambientNodes.forEach(n => { try { n.stop(); } catch(e) {} });
+        ambientNodes = []; sharedRev = null; sharedSfxRev = null;
+        if (arpTimeout) { clearTimeout(arpTimeout); arpTimeout = null; }
+    }
+
+    // ── Weapon sounds ─────────────────────────────────────────────────────────
+    function shoot(wid) {
+        if (!ctx || muted) return;
+        const t = ctx.currentTime;
+        switch (wid) {
+            case 'pistol':                lightShot(t, 0.9, 1200); break;
+            case 'dual_pistol':           lightShot(t, 0.75, 1100); break;
+            case 'assault_rifle':         burstShot(t); break;
+            case 'minigun':               lightShot(t, 0.5, 1400); break;
+            case 'shotgun':               shotgunBlast(t); break;
+            case 'sniper':                sniperCrack(t); break;
+            case 'rocket':                rocketBoom(t); break;
+            case 'laser': case 'railgun': beamZap(t, wid === 'railgun'); break;
+            case 'plasma':                plasmaShot(t); break;
+            case 'flamethrower':          flameHiss(t); break;
+            case 'blackhole':             blackholeShot(t); break;
+            case 'frost':                 frostShot(t); break;
+            case 'lightning':             lightningZap(t); break;
+            case 'grenade': case 'fireball': grenadeThunk(t); break;
+            default:                      lightShot(t, 0.6, 1000); break;
+        }
+    }
+
+    function lightShot(t, vol, freq) {
+        const src = ctx.createBufferSource(); src.buffer = makeNoise(0.07);
+        const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = 3;
+        const gn = g(0); gn.gain.setValueAtTime(vol*0.5, t); gn.gain.exponentialRampToValueAtTime(0.001, t+0.07);
+        src.connect(f); f.connect(gn); gn.connect(sfx);
+        src.start(t); src.stop(t+0.09);
+    }
+
+    function burstShot(t) {
+        for (let i = 0; i < 3; i++) setTimeout(() => { if (ctx) lightShot(ctx.currentTime, 0.55, 1100); }, i*30);
+    }
+
+    function shotgunBlast(t) {
+        const src = ctx.createBufferSource(); src.buffer = makeNoise(0.12);
+        const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 900;
+        const gn = g(0); gn.gain.setValueAtTime(0.65, t); gn.gain.exponentialRampToValueAtTime(0.001, t+0.13);
+        src.connect(f); f.connect(gn); gn.connect(sfx); src.start(t); src.stop(t+0.15);
+        const bass = ctx.createOscillator(); bass.type = 'sine';
+        bass.frequency.setValueAtTime(110, t); bass.frequency.exponentialRampToValueAtTime(28, t+0.13);
+        const bg = g(0); bg.gain.setValueAtTime(0.45, t); bg.gain.exponentialRampToValueAtTime(0.001, t+0.13);
+        bass.connect(bg); bg.connect(sfx); bass.start(t); bass.stop(t+0.16);
+    }
+
+    function sniperCrack(t) {
+        const src = ctx.createBufferSource(); src.buffer = makeNoise(0.04);
+        const f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 2600;
+        const gn = g(0); gn.gain.setValueAtTime(0.8, t); gn.gain.exponentialRampToValueAtTime(0.001, t+0.04);
+        src.connect(f); f.connect(gn); gn.connect(sfx); src.start(t); src.stop(t+0.06);
+        const ring = ctx.createOscillator(); ring.type = 'sine'; ring.frequency.value = 3400;
+        const rg = g(0); rg.gain.setValueAtTime(0.11, t+0.04); rg.gain.exponentialRampToValueAtTime(0.001, t+1.1);
+        ring.connect(rg); rg.connect(srev()); ring.start(t+0.04); ring.stop(t+1.2);
+    }
+
+    function rocketBoom(t) {
+        const o = ctx.createOscillator(); o.type = 'sawtooth';
+        o.frequency.setValueAtTime(90, t); o.frequency.exponentialRampToValueAtTime(20, t+0.5);
+        const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 300;
+        const gn = g(0); gn.gain.setValueAtTime(0.65, t); gn.gain.exponentialRampToValueAtTime(0.001, t+0.5);
+        o.connect(f); f.connect(gn); gn.connect(sfx); o.start(t); o.stop(t+0.6);
+        const src = ctx.createBufferSource(); src.buffer = makeNoise(0.5);
+        const nf = ctx.createBiquadFilter(); nf.type = 'lowpass'; nf.frequency.value = 600;
+        const ng = g(0); ng.gain.setValueAtTime(0.3, t); ng.gain.exponentialRampToValueAtTime(0.001, t+0.5);
+        src.connect(nf); nf.connect(ng); ng.connect(sfx); src.start(t); src.stop(t+0.6);
+    }
+
+    function beamZap(t, isRail) {
+        const o = ctx.createOscillator(); o.type = 'sine';
+        o.frequency.setValueAtTime(isRail ? 700 : 1900, t);
+        o.frequency.exponentialRampToValueAtTime(isRail ? 180 : 550, t+0.22);
+        const gn = g(0); gn.gain.setValueAtTime(0.38, t); gn.gain.exponentialRampToValueAtTime(0.001, t+0.22);
+        o.connect(gn); gn.connect(sfx); o.start(t); o.stop(t+0.25);
+    }
+
+    function plasmaShot(t) {
+        const car = ctx.createOscillator(); car.type = 'sine'; car.frequency.value = 440;
+        const mod = ctx.createOscillator(); mod.type = 'sine'; mod.frequency.value = 220;
+        const mg = g(0); mg.gain.setValueAtTime(320, t); mg.gain.exponentialRampToValueAtTime(10, t+0.18);
+        mod.connect(mg); mg.connect(car.frequency);
+        const gn = g(0); gn.gain.setValueAtTime(0.28, t); gn.gain.exponentialRampToValueAtTime(0.001, t+0.2);
+        car.connect(gn); gn.connect(sfx);
+        car.start(t); car.stop(t+0.25); mod.start(t); mod.stop(t+0.25);
+    }
+
+    function flameHiss(t) {
+        const src = ctx.createBufferSource(); src.buffer = makeNoise(0.09);
+        const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 2900; f.Q.value = 0.5;
+        const gn = g(0); gn.gain.setValueAtTime(0.3, t); gn.gain.exponentialRampToValueAtTime(0.001, t+0.09);
+        src.connect(f); f.connect(gn); gn.connect(sfx); src.start(t); src.stop(t+0.11);
+    }
+
+    function blackholeShot(t) {
+        const o = ctx.createOscillator(); o.type = 'sawtooth';
+        o.frequency.setValueAtTime(65, t); o.frequency.exponentialRampToValueAtTime(18, t+0.85);
+        const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 210;
+        const gn = g(0); gn.gain.setValueAtTime(0.5, t); gn.gain.exponentialRampToValueAtTime(0.001, t+0.85);
+        o.connect(f); f.connect(gn); gn.connect(sfx); o.start(t); o.stop(t+0.9);
+    }
+
+    function frostShot(t) {
+        const src = ctx.createBufferSource(); src.buffer = makeNoise(0.08);
+        const f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 4200;
+        const gn = g(0); gn.gain.setValueAtTime(0.28, t); gn.gain.exponentialRampToValueAtTime(0.001, t+0.08);
+        src.connect(f); f.connect(gn); gn.connect(srev()); src.start(t); src.stop(t+0.1);
+    }
+
+    function lightningZap(t) {
+        const src = ctx.createBufferSource(); src.buffer = makeNoise(0.06);
+        const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 3600; f.Q.value = 4;
+        const gn = g(0); gn.gain.setValueAtTime(0.5, t); gn.gain.exponentialRampToValueAtTime(0.001, t+0.06);
+        src.connect(f); f.connect(gn); gn.connect(sfx); src.start(t); src.stop(t+0.08);
+        const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = 3300;
+        const og = g(0); og.gain.setValueAtTime(0.13, t); og.gain.exponentialRampToValueAtTime(0.001, t+0.1);
+        o.connect(og); og.connect(sfx); o.start(t); o.stop(t+0.12);
+    }
+
+    function grenadeThunk(t) {
+        const o = ctx.createOscillator(); o.type = 'sine';
+        o.frequency.setValueAtTime(210, t); o.frequency.exponentialRampToValueAtTime(55, t+0.09);
+        const gn = g(0); gn.gain.setValueAtTime(0.42, t); gn.gain.exponentialRampToValueAtTime(0.001, t+0.1);
+        o.connect(gn); gn.connect(sfx); o.start(t); o.stop(t+0.12);
+    }
+
+    // ── Event sounds ──────────────────────────────────────────────────────────
+    function alienDeath(isBoss) {
+        if (!ctx || muted) return;
+        const t = ctx.currentTime;
+        if (isBoss) {
+            [1.0, 0.65, 0.4].forEach((vol, i) => {
+                const o = ctx.createOscillator(); o.type = 'sawtooth';
+                o.frequency.setValueAtTime(200-i*40, t+i*0.07); o.frequency.exponentialRampToValueAtTime(20, t+i*0.07+1.6);
+                const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 500;
+                const gn = g(0); gn.gain.setValueAtTime(vol*0.35, t+i*0.07); gn.gain.exponentialRampToValueAtTime(0.001, t+i*0.07+1.6);
+                o.connect(f); f.connect(gn); gn.connect(srev()); o.start(t+i*0.07); o.stop(t+i*0.07+1.7);
+            });
+            const src = ctx.createBufferSource(); src.buffer = makeNoise(1.5);
+            const f2 = ctx.createBiquadFilter(); f2.type = 'lowpass'; f2.frequency.value = 800;
+            const ng = g(0); ng.gain.setValueAtTime(0.38, t); ng.gain.exponentialRampToValueAtTime(0.001, t+1.5);
+            src.connect(f2); f2.connect(ng); ng.connect(srev()); src.start(t); src.stop(t+1.6);
+        } else {
+            const o = ctx.createOscillator(); o.type = 'sawtooth';
+            o.frequency.setValueAtTime(380+Math.random()*180, t); o.frequency.exponentialRampToValueAtTime(55, t+0.45);
+            const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 600;
+            const gn = g(0); gn.gain.setValueAtTime(0.22, t); gn.gain.exponentialRampToValueAtTime(0.001, t+0.5);
+            o.connect(f); f.connect(gn); gn.connect(srev()); o.start(t); o.stop(t+0.55);
+        }
+    }
+
+    function bossSpawn() {
+        if (!ctx || muted) return;
+        const t = ctx.currentTime;
+        [55, 82.4, 110].forEach((freq, i) => {
+            const o = ctx.createOscillator(); o.type = 'sawtooth';
+            o.frequency.setValueAtTime(freq*0.5, t+i*0.2); o.frequency.linearRampToValueAtTime(freq, t+i*0.2+1.6);
+            const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 600;
+            const gn = g(0);
+            gn.gain.setValueAtTime(0, t+i*0.2);
+            gn.gain.linearRampToValueAtTime(0.22, t+i*0.2+0.5);
+            gn.gain.linearRampToValueAtTime(0, t+i*0.2+2.8);
+            o.connect(f); f.connect(gn); gn.connect(srev()); o.start(t+i*0.2); o.stop(t+i*0.2+3.0);
+        });
+    }
+
+    function playerHit() {
+        if (!ctx || muted) return;
+        const now = performance.now();
+        if (now - lastHitTime < 220) return;
+        lastHitTime = now;
+        const t = ctx.currentTime;
+        const src = ctx.createBufferSource(); src.buffer = makeNoise(0.07);
+        const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 420;
+        const wv = ctx.createWaveShaper(); wv.curve = makeDistortion(80);
+        const gn = g(0); gn.gain.setValueAtTime(0.5, t); gn.gain.exponentialRampToValueAtTime(0.001, t+0.13);
+        src.connect(f); f.connect(wv); wv.connect(gn); gn.connect(sfx); src.start(t); src.stop(t+0.15);
+    }
+
+    function playerDeath() {
+        if (!ctx || muted) return;
+        const t = ctx.currentTime;
+        [1.0, 0.6].forEach((vol, i) => {
+            const o = ctx.createOscillator(); o.type = 'sawtooth';
+            o.frequency.setValueAtTime(160+i*40, t+i*0.12); o.frequency.exponentialRampToValueAtTime(14, t+i*0.12+2.6);
+            const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 800;
+            const gn = g(0); gn.gain.setValueAtTime(vol*0.4, t+i*0.12); gn.gain.exponentialRampToValueAtTime(0.001, t+i*0.12+2.6);
+            o.connect(f); f.connect(gn); gn.connect(srev()); o.start(t+i*0.12); o.stop(t+i*0.12+2.7);
+        });
+        if (musGain) { musGain.gain.cancelScheduledValues(t); musGain.gain.linearRampToValueAtTime(0, t+2.5); }
+    }
+
+    function levelClear() {
+        if (!ctx || muted) return;
+        const t = ctx.currentTime;
+        [329.6, 392.0, 523.3].forEach((freq, i) => {
+            const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = freq;
+            const gn = g(0);
+            gn.gain.setValueAtTime(0, t+i*0.16);
+            gn.gain.linearRampToValueAtTime(0.18, t+i*0.16+0.06);
+            gn.gain.exponentialRampToValueAtTime(0.001, t+i*0.16+0.7);
+            o.connect(gn); gn.connect(srev()); o.start(t+i*0.16); o.stop(t+i*0.16+0.8);
+        });
+    }
+
+    function pickup() {
+        if (!ctx || muted) return;
+        const t = ctx.currentTime;
+        [523.3, 659.3, 783.9].forEach((freq, i) => {
+            const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = freq;
+            const gn = g(0);
+            gn.gain.setValueAtTime(0, t+i*0.09);
+            gn.gain.linearRampToValueAtTime(0.14, t+i*0.09+0.03);
+            gn.gain.exponentialRampToValueAtTime(0.001, t+i*0.09+0.35);
+            o.connect(gn); gn.connect(srev()); o.start(t+i*0.09); o.stop(t+i*0.09+0.4);
+        });
+    }
+
+    function reload() {
+        if (!ctx || muted) return;
+        const t = ctx.currentTime;
+        const o = ctx.createOscillator(); o.type = 'square'; o.frequency.value = 175;
+        const gn = g(0); gn.gain.setValueAtTime(0.11, t); gn.gain.exponentialRampToValueAtTime(0.001, t+0.06);
+        o.connect(gn); gn.connect(sfx); o.start(t); o.stop(t+0.07);
+        setTimeout(() => {
+            if (!ctx || muted) return;
+            const t2 = ctx.currentTime;
+            const o2 = ctx.createOscillator(); o2.type = 'square'; o2.frequency.value = 230;
+            const g2 = ctx.createGain(); g2.gain.setValueAtTime(0.09, t2); g2.gain.exponentialRampToValueAtTime(0.001, t2+0.05);
+            o2.connect(g2); g2.connect(sfx); o2.start(t2); o2.stop(t2+0.06);
+        }, 85);
+    }
+
+    function setBossMode(on) {
+        if (!ctx || bossMode === on) return;
+        bossMode = on;
+        const t = ctx.currentTime;
+        if (bassGain) {
+            bassGain.gain.cancelScheduledValues(t);
+            bassGain.gain.linearRampToValueAtTime(on ? 0.28 : 0.13, t+1.5);
+        }
+        if (musGain) {
+            musGain.gain.cancelScheduledValues(t);
+            musGain.gain.linearRampToValueAtTime(on ? 0.33 : 0.20, t+1.5);
+        }
+    }
+
+    function toggleMute() {
+        if (!ctx) return false;
+        muted = !muted;
+        master.gain.value = muted ? 0 : 1;
+        return muted;
+    }
+
+    return { boot, shoot, alienDeath, bossSpawn, playerHit, playerDeath, levelClear, pickup, reload, setBossMode, toggleMute };
+})();
+
+function toggleMuteBtn() {
+    const muted = Audio.toggleMute();
+    const btn = document.getElementById('mute-btn');
+    if (!btn) return;
+    btn.textContent = muted ? 'SFX OFF' : 'SFX ON';
+    btn.classList.toggle('muted', muted);
+}
+
 // ─── SECTION 1: Constants & Level Config ──────────────────────────────────────
 const ARENA_SIZE = 60;
 const ARENA_HALF = 30;
@@ -2412,8 +2810,10 @@ function updateEnemies(delta, time) {
 function killEnemy(enemy) {
     if (enemy.dead) return;
     enemy.dead = true;
+    Audio.alienDeath(enemy.isBoss);
 
     if (enemy.isBoss) {
+        Audio.setBossMode(false);
         player.score += 1000 + (currentLevel - 1) * 200;
         playerCoins += COIN_BOSS;
         showLevelBanner('BOSS DEFEATED!');
@@ -2456,6 +2856,7 @@ function checkLevelComplete() {
         levelTransition = true;
         setTimeout(() => {
             showLevelBanner(`LEVEL ${currentLevel} CLEAR!`);
+            Audio.levelClear();
             setTimeout(() => {
                 player.health = Math.min(MAX_HEALTH, player.health + 30);
                 player.reloading = false;
@@ -2731,6 +3132,7 @@ function updatePowerups(delta, time) {
 
 function collectPowerup(p) {
     p.dead = true;
+    Audio.pickup();
     const flashCol = p.type === 'health' ? 0x22ff44 : p.type === 'shield' ? 0x44aaff : p.type === 'laser' ? 0x00ccff : 0xff6600;
     const flash = new THREE.PointLight(flashCol, 6, 14);
     flash.position.copy(p.mesh.position);
@@ -3088,6 +3490,7 @@ function shoot() {
     const wid = wep.id;
     const def = WEAPONS_DEF[wid];
     wep.ammo--;
+    Audio.shoot(wid);
     triggerMuzzleFlash(wid !== 'pistol');
 
     raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
@@ -3242,6 +3645,7 @@ function startReload() {
     if (!wep || !def || def.reload === 0 || player.reloading || wep.ammo === wep.maxAmmo) return;
     player.reloading = true;
     player.reloadTimer = def.reload;
+    Audio.reload();
     document.getElementById('ammo-display').textContent = 'RELOADING...';
 }
 
@@ -3265,6 +3669,7 @@ function damagePlayer(amount) {
     }
     player.health -= amount;
     player.health = Math.max(0, player.health);
+    if (amount > 0) Audio.playerHit();
 }
 
 let damageFlashTimeout = null;
@@ -3468,6 +3873,8 @@ function startGame() {
     pitchObject.rotation.x = 0;
 
     gameState = 'PLAYING';
+    Audio.boot();
+    Audio.setBossMode(false);
     document.getElementById('menu-overlay').classList.add('hidden');
     document.getElementById('hud').classList.add('visible');
     document.getElementById('damage-vignette').className = '';
@@ -3498,8 +3905,11 @@ function initLevel(level) {
         const regularCount = Math.max(2, Math.floor(cfg.enemies * 0.4));
         spawnEnemies(regularCount, level);
         enemies.push(createBoss(level));
+        Audio.setBossMode(true);
+        Audio.bossSpawn();
         setTimeout(() => showLevelBanner('BOSS WAVE!'), 100);
     } else {
+        Audio.setBossMode(false);
         spawnEnemies(cfg.enemies, level);
         setTimeout(() => showLevelBanner(`LEVEL ${level}`), 100);
     }
@@ -3511,6 +3921,7 @@ function initLevel(level) {
 function triggerGameOver() {
     if (gameState !== 'PLAYING') return;
     gameState = 'GAME_OVER';
+    Audio.playerDeath();
     document.exitPointerLock();
 
     // ── Death explosion — shockwave nukes every remaining alien ──────────────
@@ -3584,6 +3995,7 @@ document.addEventListener('keydown', e => {
         case 'ShiftLeft': case 'ShiftRight': keys.shift = true; break;
         case 'Tab': switchWeapon(1); e.preventDefault(); break;
         case 'KeyR': startReload(); break;
+        case 'KeyM': toggleMuteBtn(); break;
         case 'Space':
             if (player.isGrounded) {
                 player.velocityY = JUMP_FORCE;
