@@ -637,16 +637,43 @@ body {
 /* ─── Shop Overlay ──────────────────────────────────────────── */
 #shop-overlay {
     position: fixed;
-    inset: 0;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(740px, 94vw);
+    max-height: 88vh;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    background: rgba(5,5,16,0.94);
-    z-index: 100;
+    background: rgba(2, 5, 16, 0.97);
+    border: 1px solid #1a3a6a;
+    border-radius: 4px;
+    z-index: 200;
     overflow-y: auto;
-    padding: 1rem 1rem 1.5rem;
+    padding: 1.2rem 1.2rem 1.5rem;
 }
 #shop-overlay.hidden { display: none; }
+#shop-overlay-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 199;
+}
+#shop-overlay-backdrop.hidden { display: none; }
+#ship-hint {
+    font-size: 0.58rem;
+    letter-spacing: 0.2em;
+    color: #334466;
+    text-align: center;
+    margin-top: auto;
+    padding-top: 1rem;
+}
+#shop-launch-btn {
+    margin-top: 0.8rem;
+    width: 100%;
+    padding: 0.8em 0;
+    font-size: 1rem;
+    letter-spacing: 0.15em;
+}
 #shop-npc-wrap {
     display: flex;
     align-items: center;
@@ -691,11 +718,10 @@ body {
 #shop-countdown { color: #e94560; font-weight: 700; font-size: 1.1rem; }
 #shop-coin-count { color: #ffcc00; font-weight: 700; }
 #shop-items-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    display: flex;
+    flex-direction: column;
     gap: 0.4rem;
-    width: min(680px, 96vw);
-    margin-bottom: 0.8rem;
+    margin-bottom: 0.5rem;
 }
 .shop-item {
     background: rgba(0,8,20,0.7);
@@ -729,12 +755,28 @@ body {
 .shop-buy-btn:disabled:hover { background: transparent; color: #334; }
 .shop-buy-btn.refill { border-color: #4499ff; color: #4499ff; }
 .shop-buy-btn.refill:hover { background: #4499ff; color: #050510; }
-#shop-inv-section {
-    width: min(680px, 96vw);
-    margin-bottom: 0.8rem;
-    font-size: 0.72rem;
-    color: #6688aa;
-    letter-spacing: 0.15em;
+#shop-inv-list { display: flex; flex-direction: column; gap: 0.35rem; }
+.inv-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.4rem 0.55rem;
+    background: rgba(0,8,20,0.5);
+    border: 1px solid #1a2a3a;
+    border-radius: 3px;
+}
+.inv-row.active { background: rgba(34,255,68,0.07); border-color: #22ff4455; }
+.inv-row-name { font-size: 0.76rem; font-weight: 700; color: #a8dadc; }
+.inv-row.active .inv-row-name { color: #22ff44; }
+.inv-row-ammo { font-size: 0.62rem; color: #445566; margin-top: 0.1rem; }
+.inv-row-badge { font-size: 0.52rem; color: #22ff44; letter-spacing: 0.1em; }
+.shop-col-header {
+    font-size: 0.6rem;
+    letter-spacing: 0.22em;
+    color: #445566;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.35rem;
+    border-bottom: 1px solid #1a2a3a;
 }
 #shop-inv-chips { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.4rem; }
 .inv-chip {
@@ -1145,27 +1187,36 @@ body {
 </div>
 
 <!-- ─── Shop Overlay ─── -->
+<!-- Ship HUD (shown during SHIP state) -->
+<div id="ship-ui" style="display:none;position:fixed;inset:0;pointer-events:none;z-index:50;">
+    <div id="npc-hint" style="position:absolute;bottom:7rem;left:50%;transform:translateX(-50%);font-family:'Courier New',monospace;font-size:0.72rem;letter-spacing:0.22em;color:#22ff4499;text-align:center;white-space:nowrap;opacity:0;transition:opacity 0.4s;"></div>
+</div>
+
+<div id="shop-overlay-backdrop" class="hidden"></div>
 <div id="shop-overlay" class="hidden">
-    <div style="font-size:clamp(1.4rem,3vw,2.2rem);font-weight:900;color:#ffcc00;letter-spacing:0.18em;margin-bottom:0.6rem;text-shadow:0 0 20px #ffcc0088;">WEAPONS SHOP</div>
-    <div id="shop-npc-wrap">
-        <div class="npc-avatar">
-            <div class="npc-head-css">🤖</div>
-            <div class="npc-body-css"></div>
+    <!-- Header -->
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.9rem;padding-bottom:0.7rem;border-bottom:1px solid #1a2a3a;">
+        <div>
+            <div style="font-size:1.05rem;font-weight:900;color:#ffcc00;letter-spacing:0.2em;text-shadow:0 0 14px #ffcc0088;">ZAXON — ARMS DEALER</div>
+            <div style="font-size:0.58rem;letter-spacing:0.22em;color:#4488ff;margin-top:0.25rem;">BAY 7 &nbsp;·&nbsp; COINS: <span id="shop-coin-count" style="color:#ffcc00;font-weight:700;">0</span></div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:0.3rem;">
-            <div id="shop-npc-name">ZAXON — ARMS DEALER</div>
-            <div id="shop-npc-speech">"Stock up, soldier. The horde doesn't wait."</div>
+        <button onclick="closeNpcShop()" style="background:transparent;border:none;color:#445566;font-family:'Courier New',monospace;font-size:1.1rem;cursor:pointer;padding:0.2rem 0.4rem;line-height:1;" title="Close (stay in ship)">✕</button>
+    </div>
+    <!-- Two columns -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;flex:1;">
+        <!-- Left: Inventory -->
+        <div>
+            <div class="shop-col-header">YOUR LOADOUT</div>
+            <div id="shop-inv-list"></div>
+        </div>
+        <!-- Right: Buy weapons -->
+        <div>
+            <div class="shop-col-header">AVAILABLE WEAPONS</div>
+            <div id="shop-items-grid"></div>
         </div>
     </div>
-    <div id="shop-timer-row">
-        <span>SHOP CLOSES IN: <span id="shop-countdown">30</span>s</span>
-        <span>&#9679; COINS: <span id="shop-coin-count">0</span></span>
-        <button class="btn" id="shop-ready-btn" style="padding:0.4em 1.2em;font-size:0.85rem;">READY TO FIGHT</button>
-    </div>
-    <div id="shop-items-grid"></div>
-    <div id="shop-inv-section">
-        INVENTORY<div id="shop-inv-chips"></div>
-    </div>
+    <!-- Footer -->
+    <button class="btn" id="shop-ready-btn" style="margin-top:1rem;width:100%;">LAUNCH NEXT WAVE</button>
 </div>
 
 <!-- ─── Game Over Overlay ─── -->
@@ -1718,20 +1769,20 @@ const PICKUP_WEAPONS  = new Set(['rocket', 'fireball', 'laser']);
 const ALL_CSS_CLASSES = ['dual','assault','rocket','fireball','laser','shotgun','sniper','plasma','minigun','grenade','frost','lightning','flame','blackhole','railgun'];
 
 const LEVEL_CONFIG = [
-    { enemies: 5,  speedBase: 2.5, healthBase: 40  },
-    { enemies: 8,  speedBase: 3.0, healthBase: 56  },
-    { enemies: 12, speedBase: 3.6, healthBase: 72  },
-    { enemies: 16, speedBase: 4.2, healthBase: 92  },
-    { enemies: 20, speedBase: 5.0, healthBase: 116 },
+    { enemies: 4,  speedBase: 2.2, healthBase: 36  },
+    { enemies: 6,  speedBase: 2.6, healthBase: 50  },
+    { enemies: 9,  speedBase: 3.0, healthBase: 64  },
+    { enemies: 13, speedBase: 3.5, healthBase: 80  },
+    { enemies: 17, speedBase: 4.0, healthBase: 98  },
 ];
 
 function getLevelConfig(level) {
     if (level <= LEVEL_CONFIG.length) return LEVEL_CONFIG[level - 1];
     const extra = level - LEVEL_CONFIG.length;
     return {
-        enemies:    20 + extra * 4,
-        speedBase:  5.0 + extra * 0.4,
-        healthBase: 116 + extra * 24,
+        enemies:    17 + extra * 3,
+        speedBase:  4.0 + extra * 0.3,
+        healthBase: 98  + extra * 18,
     };
 }
 
@@ -1917,6 +1968,235 @@ function setupLighting() {
     const accent3 = new THREE.PointLight(0x22ff44, 0.5, 40);
     accent3.position.set(25, 4, -25);
     scene.add(accent3);
+}
+
+// ─── SECTION 3b: Ship Scene ───────────────────────────────────────────────────
+let shipScene = null, shipCamera = null, shipYaw = null, shipPitch = null;
+const SHIP_HX = 11, SHIP_HZ = 13, SHIP_H = 5.5;
+const shipKeys = { w: false, a: false, s: false, d: false };
+const SHIP_SPEED = 4.5;
+
+function buildShipScene() {
+    shipScene = new THREE.Scene();
+    shipScene.background = new THREE.Color(0x010408);
+    shipScene.fog = new THREE.FogExp2(0x010408, 0.032);
+
+    const W = SHIP_HX * 2, L = SHIP_HZ * 2;
+
+    // Floor
+    const floorMat = new THREE.MeshLambertMaterial({ color: 0x080c18 });
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(W, L), floorMat);
+    floor.rotation.x = -Math.PI / 2;
+    shipScene.add(floor);
+    const grid = new THREE.GridHelper(Math.max(W, L), 22, 0x0a1a38, 0x0a1a38);
+    grid.position.y = 0.01;
+    shipScene.add(grid);
+
+    // Ceiling
+    const ceilMat = new THREE.MeshLambertMaterial({ color: 0x050810 });
+    const ceil = new THREE.Mesh(new THREE.PlaneGeometry(W, L), ceilMat);
+    ceil.rotation.x = Math.PI / 2;
+    ceil.position.y = SHIP_H;
+    shipScene.add(ceil);
+
+    // Ceiling light strips
+    [-3.5, 0, 3.5].forEach(x => {
+        const strip = new THREE.Mesh(
+            new THREE.BoxGeometry(0.18, 0.04, L * 0.88),
+            new THREE.MeshBasicMaterial({ color: 0x66aaff })
+        );
+        strip.position.set(x, SHIP_H - 0.02, 0);
+        shipScene.add(strip);
+        const sl = new THREE.PointLight(0x3366bb, 0.55, 14);
+        sl.position.set(x, SHIP_H - 0.6, 0);
+        shipScene.add(sl);
+    });
+
+    // Walls
+    const wallMat = new THREE.MeshLambertMaterial({ color: 0x070b18 });
+    [
+        { pos: [0, SHIP_H/2, -SHIP_HZ], ry: 0 },
+        { pos: [0, SHIP_H/2,  SHIP_HZ], ry: Math.PI },
+        { pos: [-SHIP_HX, SHIP_H/2, 0], ry:  Math.PI/2 },
+        { pos: [ SHIP_HX, SHIP_H/2, 0], ry: -Math.PI/2 },
+    ].forEach(({ pos, ry }) => {
+        const side = pos[2] !== 0 ? L : W;
+        const w = new THREE.Mesh(new THREE.PlaneGeometry(side, SHIP_H), wallMat.clone());
+        w.position.set(...pos);
+        w.rotation.y = ry;
+        shipScene.add(w);
+    });
+
+    // Tech panels — left wall
+    const panelCols = [0x003388, 0x006644, 0x220055, 0x004422, 0x330022];
+    [-9, -3, 3, 9].forEach((z, i) => {
+        [
+            { x: -SHIP_HX + 0.05, ry:  Math.PI/2 },
+            { x:  SHIP_HX - 0.05, ry: -Math.PI/2 },
+        ].forEach(({ x, ry }) => {
+            const p = new THREE.Mesh(
+                new THREE.PlaneGeometry(2.8, 2.0),
+                new THREE.MeshBasicMaterial({ color: panelCols[(i + (x < 0 ? 0 : 2)) % panelCols.length] })
+            );
+            p.position.set(x, 2.2, z);
+            p.rotation.y = ry;
+            shipScene.add(p);
+            // Glow outline
+            const gl = new THREE.PointLight(panelCols[(i + (x < 0 ? 0 : 2)) % panelCols.length], 0.25, 5);
+            gl.position.set(x < 0 ? x + 1.2 : x - 1.2, 2.2, z);
+            shipScene.add(gl);
+        });
+    });
+
+    // Back-wall viewport (large window showing stars)
+    const vp = new THREE.Mesh(
+        new THREE.PlaneGeometry(6, 2.8),
+        new THREE.MeshBasicMaterial({ color: 0x000820 })
+    );
+    vp.position.set(0, 3.0, -SHIP_HZ + 0.06);
+    shipScene.add(vp);
+    // Stars inside viewport
+    for (let i = 0; i < 80; i++) {
+        const star = new THREE.Mesh(
+            new THREE.PlaneGeometry(0.04, 0.04),
+            new THREE.MeshBasicMaterial({ color: 0xffffff })
+        );
+        star.position.set(
+            (Math.random() - 0.5) * 5.6,
+            2.2 + (Math.random() - 0.5) * 2.4,
+            -SHIP_HZ + 0.07
+        );
+        shipScene.add(star);
+    }
+    const vpLight = new THREE.PointLight(0x0022aa, 1.2, 12);
+    vpLight.position.set(0, 3.0, -SHIP_HZ + 2);
+    shipScene.add(vpLight);
+
+    // NPC terminal platform
+    const platMat = new THREE.MeshLambertMaterial({ color: 0x0d1a33 });
+    const plat = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 2.0, 0.18, 16), platMat);
+    plat.position.set(0, 0.09, -SHIP_HZ + 3.5);
+    shipScene.add(plat);
+
+    // Holographic pillar
+    const holoPillar = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.35, 0.35, 2.8, 8),
+        new THREE.MeshBasicMaterial({ color: 0x0055ff, transparent: true, opacity: 0.28, wireframe: true })
+    );
+    holoPillar.position.set(0, 1.4, -SHIP_HZ + 3.5);
+    shipScene.add(holoPillar);
+    const holoLight = new THREE.PointLight(0x0077ff, 2.8, 10);
+    holoLight.position.set(0, 2.5, -SHIP_HZ + 3.5);
+    shipScene.add(holoLight);
+    shipScene.userData.holoLight = holoLight;
+    shipScene.userData.holoPillar = holoPillar;
+
+    // ZAXON NPC
+    const npc = new THREE.Group();
+    const bMat = new THREE.MeshLambertMaterial({ color: 0x1a3a88 });
+    const hMat = new THREE.MeshLambertMaterial({ color: 0x3366cc });
+    const eMat = new THREE.MeshBasicMaterial({ color: 0x88ffff });
+    // legs
+    [-0.16, 0.16].forEach(x => {
+        const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.85, 6), bMat.clone());
+        leg.position.set(x, 0.42, 0); npc.add(leg);
+    });
+    // body
+    const body = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.9, 0.38), bMat.clone());
+    body.position.y = 1.05; npc.add(body);
+    // arms
+    [-0.48, 0.48].forEach(x => {
+        const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.72, 6), bMat.clone());
+        arm.rotation.z = x > 0 ? 0.35 : -0.35;
+        arm.position.set(x, 1.0, 0); npc.add(arm);
+    });
+    // head
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.26, 8, 6), hMat);
+    head.position.y = 1.76; npc.add(head);
+    // eyes
+    [-0.09, 0.09].forEach(x => {
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.046, 6, 4), eMat);
+        eye.position.set(x, 1.76, 0.24); npc.add(eye);
+    });
+    const eyeGlow = new THREE.PointLight(0x88ffff, 0.5, 2.5);
+    eyeGlow.position.set(0, 1.76, 0.3); npc.add(eyeGlow);
+    npc.position.set(0, 0.18, -SHIP_HZ + 3.0);
+    npc.rotation.y = Math.PI;
+    shipScene.userData.npc = npc;
+    shipScene.add(npc);
+
+    // Crates
+    const crateMat = new THREE.MeshLambertMaterial({ color: 0x111928 });
+    [[-8,-7],[-9,-5],[-8.5,-3],[8,-7],[9,-5],[8.5,-3],[-7.5,8],[7.5,8],[-5,9],[5,9]].forEach(([x,z]) => {
+        const h = 0.55 + Math.random() * 0.45;
+        const c = new THREE.Mesh(new THREE.BoxGeometry(0.75, h, 0.75), crateMat.clone());
+        c.position.set(x, h/2, z); shipScene.add(c);
+    });
+
+    // Ceiling pipes
+    const pipeMat = new THREE.MeshLambertMaterial({ color: 0x090e1e });
+    [-5.5, 5.5].forEach(x => {
+        const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, L * 0.9, 6), pipeMat);
+        pipe.rotation.x = Math.PI / 2;
+        pipe.position.set(x, SHIP_H - 0.28, 0);
+        shipScene.add(pipe);
+    });
+
+    // Ambient
+    shipScene.add(new THREE.AmbientLight(0x0d1526, 1.0));
+    // Side accents
+    [[-SHIP_HX+1, 2, -5], [SHIP_HX-1, 2, -5], [0, 3, 0]].forEach(([x,y,z]) => {
+        const l = new THREE.PointLight(0x002255, 0.7, 14);
+        l.position.set(x, y, z); shipScene.add(l);
+    });
+
+    // Camera rig
+    shipYaw = new THREE.Object3D();
+    shipYaw.position.set(0, PLAYER_HEIGHT, SHIP_HZ - 2);
+    shipPitch = new THREE.Object3D();
+    shipCamera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 60);
+    shipPitch.add(shipCamera);
+    shipYaw.add(shipPitch);
+    shipScene.add(shipYaw);
+}
+
+function teardownShipScene() {
+    shipScene = null; shipCamera = null; shipYaw = null; shipPitch = null;
+    shipKeys.w = shipKeys.a = shipKeys.s = shipKeys.d = false;
+}
+
+function updateShipPlayer(delta, time) {
+    if (!shipYaw) return;
+    // Animate NPC + holo
+    if (shipScene.userData.npc) {
+        shipScene.userData.npc.rotation.y = Math.PI + Math.sin(time * 0.45) * 0.18;
+    }
+    if (shipScene.userData.holoLight) {
+        shipScene.userData.holoLight.intensity = 2.4 + Math.sin(time * 2.8) * 0.55;
+    }
+    if (shipScene.userData.holoPillar) {
+        shipScene.userData.holoPillar.rotation.y += delta * 0.5;
+    }
+    // NPC aim hint
+    const hintEl = document.getElementById('npc-hint');
+    if (hintEl && shipCamera && shipScene.userData.npc) {
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera({ x: 0, y: 0 }, shipCamera);
+        const hits = raycaster.intersectObjects(shipScene.userData.npc.children, true);
+        hintEl.style.opacity = (hits.length > 0 && hits[0].distance < 8) ? '1' : '0';
+    }
+
+    // Movement
+    const fwd = new THREE.Vector3();
+    shipCamera.getWorldDirection(fwd); fwd.y = 0; fwd.normalize();
+    const right = new THREE.Vector3(-fwd.z, 0, fwd.x);
+    if (shipKeys.w) shipYaw.position.addScaledVector(fwd,   SHIP_SPEED * delta);
+    if (shipKeys.s) shipYaw.position.addScaledVector(fwd,  -SHIP_SPEED * delta);
+    if (shipKeys.a) shipYaw.position.addScaledVector(right, -SHIP_SPEED * delta);
+    if (shipKeys.d) shipYaw.position.addScaledVector(right,  SHIP_SPEED * delta);
+    shipYaw.position.x = Math.max(-SHIP_HX + 0.8, Math.min(SHIP_HX - 0.8, shipYaw.position.x));
+    shipYaw.position.z = Math.max(-SHIP_HZ + 0.8, Math.min(SHIP_HZ - 0.8, shipYaw.position.z));
+    shipYaw.position.y = PLAYER_HEIGHT;
 }
 
 // ─── SECTION 4: Game State ────────────────────────────────────────────────────
@@ -2836,7 +3116,11 @@ function updateEnemies(delta, time) {
         const dz = pz - e.mesh.position.z;
         const dist = Math.sqrt(dx * dx + dz * dz);
 
-        if (dist > 0.1) {
+        const stopDist = (e.type === 'psycho' || e.type === 'malien') ? 3.5
+                       : e.isBoss ? 2.5
+                       : 1.5;
+
+        if (dist > stopDist) {
             const nx = dx / dist;
             const nz = dz / dist;
             const nx2 = e.mesh.position.x + nx * e.speed * delta;
@@ -2960,7 +3244,7 @@ function checkLevelComplete() {
                 player.health = Math.min(MAX_HEALTH, player.health + 30);
                 player.reloading = false;
                 const nxt = currentLevel + 1;
-                if (currentLevel >= 5) {
+                if (currentLevel % 5 === 0) {
                     openShop(nxt);
                 } else {
                     initLevel(nxt);
@@ -2974,29 +3258,67 @@ function checkLevelComplete() {
 // ─── Shop System ─────────────────────────────────────────────────────────────
 function openShop(nextLevel) {
     nextLevelAfterShop = nextLevel;
-    shopTimer = SHOP_DURATION;
-    gameState = 'SHOP';
-    document.exitPointerLock();
+    gameState = 'SHIP';
     document.getElementById('hud').classList.remove('visible');
     document.getElementById('gun-hud').style.display = 'none';
-    document.getElementById('shop-overlay').classList.remove('hidden');
-    renderShop();
+    document.getElementById('shop-overlay').classList.add('hidden');
+    document.getElementById('ship-ui').style.display = 'block';
+    const hint = document.getElementById('npc-hint');
+    hint.textContent = 'LOOK AT ZAXON AND CLICK TO TRADE';
+    hint.style.opacity = '0';
+    Audio.setBossMode(false);
+    buildShipScene();
+    canvas.requestPointerLock();
 }
 
-function closeShop() {
+function openNpcShop() {
+    document.exitPointerLock();
+    renderShop();
+    document.getElementById('shop-overlay-backdrop').classList.remove('hidden');
+    document.getElementById('shop-overlay').classList.remove('hidden');
+}
+
+function closeNpcShop() {
     document.getElementById('shop-overlay').classList.add('hidden');
+    document.getElementById('shop-overlay-backdrop').classList.add('hidden');
+    canvas.requestPointerLock();
+}
+
+function launchNextWave() {
+    document.getElementById('shop-overlay').classList.add('hidden');
+    document.getElementById('shop-overlay-backdrop').classList.add('hidden');
+    document.getElementById('ship-ui').style.display = 'none';
     document.getElementById('hud').classList.add('visible');
     document.getElementById('gun-hud').style.display = 'block';
+    teardownShipScene();
     gameState = 'PLAYING';
     levelTransition = false;
     initLevel(nextLevelAfterShop);
     canvas.requestPointerLock();
 }
 
+function closeShop() {
+    launchNextWave();
+}
+
 function renderShop() {
-    document.getElementById('shop-countdown').textContent = Math.ceil(shopTimer);
     document.getElementById('shop-coin-count').textContent = playerCoins;
 
+    // Inventory panel
+    const invList = document.getElementById('shop-inv-list');
+    invList.innerHTML = player.inventory.map((w, i) => {
+        const def = WEAPONS_DEF[w.id];
+        const active = i === player.invIdx;
+        return `<div class="inv-row${active ? ' active' : ''}">
+            <div>
+                <div class="inv-row-name">${active ? '▶ ' : ''}${def?.name || w.id}</div>
+                <div class="inv-row-ammo">${w.ammo} / ${def?.maxAmmo || w.maxAmmo} ammo</div>
+            </div>
+            ${active ? '<span class="inv-row-badge">EQUIPPED</span>' : ''}
+        </div>`;
+    }).join('') || '<div style="color:#2a3a4a;font-size:0.75rem;letter-spacing:0.1em;">NO WEAPONS</div>';
+
+    // Buy panel
     const grid = document.getElementById('shop-items-grid');
     grid.innerHTML = '';
     SHOP_WEAPONS.forEach(sw => {
@@ -3018,12 +3340,6 @@ function renderShop() {
         `;
         grid.appendChild(el);
     });
-
-    // Inventory chips
-    const chips = document.getElementById('shop-inv-chips');
-    chips.innerHTML = player.inventory.map(w =>
-        `<span class="inv-chip">${WEAPONS_DEF[w.id]?.name || w.id} (${w.ammo})</span>`
-    ).join('');
 }
 
 function buyWeapon(id) {
@@ -3965,6 +4281,8 @@ function startGame() {
     ALL_CSS_CLASSES.forEach(c => document.getElementById('gun-hud').classList.remove(c));
     document.getElementById('boss-bar').classList.add('hidden');
     document.getElementById('shop-overlay').classList.add('hidden');
+    document.getElementById('shop-overlay-backdrop').classList.add('hidden');
+    document.getElementById('ship-ui').style.display = 'none';
 
     // Reset position
     yawObject.position.set(0, PLAYER_HEIGHT, 0);
@@ -4078,6 +4396,8 @@ function triggerGameOver() {
         ALL_CSS_CLASSES.forEach(c => document.getElementById('gun-hud').classList.remove(c));
         document.getElementById('boss-bar').classList.add('hidden');
         document.getElementById('shop-overlay').classList.add('hidden');
+        document.getElementById('shop-overlay-backdrop').classList.add('hidden');
+        document.getElementById('ship-ui').style.display = 'none';
         if (companion.mesh) { scene.remove(companion.mesh); companion.mesh = null; }
         saveScore(playerName, player.score, currentLevel);
     }, 1100);
@@ -4104,6 +4424,16 @@ function returnToMenu() {
 
 // ─── SECTION 10: Input Handlers ───────────────────────────────────────────────
 document.addEventListener('keydown', e => {
+    if (gameState === 'SHIP') {
+        switch (e.code) {
+            case 'KeyW': shipKeys.w = true; break;
+            case 'KeyA': shipKeys.a = true; break;
+            case 'KeyS': shipKeys.s = true; break;
+            case 'KeyD': shipKeys.d = true; break;
+            case 'KeyM': toggleMuteBtn(); break;
+        }
+        return;
+    }
     if (gameState !== 'PLAYING') return;
     switch (e.code) {
         case 'KeyW': keys.w = true; break;
@@ -4126,6 +4456,15 @@ document.addEventListener('keydown', e => {
 });
 
 document.addEventListener('keyup', e => {
+    if (gameState === 'SHIP') {
+        switch (e.code) {
+            case 'KeyW': shipKeys.w = false; break;
+            case 'KeyA': shipKeys.a = false; break;
+            case 'KeyS': shipKeys.s = false; break;
+            case 'KeyD': shipKeys.d = false; break;
+        }
+        return;
+    }
     switch (e.code) {
         case 'KeyW': keys.w = false; break;
         case 'KeyA': keys.a = false; break;
@@ -4137,26 +4476,45 @@ document.addEventListener('keyup', e => {
 
 document.addEventListener('mousedown', e => {
     if (e.button === 0) {
-        if (gameState === 'PLAYING' && pointerLocked) {
+        const shopOpen = !document.getElementById('shop-overlay').classList.contains('hidden');
+        if (shopOpen) return;
+        if (gameState === 'SHIP' && pointerLocked) {
+            // Raycast from screen center toward NPC
+            if (shipCamera && shipScene && shipScene.userData.npc) {
+                const raycaster = new THREE.Raycaster();
+                raycaster.setFromCamera({ x: 0, y: 0 }, shipCamera);
+                const hits = raycaster.intersectObjects(shipScene.userData.npc.children, true);
+                if (hits.length > 0 && hits[0].distance < 8) {
+                    openNpcShop();
+                }
+            }
+        } else if (gameState === 'PLAYING' && pointerLocked) {
             shoot();
-        } else if (gameState === 'PLAYING' && !pointerLocked) {
+        } else if ((gameState === 'PLAYING' || gameState === 'SHIP') && !pointerLocked) {
             canvas.requestPointerLock();
         }
     }
 });
 
 document.addEventListener('mousemove', e => {
-    if (!pointerLocked || gameState !== 'PLAYING') return;
+    if (!pointerLocked) return;
     const sens = 0.0018;
-    yawObject.rotation.y -= e.movementX * sens;
-    pitchObject.rotation.x -= e.movementY * sens;
-    pitchObject.rotation.x = Math.max(-Math.PI / 2.1, Math.min(Math.PI / 2.1, pitchObject.rotation.x));
+    if (gameState === 'SHIP' && shipYaw && shipPitch) {
+        shipYaw.rotation.y -= e.movementX * sens;
+        shipPitch.rotation.x -= e.movementY * sens;
+        shipPitch.rotation.x = Math.max(-Math.PI / 2.1, Math.min(Math.PI / 2.1, shipPitch.rotation.x));
+    } else if (gameState === 'PLAYING') {
+        yawObject.rotation.y -= e.movementX * sens;
+        pitchObject.rotation.x -= e.movementY * sens;
+        pitchObject.rotation.x = Math.max(-Math.PI / 2.1, Math.min(Math.PI / 2.1, pitchObject.rotation.x));
+    }
 });
 
 document.addEventListener('pointerlockchange', () => {
     pointerLocked = document.pointerLockElement === canvas;
     const notice = document.getElementById('lock-notice');
-    if (gameState === 'PLAYING' && !pointerLocked) {
+    const shopOpen = !document.getElementById('shop-overlay').classList.contains('hidden');
+    if ((gameState === 'PLAYING' || gameState === 'SHIP') && !pointerLocked && !shopOpen) {
         notice.classList.add('visible');
     } else {
         notice.classList.remove('visible');
@@ -4164,7 +4522,8 @@ document.addEventListener('pointerlockchange', () => {
 });
 
 canvas.addEventListener('click', () => {
-    if (gameState === 'PLAYING' && !pointerLocked) {
+    const shopOpen = !document.getElementById('shop-overlay').classList.contains('hidden');
+    if ((gameState === 'PLAYING' || gameState === 'SHIP') && !pointerLocked && !shopOpen) {
         canvas.requestPointerLock();
     }
 });
@@ -4172,13 +4531,17 @@ canvas.addEventListener('click', () => {
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
+    if (shipCamera) {
+        shipCamera.aspect = window.innerWidth / window.innerHeight;
+        shipCamera.updateProjectionMatrix();
+    }
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
 document.getElementById('start-btn').addEventListener('click', startGame);
 document.getElementById('restart-btn').addEventListener('click', restartGame);
 document.getElementById('menu-btn').addEventListener('click', returnToMenu);
-document.getElementById('shop-ready-btn').addEventListener('click', closeShop);
+document.getElementById('shop-ready-btn').addEventListener('click', launchNextWave);
 
 // ─── Minimap ─────────────────────────────────────────────────────────────────
 function drawMinimap() {
@@ -4464,14 +4827,12 @@ function mainLoop(ts) {
         updateHitParticles(delta);
         updateCompanion(delta, ts / 1000);
         drawMinimap();
-    } else if (gameState === 'SHOP') {
+    } else if (gameState === 'SHIP') {
         const delta = Math.min((ts - lastTime) / 1000, 0.05);
         lastTime = ts;
-        shopTimer -= delta;
-        const cdEl = document.getElementById('shop-countdown');
-        if (cdEl) cdEl.textContent = Math.max(0, Math.ceil(shopTimer));
-        if (shopTimer <= 0) closeShop();
-        yawObject.rotation.y += 0.0003;
+        updateShipPlayer(delta, ts / 1000);
+        renderer.render(shipScene, shipCamera);
+        return;
     } else {
         lastTime = ts;
         yawObject.rotation.y += 0.0003;
