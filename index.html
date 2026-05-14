@@ -3437,8 +3437,11 @@ function updateEnemies(delta, time) {
                 tp.tip.rotation.x = -0.3 + Math.sin(phase + 0.9) * 0.22;
             });
         } else if (e.type === 'trex') {
-            e.mesh.position.y = 4.5 + Math.sin(t * e.speed * 0.5) * 0.22;
+            e.mesh.position.y = 4.5 + Math.sin(t * e.speed * 0.5) * 0.2;
             if (e.biteCooldown > 0) e.biteCooldown -= delta;
+            if (e.mesh.userData.headGroup) {
+                e.mesh.userData.headGroup.rotation.x = Math.sin(t * e.speed * 0.38) * 0.07;
+            }
         } else {
             const baseY = e.type === 'berserker' ? 0.95 : 0.9;
             e.mesh.position.y = baseY + Math.sin(t * e.speed * 0.8) * 0.06;
@@ -3933,7 +3936,7 @@ function updateProjectiles(delta) {
         let hit = false;
         for (const e of enemies) {
             if (e.dead) continue;
-            if (e.mesh.position.distanceTo(p) < (e.isBoss ? 2.8 : 1.3)) {
+            if (e.mesh.position.distanceTo(p) < (e.hitRadius || (e.isBoss ? 2.8 : 1.3))) {
                 explodeProjectile(proj, e.mesh.position); hit = true; break;
             }
         }
@@ -4081,125 +4084,185 @@ function createBoss(level) {
 }
 
 function createTRex(level) {
-    const tier  = Math.floor(level / 6);
+    const tier   = Math.floor(level / 6);
     const health = 800 + tier * 300;
 
-    const gray     = new THREE.MeshLambertMaterial({ color: 0x888888 });
-    const darkGray = new THREE.MeshLambertMaterial({ color: 0x666666 });
-    const blue     = new THREE.MeshLambertMaterial({ color: 0x2244aa });
-    const toothMat = new THREE.MeshBasicMaterial ({ color: 0xfff5e0 });
-    const black    = new THREE.MeshBasicMaterial ({ color: 0x111111 });
-    const yellMat  = new THREE.MeshBasicMaterial ({ color: 0xffdd00 });
+    const mGray   = new THREE.MeshLambertMaterial({ color: 0x8a8a8a });
+    const mMid    = new THREE.MeshLambertMaterial({ color: 0x6e6e6e });
+    const mDark   = new THREE.MeshLambertMaterial({ color: 0x555555 });
+    const mBelly  = new THREE.MeshLambertMaterial({ color: 0xababab });
+    const mBlue   = new THREE.MeshLambertMaterial({ color: 0x1a3d99 });
+    const mTooth  = new THREE.MeshBasicMaterial ({ color: 0xfff4da });
+    const mBlack  = new THREE.MeshBasicMaterial ({ color: 0x111111 });
+    const mYellow = new THREE.MeshBasicMaterial ({ color: 0xffdd00 });
 
-    // ── Torso ──────────────────────────────────────────────────────────────
-    const body = new THREE.Mesh(new THREE.BoxGeometry(8.1, 9.0, 6.0), gray);
-    body.castShadow = true;
-    body.position.set(0, 4.5, -24);
-    scene.add(body);
+    // Root group — positioned at creature mid-height for hit-detection accuracy
+    // +Z of this group faces the player (Three.js Object3D.lookAt convention)
+    const root = new THREE.Group();
+    root.position.set(0, 4.5, -20);
+    scene.add(root);
 
-    // ── Blue dorsal back panel ─────────────────────────────────────────────
-    const backPanel = new THREE.Mesh(new THREE.BoxGeometry(8.1, 9.0, 0.35), blue);
-    backPanel.position.set(0, 0, -3.18);
-    body.add(backPanel);
+    const box = (w, h, d, mat) => new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
 
-    // ── Spine plates (blue fins running down the back) ─────────────────────
-    [3.6, 2.1, 0.6, -1.0, -2.4, -3.8].forEach((zOff, i) => {
-        const h = 2.2 - i * 0.2;
-        const plate = new THREE.Mesh(new THREE.BoxGeometry(0.4, h, 0.55), blue);
-        plate.position.set(0, 4.5 + h * 0.5, zOff - 1.2);
-        body.add(plate);
+    // ── Upper legs (thighs) ────────────────────────────────────────────────
+    [-2.8, 2.8].forEach(lx => {
+        const thigh = box(2.5, 3.5, 2.2, mGray);
+        thigh.position.set(lx, -1.25, 0.5);
+        root.add(thigh);
+        // Knee-cap bump: slightly forward protrusion at the joint
+        const knee = box(2.7, 0.9, 1.5, mMid);
+        knee.position.set(lx, -2.55, 0.95);
+        root.add(knee);
     });
 
-    // ── Head ───────────────────────────────────────────────────────────────
-    const head = new THREE.Group();
-    head.position.set(0, 4.2, 3.7);
-    body.add(head);
-
-    head.add(new THREE.Mesh(new THREE.BoxGeometry(4.8, 2.6, 6.0), gray));
-
-    const upperJaw = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.7, 5.4), darkGray);
-    upperJaw.position.set(0, -1.65, 0.25);
-    head.add(upperJaw);
-
-    const lowerJaw = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.7, 5.4), darkGray);
-    lowerJaw.position.set(0, -2.45, 0.25);
-    head.add(lowerJaw);
-    body.userData.lowerJaw      = lowerJaw;
-    body.userData.lowerJawBaseY = -2.45;
-
-    // Upper teeth — knife-sharp cones pointing down
-    for (let i = 0; i < 9; i++) {
-        const t = new THREE.Mesh(new THREE.ConeGeometry(0.17, 0.82, 4), toothMat);
-        t.rotation.z = Math.PI;
-        t.position.set(-1.8 + i * 0.45, -0.68, 0.22);
-        upperJaw.add(t);
-    }
-    // Lower teeth — pointing up
-    for (let i = 0; i < 9; i++) {
-        const t = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.76, 4), toothMat);
-        t.position.set(-1.8 + i * 0.45, 0.62, 0.22);
-        lowerJaw.add(t);
-    }
-
-    // Eyes with slit pupils
-    [-1.6, 1.6].forEach(ex => {
-        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.45, 8, 6), yellMat);
-        eye.position.set(ex, 0.5, -2.7);
-        head.add(eye);
-        const pupil = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.38, 0.17), black);
-        pupil.position.set(ex, 0.5, -3.15);
-        head.add(pupil);
+    // ── Lower legs (shins) ─────────────────────────────────────────────────
+    [-2.8, 2.8].forEach(lx => {
+        const shin = box(2.1, 3.2, 1.9, mDark);
+        shin.position.set(lx, -3.1, -0.25);
+        root.add(shin);
     });
 
-    // ── Tiny T-Rex arms with sharp claws ───────────────────────────────────
-    [-4.5, 4.5].forEach(ax => {
-        const arm = new THREE.Mesh(new THREE.BoxGeometry(0.95, 2.2, 0.95), darkGray);
-        arm.position.set(ax, 1.8, 2.6);
-        arm.rotation.z = ax < 0 ? 0.65 : -0.65;
-        body.add(arm);
-        [-0.32, 0.32].forEach(cx => {
-            const claw = new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.58, 4), black);
-            claw.rotation.z = ax < 0 ? Math.PI - 0.3 : Math.PI + 0.3;
-            claw.position.set(cx, -1.2, 0.18);
-            arm.add(claw);
-        });
-    });
-
-    // ── Massive feet with toenails ─────────────────────────────────────────
-    [-2.6, 2.6].forEach(fx => {
-        const foot = new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.0, 3.6), darkGray);
-        foot.position.set(fx, -4.75, 1.1);
-        body.add(foot);
-        [-0.9, 0, 0.9].forEach((tx, ti) => {
-            const nail = new THREE.Mesh(new THREE.ConeGeometry(0.26, 1.15, 4), black);
-            nail.rotation.x = -Math.PI / 2 - 0.25;
-            nail.position.set(tx, -0.25, 2.15 - ti * 0.08);
+    // ── Feet with toenails ─────────────────────────────────────────────────
+    [-2.8, 2.8].forEach(fx => {
+        const foot = box(2.2, 0.9, 4.5, mDark);
+        foot.position.set(fx, -4.05, 1.8);
+        root.add(foot);
+        [-0.8, 0, 0.8].forEach((tx, ti) => {
+            const nail = new THREE.Mesh(new THREE.ConeGeometry(0.27, 1.2, 4), mBlack);
+            nail.rotation.x = -Math.PI / 2 - 0.28;
+            nail.position.set(tx, -0.18, 2.1 - ti * 0.05);
             foot.add(nail);
         });
     });
 
-    // ── Tail ───────────────────────────────────────────────────────────────
-    const tail1 = new THREE.Mesh(new THREE.BoxGeometry(2.6, 2.2, 7.2), gray);
-    tail1.position.set(0, -1.2, -5.2);
-    tail1.rotation.x = 0.2;
-    body.add(tail1);
-    const tail2 = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.5, 4.8), gray);
-    tail2.position.set(0, 0, -5.6);
-    tail2.rotation.x = 0.28;
-    tail1.add(tail2);
+    // ── Horizontal barrel torso ────────────────────────────────────────────
+    const torso = box(8.0, 3.5, 7.5, mGray);
+    torso.position.set(0, 1.0, 0);
+    root.add(torso);
 
-    // Yellow glow from eyes
-    const glow = new THREE.PointLight(0xffdd00, 3.5, 20);
-    glow.position.set(0, 6.0, 3.5);
-    body.add(glow);
+    // Belly plate (lighter, on the front/player-facing side)
+    const belly = box(7.5, 2.5, 0.32, mBelly);
+    belly.position.set(0, 0.8, 3.78);
+    root.add(belly);
+
+    // Blue back plate
+    const backPlate = box(8.0, 3.5, 0.32, mBlue);
+    backPlate.position.set(0, 1.0, -3.78);
+    root.add(backPlate);
+
+    // Blue dorsal spine plates on top of torso, running nose-to-tail
+    [2.8, 1.6, 0.4, -0.8, -2.0, -3.2].forEach((pz, i) => {
+        const ph = 2.0 - i * 0.18;
+        const plate = box(0.42, ph, 0.6, mBlue);
+        plate.position.set(0, 1.0 + 1.75 + ph * 0.5, pz);
+        root.add(plate);
+    });
+
+    // ── Neck ───────────────────────────────────────────────────────────────
+    const neck = box(3.0, 3.0, 2.8, mGray);
+    neck.position.set(0, 3.25, 1.5);
+    root.add(neck);
+    // Neck muscle slabs on each side
+    [-1.6, 1.6].forEach(nx => {
+        const muscle = box(0.5, 2.2, 2.5, mMid);
+        muscle.position.set(nx, 3.2, 1.4);
+        root.add(muscle);
+    });
+
+    // ── Head group ─────────────────────────────────────────────────────────
+    const headGroup = new THREE.Group();
+    headGroup.position.set(0, 4.2, 4.5);
+    root.add(headGroup);
+    root.userData.headGroup = headGroup;
+
+    // Skull — long, wide, distinctive T-Rex cranium
+    headGroup.add(box(5.5, 3.2, 8.5, mGray));
+
+    // Brow ridges — heavy shelf above the eyes
+    [-1.55, 1.55].forEach(bx => {
+        const brow = box(1.4, 0.6, 0.5, mMid);
+        brow.position.set(bx, 1.85, -3.4);
+        headGroup.add(brow);
+    });
+
+    // Nasal bumps on snout tip
+    [-0.9, 0.9].forEach(nx => {
+        const nub = box(0.55, 0.45, 0.55, mMid);
+        nub.position.set(nx, 0.85, 4.0);
+        headGroup.add(nub);
+    });
+
+    // Upper jaw
+    const upperJaw = box(5.0, 0.82, 8.5, mGray);
+    upperJaw.position.set(0, -2.0, 0);
+    headGroup.add(upperJaw);
+
+    // Lower jaw (articulates for bite)
+    const lowerJaw = box(5.0, 0.82, 8.5, mGray);
+    lowerJaw.position.set(0, -3.0, 0);
+    headGroup.add(lowerJaw);
+    root.userData.lowerJaw      = lowerJaw;
+    root.userData.lowerJawBaseY = -3.0;
+
+    // Upper teeth — knife-sharp cones, pointing downward
+    for (let i = 0; i < 11; i++) {
+        const t = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.85, 4), mTooth);
+        t.rotation.z = Math.PI;
+        t.position.set(-2.2 + i * 0.44, -0.72, 0.18);
+        upperJaw.add(t);
+    }
+    // Lower teeth — pointing upward
+    for (let i = 0; i < 11; i++) {
+        const t = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.78, 4), mTooth);
+        t.position.set(-2.2 + i * 0.44, 0.66, 0.18);
+        lowerJaw.add(t);
+    }
+
+    // Large yellow eyes with slit pupils
+    [-1.9, 1.9].forEach(ex => {
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.58, 10, 7), mYellow);
+        eye.position.set(ex, 0.52, -1.8);
+        headGroup.add(eye);
+        const pupil = box(0.16, 0.46, 0.22, mBlack);
+        pupil.position.set(ex, 0.52, -2.42);
+        headGroup.add(pupil);
+    });
+
+    // ── Tiny vestigial arms with sharp claws ───────────────────────────────
+    [-4.1, 4.1].forEach(ax => {
+        const arm = box(0.88, 1.9, 0.88, mMid);
+        arm.position.set(ax, 2.1, 2.6);
+        arm.rotation.z = ax < 0 ? 0.65 : -0.65;
+        root.add(arm);
+        [-0.3, 0.3].forEach(cx => {
+            const claw = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.62, 4), mBlack);
+            claw.rotation.z = ax < 0 ? Math.PI - 0.35 : Math.PI + 0.35;
+            claw.position.set(cx, -1.1, 0.2);
+            arm.add(claw);
+        });
+    });
+
+    // ── Tail ───────────────────────────────────────────────────────────────
+    const tailBase = box(3.0, 2.5, 4.5, mGray);
+    tailBase.position.set(0, 0.5, -5.0);
+    root.add(tailBase);
+    const tailTaper = box(1.6, 1.6, 3.5, mMid);
+    tailTaper.position.set(0, -0.35, -3.0);   // relative to tailBase → root z ≈ -8
+    tailBase.add(tailTaper);
+
+    // ── Eye glow ───────────────────────────────────────────────────────────
+    const eyeGlow = new THREE.PointLight(0xffdd00, 3.5, 22);
+    eyeGlow.position.set(0, 4.2, 4.5);
+    root.add(eyeGlow);
 
     return {
-        mesh: body,
+        mesh: root,
         health,
         maxHealth: health,
         speed: 1.1 + tier * 0.15,
         damage: 50,
         attackRange: 7.5,
+        hitRadius: 5.2,
         dead: false,
         isBoss: true,
         type: 'trex',
@@ -5147,7 +5210,7 @@ const BOSS_DEFS = [
         desc: 'An ancient terror reborn in alien flesh. Two bites ends your run. Its bone-white fangs slice through steel — keep distance or die.',
         color: '#4488ff',
         createFn() { const e = createTRex(6); scene.remove(e.mesh); return e.mesh; },
-        meshPos: [0, 4.5, 0], camPos: [0, 7.0, 24.0], lookAt: [0, 8.0, 0],
+        meshPos: [0, 4.5, 0], camPos: [0, 8.0, 28.0], lookAt: [0, 7.5, 0],
         stats: [
             { label: 'HP',            value: '800+ (scales per wave)',  cls: 'cr' },
             { label: 'DAMAGE',        value: '50 per bite',             cls: 'cr' },
