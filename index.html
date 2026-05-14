@@ -1527,8 +1527,9 @@ body {
                 <div class="menu-panel-label">Gameplay</div>
                 <div class="controls-grid" style="margin:0;font-size:0.8rem;">
                     <span class="key">WAVES</span><span class="desc">Survive endless alien waves</span>
-                    <span class="key">LEVEL 3, 6, 9...</span><span class="desc">Warlord boss wave</span>
-                    <span class="key">LEVEL 6, 12, 18...</span><span class="desc">T-Rex boss wave</span>
+                    <span class="key">LEVEL 3, 12, 21...</span><span class="desc">Warlord boss wave</span>
+                    <span class="key">LEVEL 6, 15, 24...</span><span class="desc">T-Rex boss wave</span>
+                    <span class="key">LEVEL 9, 18, 27...</span><span class="desc">El Jefe boss wave</span>
                     <span class="key">COINS</span><span class="desc">Earned by killing enemies</span>
                     <span class="key">SHOP</span><span class="desc">Spend coins between waves</span>
                     <span class="key">BUFFS</span><span class="desc">Orbs spawn on arena floor</span>
@@ -4664,6 +4665,180 @@ function createTRex(level) {
     };
 }
 
+function createElJefe(level) {
+    const tier   = Math.floor(level / 9);
+    const health = 650 + tier * 250;
+
+    const mSkin  = new THREE.MeshLambertMaterial({ color: 0xd4956a });
+    const mRed   = new THREE.MeshLambertMaterial({ color: 0xcc0000 });
+    const mRedD  = new THREE.MeshLambertMaterial({ color: 0x880000 });
+    const mWhite = new THREE.MeshLambertMaterial({ color: 0xf8f8f8 });
+    const mGold  = new THREE.MeshBasicMaterial ({ color: 0xffd700 });
+    const mFuzz  = new THREE.MeshLambertMaterial({ color: 0xece0d0 });
+    const mEyeW  = new THREE.MeshBasicMaterial ({ color: 0xffffff });
+    const mEyeD  = new THREE.MeshBasicMaterial ({ color: 0x111111 });
+    const mTooth = new THREE.MeshBasicMaterial ({ color: 0xffffff });
+    const mDark  = new THREE.MeshBasicMaterial ({ color: 0x220000 });
+
+    const root = new THREE.Group();
+    root.position.set(0, 0, -22);
+    scene.add(root);
+    const box = (w, h, d, mat) => new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+
+    // Legs (short, stubby)
+    [-0.48, 0.48].forEach(x => {
+        const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.27, 0.88, 8), mRedD.clone());
+        leg.position.set(x, 0.44, 0);
+        root.add(leg);
+    });
+
+    // Fuzzy slippers
+    [-0.48, 0.48].forEach(x => {
+        const base = box(0.76, 0.22, 1.05, mFuzz.clone());
+        base.position.set(x, 0.11, 0.24);
+        root.add(base);
+        const topFuzz = box(0.72, 0.2, 0.98, new THREE.MeshLambertMaterial({ color: 0xf5ede4 }));
+        topFuzz.position.set(x, 0.27, 0.24);
+        root.add(topFuzz);
+        const pom = new THREE.Mesh(new THREE.SphereGeometry(0.2, 7, 5), mFuzz.clone());
+        pom.position.set(x, 0.22, 0.75);
+        root.add(pom);
+    });
+
+    // Torso (chunky wide barrel)
+    const torso = box(2.2, 1.9, 1.35, mRed.clone());
+    torso.position.set(0, 1.7, 0);
+    root.add(torso);
+
+    // Belly paunch
+    const belly = new THREE.Mesh(new THREE.SphereGeometry(0.68, 10, 8), mRed.clone());
+    belly.position.set(0, 1.48, 0.76);
+    root.add(belly);
+
+    // White collar
+    const collarBase = box(1.85, 0.32, 0.18, mWhite.clone());
+    collarBase.position.set(0, 2.62, 0.62);
+    root.add(collarBase);
+    [-0.38, 0.38].forEach((x, i) => {
+        const flap = box(0.54, 0.5, 0.16, mWhite.clone());
+        flap.position.set(x, 2.5, 0.65);
+        flap.rotation.z = i === 0 ? 0.28 : -0.28;
+        root.add(flap);
+    });
+
+    // Gold jacket buttons
+    [2.42, 2.1, 1.78, 1.46].forEach(y => {
+        const btn = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.065, 0.065, 7), mGold.clone());
+        btn.rotation.x = Math.PI / 2;
+        btn.position.set(0, y, 0.69);
+        root.add(btn);
+    });
+
+    // Arms (chubby, sleeved red)
+    [-1.2, 1.2].forEach((x, i) => {
+        const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.27, 0.95, 8), mRed.clone());
+        upper.rotation.z = i === 0 ? 0.32 : -0.32;
+        upper.position.set(x, 1.82, 0);
+        root.add(upper);
+        const fore = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.23, 0.82, 8), mSkin.clone());
+        fore.rotation.z = i === 0 ? 0.42 : -0.42;
+        fore.position.set(i === 0 ? x - 0.26 : x + 0.26, 1.26, 0);
+        root.add(fore);
+
+        // Chunky hand
+        const hx = i === 0 ? x - 0.48 : x + 0.48;
+        const hand = box(0.46, 0.4, 0.4, mSkin.clone());
+        hand.position.set(hx, 0.84, 0);
+        root.add(hand);
+
+        // Rings — one on each finger (5 torus rings across knuckles)
+        [-0.16, -0.08, 0, 0.08, 0.16].forEach(fz => {
+            const ring = new THREE.Mesh(new THREE.TorusGeometry(0.058, 0.024, 5, 10), mGold.clone());
+            ring.rotation.z = Math.PI / 2;
+            ring.position.set(hx, 0.98, fz);
+            root.add(ring);
+        });
+    });
+
+    // Head (wide, rounded)
+    const headGroup = new THREE.Group();
+    headGroup.position.set(0, 3.28, 0);
+    root.add(headGroup);
+    root.userData.headGroup = headGroup;
+
+    const headMesh = new THREE.Mesh(new THREE.SphereGeometry(0.78, 12, 10), mSkin.clone());
+    headMesh.scale.set(1.12, 0.98, 1.0);
+    headGroup.add(headMesh);
+
+    // White hair — fluffy mass on top
+    const hairCap = new THREE.Mesh(new THREE.SphereGeometry(0.68, 10, 8), mWhite.clone());
+    hairCap.scale.set(1.08, 0.52, 1.0);
+    hairCap.position.set(0, 0.52, 0);
+    headGroup.add(hairCap);
+    // Side tufts
+    [[-0.5, 0.12, 0], [0.5, 0.12, 0], [-0.36, 0.42, -0.38], [0.36, 0.42, -0.38], [0, 0.68, -0.2]].forEach(([hx,hy,hz]) => {
+        const tuft = new THREE.Mesh(new THREE.SphereGeometry(0.24, 7, 5), mWhite.clone());
+        tuft.position.set(hx, hy, hz);
+        headGroup.add(tuft);
+    });
+
+    // Eyebrows (white, bushy)
+    [-0.3, 0.3].forEach(ex => {
+        const brow = box(0.32, 0.09, 0.07, mWhite.clone());
+        brow.position.set(ex, 0.22, 0.7);
+        brow.rotation.z = ex < 0 ? 0.12 : -0.12;
+        headGroup.add(brow);
+    });
+
+    // Eyes (white base + dark pupil)
+    [-0.3, 0.3].forEach(ex => {
+        const eyeBase = new THREE.Mesh(new THREE.SphereGeometry(0.14, 7, 5), mEyeW);
+        eyeBase.position.set(ex, 0.08, 0.68);
+        headGroup.add(eyeBase);
+        const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.08, 6, 4), mEyeD);
+        pupil.position.set(ex, 0.08, 0.77);
+        headGroup.add(pupil);
+    });
+
+    // Big wide smile — dark mouth base + row of teeth
+    const mouthBg = box(0.64, 0.18, 0.07, mDark);
+    mouthBg.position.set(0, -0.16, 0.73);
+    headGroup.add(mouthBg);
+    for (let i = 0; i < 7; i++) {
+        const tooth = box(0.076, 0.14, 0.06, mTooth);
+        tooth.position.set(-0.26 + i * 0.087, -0.14, 0.76);
+        headGroup.add(tooth);
+    }
+    // Smile cheek dimples
+    [-0.42, 0.42].forEach(ex => {
+        const dimple = new THREE.Mesh(new THREE.SphereGeometry(0.08, 6, 5), mSkin.clone());
+        dimple.position.set(ex, -0.16, 0.68);
+        headGroup.add(dimple);
+    });
+
+    // Gold chain around neck
+    const chain = new THREE.Mesh(new THREE.TorusGeometry(0.48, 0.058, 6, 16), mGold.clone());
+    chain.rotation.x = Math.PI / 2 + 0.35;
+    chain.position.set(0, 2.82, 0.35);
+    root.add(chain);
+
+    // Gold shimmer light
+    const goldGlow = new THREE.PointLight(0xffd700, 1.4, 8);
+    goldGlow.position.set(0, 1.9, 1.1);
+    root.add(goldGlow);
+
+    return {
+        mesh: root,
+        health, maxHealth: health,
+        speed: getLevelConfig(level).speedBase * 0.85,
+        damage: 35,
+        attackRange: 3.5,
+        hitRadius: 3.2,
+        dead: false, isBoss: true, type: 'eljefe',
+        animOffset: Math.random() * Math.PI * 2,
+    };
+}
+
 // ─── SECTION 6: Player Controller ────────────────────────────────────────────
 function updatePlayer(delta) {
     const moving = keys.w || keys.a || keys.s || keys.d;
@@ -5231,12 +5406,16 @@ function initLevel(level) {
         // Fewer regular enemies plus one boss
         const regularCount = Math.max(2, Math.floor(cfg.enemies * 0.4));
         spawnEnemies(regularCount, level);
-        const isTRexWave = level % 6 === 0;
-        const boss = isTRexWave ? createTRex(level) : createBoss(level);
+        // Round 3=Warlord, 6=T-Rex, 9=El Jefe, then repeats
+        const bossType = level % 9 === 0 ? 'eljefe' : level % 9 === 6 ? 'trex' : 'warlord';
+        const boss = bossType === 'eljefe' ? createElJefe(level)
+                   : bossType === 'trex'   ? createTRex(level)
+                   : createBoss(level);
         enemies.push(boss);
-        document.getElementById('boss-name').textContent = isTRexWave ? 'THE T-REX' : 'THE WARLORD';
+        document.getElementById('boss-name').textContent =
+            bossType === 'eljefe' ? 'EL JEFE' : bossType === 'trex' ? 'THE T-REX' : 'THE WARLORD';
         Audio.setBossMode(true);
-        if (isTRexWave) {
+        if (bossType === 'trex') {
             Audio.trexRoar();
             // Yellow eye-flash shockwave at roar peak (~0.5 s in)
             setTimeout(() => {
@@ -5251,6 +5430,21 @@ function initLevel(level) {
                     if (flash.intensity <= 0) { clearInterval(fade); scene.remove(flash); }
                 }, 50);
             }, 500);
+        } else if (bossType === 'eljefe') {
+            Audio.bossSpawn();
+            // Gold shimmer flash on spawn
+            setTimeout(() => {
+                const flash = new THREE.PointLight(0xffd700, 18, 40);
+                flash.position.copy(boss.mesh.position);
+                flash.position.y += 2.0;
+                scene.add(flash);
+                let t2 = 0;
+                const fade = setInterval(() => {
+                    t2 += 0.05;
+                    flash.intensity = Math.max(0, 18 - t2 * 28);
+                    if (flash.intensity <= 0) { clearInterval(fade); scene.remove(flash); }
+                }, 50);
+            }, 200);
         } else {
             Audio.bossSpawn();
         }
@@ -5639,9 +5833,27 @@ const BOSS_DEFS = [
             { label: 'ATTACK TYPE',   value: 'Heavy Melee',             cls: 'cr' },
             { label: 'ATTACK RANGE',  value: '2.8 m',                   cls: ''   },
             { label: 'MOVEMENT',      value: 'Slow but unstoppable',    cls: 'co' },
-            { label: 'SPAWNS',        value: 'Every 3rd wave',          cls: 'cy' },
+            { label: 'SPAWNS',        value: 'Waves 3, 12, 21…',        cls: 'cy' },
             { label: 'WEAKNESS',      value: 'Sustained fire, Railgun', cls: 'cg' },
             { label: 'THREAT',        value: '★★★★★  EXTREME',         cls: 'cr' },
+        ],
+    },
+    {
+        name: 'EL JEFE',
+        subtitle: 'The Big Boss',
+        desc: 'A well-dressed crime lord with rings on every finger and fuzzy slippers on his feet. Don\'t let the outfit fool you — he hits hard, takes a beating, and that smile never fades.',
+        color: '#ffd700',
+        createFn() { const e = createElJefe(9); scene.remove(e.mesh); return e.mesh; },
+        meshPos: [0, 0, 0], camPos: [0, 2.8, 8.0], lookAt: [0, 2.5, 0],
+        stats: [
+            { label: 'HP',            value: '900+ (scales per wave)',  cls: 'cr' },
+            { label: 'DAMAGE',        value: '35 / sec (scales)',       cls: 'cr' },
+            { label: 'ATTACK TYPE',   value: 'Melee',                   cls: 'cr' },
+            { label: 'ATTACK RANGE',  value: '3.5 m',                   cls: ''   },
+            { label: 'MOVEMENT',      value: 'Moderate pace',           cls: 'co' },
+            { label: 'SPAWNS',        value: 'Waves 9, 18, 27…',        cls: 'cy' },
+            { label: 'WEAKNESS',      value: 'Railgun, keep distance',  cls: 'cg' },
+            { label: 'THREAT',        value: '★★★★★  EXTREME',          cls: 'cr' },
         ],
     },
     {
@@ -5658,7 +5870,7 @@ const BOSS_DEFS = [
             { label: 'ATTACK RANGE',  value: '7.5 m',                   cls: ''   },
             { label: 'BITES TO KILL', value: '2 bites = instant death', cls: 'cr' },
             { label: 'BITE COOLDOWN', value: '2 seconds',               cls: 'co' },
-            { label: 'SPAWNS',        value: 'Every 6th wave',          cls: 'cy' },
+            { label: 'SPAWNS',        value: 'Waves 6, 15, 24…',        cls: 'cy' },
             { label: 'WEAKNESS',      value: 'Railgun, stay far back',  cls: 'cg' },
             { label: 'THREAT',        value: '★★★★★  EXTREME',         cls: 'cr' },
         ],
