@@ -4280,13 +4280,14 @@ function createTRex(level) {
         lowerJaw.add(t);
     }
 
-    // Large yellow eyes with slit pupils
-    [-1.9, 1.9].forEach(ex => {
+    // Large yellow eyes on the sides of the skull, mid-height
+    [-2.55, 2.55].forEach(ex => {
         const eye = new THREE.Mesh(new THREE.SphereGeometry(0.58, 10, 7), mYellow);
-        eye.position.set(ex, 0.52, -1.8);
+        eye.position.set(ex, 0.05, -1.5);
         headGroup.add(eye);
-        const pupil = box(0.16, 0.46, 0.22, mBlack);
-        pupil.position.set(ex, 0.52, -2.42);
+        // Slit pupil on the outer lateral face of each eye
+        const pupil = box(0.18, 0.46, 0.22, mBlack);
+        pupil.position.set(ex < 0 ? ex - 0.52 : ex + 0.52, 0.05, -1.5);
         headGroup.add(pupil);
     });
 
@@ -4314,7 +4315,7 @@ function createTRex(level) {
 
     // ── Eye glow ───────────────────────────────────────────────────────────
     const eyeGlow = new THREE.PointLight(0xffdd00, 3.5, 22);
-    eyeGlow.position.set(0, 4.2, 4.5);
+    eyeGlow.position.set(0, 4.25, 3.0);  // mid-skull height, slightly forward
     root.add(eyeGlow);
 
     return {
