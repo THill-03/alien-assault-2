@@ -1372,7 +1372,7 @@ body {
     z-index: 120;
 }
 .menu-panel.open { display: block; }
-#controls-panel { min-width: 320px; }
+#controls-panel, #gameplay-panel { min-width: 320px; }
 .menu-panel-label {
     font-size: 0.55rem;
     letter-spacing: 0.35em;
@@ -1392,12 +1392,12 @@ body {
 <!-- ─── Menu Overlay ─── -->
 <div id="menu-overlay" class="overlay">
 
-    <!-- Top-right: Controls + Settings -->
+    <!-- Top-right: Controls + Gameplay + Settings -->
     <div id="menu-top-right">
         <div class="menu-panel-wrap">
             <button class="menu-corner-btn" id="controls-corner-btn" onclick="toggleMenuPanel('controls-panel','controls-corner-btn')">CONTROLS</button>
             <div id="controls-panel" class="menu-panel">
-                <div class="menu-panel-label">Gameplay</div>
+                <div class="menu-panel-label">Controls</div>
                 <div class="controls-grid" style="margin:0;font-size:0.8rem;">
                     <span class="key">WASD</span><span class="desc">Move</span>
                     <span class="key">SHIFT</span><span class="desc">Sprint (limited)</span>
@@ -1406,7 +1406,21 @@ body {
                     <span class="key">R</span><span class="desc">Reload</span>
                     <span class="key">TAB</span><span class="desc">Switch weapon</span>
                     <span class="key">M</span><span class="desc">Toggle sound on/off</span>
-                    <span class="key">LEVEL 3, 6, 9...</span><span class="desc">Boss wave</span>
+                </div>
+            </div>
+        </div>
+        <div class="menu-panel-wrap">
+            <button class="menu-corner-btn" id="gameplay-corner-btn" onclick="toggleMenuPanel('gameplay-panel','gameplay-corner-btn')">GAMEPLAY</button>
+            <div id="gameplay-panel" class="menu-panel">
+                <div class="menu-panel-label">Gameplay</div>
+                <div class="controls-grid" style="margin:0;font-size:0.8rem;">
+                    <span class="key">WAVES</span><span class="desc">Survive endless alien waves</span>
+                    <span class="key">LEVEL 3, 6, 9...</span><span class="desc">Warlord boss wave</span>
+                    <span class="key">LEVEL 6, 12, 18...</span><span class="desc">T-Rex boss wave</span>
+                    <span class="key">COINS</span><span class="desc">Earned by killing enemies</span>
+                    <span class="key">SHOP</span><span class="desc">Spend coins between waves</span>
+                    <span class="key">BUFFS</span><span class="desc">Orbs spawn on arena floor</span>
+                    <span class="key">SCALING</span><span class="desc">Enemies get faster &amp; tougher</span>
                 </div>
             </div>
         </div>
