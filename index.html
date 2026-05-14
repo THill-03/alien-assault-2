@@ -788,6 +788,70 @@ body {
     background: rgba(34,68,255,0.1);
 }
 
+/* ─── Utility Shop Overlay ──────────────────────────────────── */
+#util-overlay {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(620px, 94vw);
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    background: rgba(2, 5, 16, 0.97);
+    border: 1px solid #3a1a00;
+    border-radius: 4px;
+    z-index: 200;
+    overflow-y: auto;
+    padding: 1.2rem 1.2rem 1.5rem;
+}
+#util-overlay.hidden { display: none; }
+#util-overlay-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 199;
+}
+#util-overlay-backdrop.hidden { display: none; }
+#util-items-grid { display: flex; flex-direction: column; gap: 0.4rem; }
+.util-item { background: rgba(0,8,20,0.7); border: 1px solid #2a1800; padding: 0.55rem 0.7rem; display: flex; flex-direction: column; gap: 0.2rem; border-radius: 3px; }
+.util-item-name { font-size: 0.78rem; font-weight: 700; color: #ffaa44; letter-spacing: 0.08em; }
+.util-item-key  { font-size: 0.62rem; color: #ff8800; }
+.util-item-cost { font-size: 0.68rem; color: #ffcc00; }
+.util-item-desc { font-size: 0.65rem; color: #445566; }
+.util-item-status { font-size: 0.65rem; color: #ff8800; }
+.util-buy-btn {
+    margin-top: 0.3rem; padding: 0.25em 0.8em;
+    font-family: 'Courier New', monospace; font-size: 0.7rem; font-weight: 700;
+    letter-spacing: 0.1em; border: 1px solid #ff8800; background: transparent;
+    color: #ff8800; cursor: pointer; align-self: flex-start;
+}
+.util-buy-btn:hover { background: #ff8800; color: #050510; }
+.util-buy-btn:disabled { border-color: #334; color: #334; cursor: default; }
+.util-buy-btn:disabled:hover { background: transparent; color: #334; }
+/* ─── Utility HUD Bar ────────────────────────────────────────── */
+#utility-bar {
+    position: absolute;
+    bottom: 5.2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.55rem;
+    pointer-events: none;
+    display: none;
+}
+.util-slot {
+    display: flex; align-items: center; gap: 0.3rem;
+    background: rgba(0,0,0,0.55); border: 1px solid #221400;
+    padding: 0.18em 0.55em; border-radius: 2px;
+    font-family: 'Courier New', monospace; font-size: 0.58rem; letter-spacing: 0.08em; color: #443322;
+}
+.util-slot.active { border-color: #ff8800; color: #ff8800; }
+.util-slot .ukey { color: #2a1800; margin-right: 0.15em; }
+.util-slot.active .ukey { color: #ff6600; }
+#util-jetpack-bar { width: 44px; height: 4px; background: #221400; border-radius: 2px; overflow: hidden; }
+#util-jetpack-fill { height: 100%; background: #ff8800; width: 0%; transition: width 0.1s; }
+
 /* ─── Coin display (HUD) ─────────────────────────────────────── */
 #coin-display {
     position: absolute;
@@ -1541,6 +1605,20 @@ body {
     <button class="btn" id="shop-ready-btn" style="margin-top:1rem;width:100%;">LAUNCH NEXT WAVE</button>
 </div>
 
+<!-- ─── Utility Shop Overlay ─── -->
+<div id="util-overlay-backdrop" class="hidden"></div>
+<div id="util-overlay" class="hidden">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.9rem;padding-bottom:0.7rem;border-bottom:1px solid #2a1800;">
+        <div>
+            <div style="font-size:1.05rem;font-weight:900;color:#ff8800;letter-spacing:0.2em;text-shadow:0 0 14px #ff880088;">RYXX — GADGET TECH</div>
+            <div style="font-size:0.58rem;letter-spacing:0.22em;color:#ff6600;margin-top:0.25rem;">BAY 3 &nbsp;·&nbsp; COINS: <span id="util-coin-count" style="color:#ffcc00;font-weight:700;">0</span></div>
+        </div>
+        <button onclick="closeUtilShop()" style="background:transparent;border:none;color:#445566;font-family:'Courier New',monospace;font-size:1.1rem;cursor:pointer;padding:0.2rem 0.4rem;line-height:1;" title="Close">✕</button>
+    </div>
+    <div id="util-items-grid"></div>
+    <button class="btn" onclick="closeUtilShop()" style="margin-top:1rem;width:100%;border-color:#ff8800;color:#ff8800;">BACK TO SHIP</button>
+</div>
+
 <!-- ─── Game Over Overlay ─── -->
 <div id="gameover-overlay" class="overlay hidden">
     <div class="go-title">YOU DIED</div>
@@ -1588,6 +1666,12 @@ body {
     <div id="level-display">LEVEL 1</div>
     <div id="coin-display">&#9679; 0 COINS</div>
     <div id="inventory-bar"></div>
+    <div id="utility-bar">
+        <div class="util-slot" id="util-slot-grapple"><span class="ukey">[G]</span> GRAPPLE <span id="util-grapple-count">0</span></div>
+        <div class="util-slot" id="util-slot-jetpack"><span class="ukey">SPACE</span> JETPACK <div id="util-jetpack-bar"><div id="util-jetpack-fill"></div></div></div>
+        <div class="util-slot" id="util-slot-adren"><span class="ukey">[F]</span> ADREN <span id="util-adren-val">0</span></div>
+        <div class="util-slot" id="util-slot-emp"><span class="ukey">[Q]</span> EMP <span id="util-emp-count">0</span></div>
+    </div>
     <div id="level-banner"></div>
 
     <!-- Boss health bar -->
@@ -2502,6 +2586,51 @@ function buildShipScene() {
     shipScene.userData.npc = npc;
     shipScene.add(npc);
 
+    // RYXX NPC — Gadget Tech (orange, left-center of ship)
+    const ryxxPlat = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.8, 0.18, 16),
+        new THREE.MeshLambertMaterial({ color: 0x1a0d00 }));
+    ryxxPlat.position.set(-7, 0.09, 2);
+    shipScene.add(ryxxPlat);
+    const ryxxPillar = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.30, 0.30, 2.6, 8),
+        new THREE.MeshBasicMaterial({ color: 0xff6600, transparent: true, opacity: 0.25, wireframe: true })
+    );
+    ryxxPillar.position.set(-7, 1.3, 2);
+    shipScene.add(ryxxPillar);
+    const ryxxHoloLight = new THREE.PointLight(0xff6600, 2.4, 9);
+    ryxxHoloLight.position.set(-7, 2.3, 2);
+    shipScene.add(ryxxHoloLight);
+    shipScene.userData.ryxxHoloLight = ryxxHoloLight;
+    shipScene.userData.ryxxPillar = ryxxPillar;
+
+    const npc2 = new THREE.Group();
+    const b2Mat = new THREE.MeshLambertMaterial({ color: 0x3a1800 });
+    const h2Mat = new THREE.MeshLambertMaterial({ color: 0x884400 });
+    const e2Mat = new THREE.MeshBasicMaterial({ color: 0xffaa00 });
+    [-0.16, 0.16].forEach(x => {
+        const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.85, 6), b2Mat.clone());
+        leg.position.set(x, 0.42, 0); npc2.add(leg);
+    });
+    const body2 = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.9, 0.38), b2Mat.clone());
+    body2.position.y = 1.05; npc2.add(body2);
+    [-0.48, 0.48].forEach(x => {
+        const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.72, 6), b2Mat.clone());
+        arm.rotation.z = x > 0 ? 0.35 : -0.35;
+        arm.position.set(x, 1.0, 0); npc2.add(arm);
+    });
+    const head2 = new THREE.Mesh(new THREE.SphereGeometry(0.26, 8, 6), h2Mat);
+    head2.position.y = 1.76; npc2.add(head2);
+    [-0.09, 0.09].forEach(x => {
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.046, 6, 4), e2Mat);
+        eye.position.set(x, 1.76, 0.24); npc2.add(eye);
+    });
+    const eye2Glow = new THREE.PointLight(0xffaa00, 0.5, 2.5);
+    eye2Glow.position.set(0, 1.76, 0.3); npc2.add(eye2Glow);
+    npc2.position.set(-7, 0.18, 1.55);
+    npc2.rotation.y = Math.PI * 0.5;
+    shipScene.userData.npc2 = npc2;
+    shipScene.add(npc2);
+
     // Crates
     const crateMat = new THREE.MeshLambertMaterial({ color: 0x111928 });
     [[-8,-7],[-9,-5],[-8.5,-3],[8,-7],[9,-5],[8.5,-3],[-7.5,8],[7.5,8],[-5,9],[5,9]].forEach(([x,z]) => {
@@ -2544,7 +2673,7 @@ function teardownShipScene() {
 
 function updateShipPlayer(delta, time) {
     if (!shipYaw) return;
-    // Animate NPC + holo
+    // Animate Zaxon NPC + holo
     if (shipScene.userData.npc) {
         const npc = shipScene.userData.npc;
         const dx = shipYaw.position.x - npc.position.x;
@@ -2557,13 +2686,34 @@ function updateShipPlayer(delta, time) {
     if (shipScene.userData.holoPillar) {
         shipScene.userData.holoPillar.rotation.y += delta * 0.5;
     }
-    // NPC aim hint
+    // Animate Ryxx NPC + holo
+    if (shipScene.userData.npc2) {
+        const npc2 = shipScene.userData.npc2;
+        const dx2 = shipYaw.position.x - npc2.position.x;
+        const dz2 = shipYaw.position.z - npc2.position.z;
+        npc2.rotation.y = Math.atan2(dx2, dz2) + Math.sin(time * 0.55) * 0.05;
+    }
+    if (shipScene.userData.ryxxHoloLight) {
+        shipScene.userData.ryxxHoloLight.intensity = 2.2 + Math.sin(time * 3.1) * 0.5;
+    }
+    if (shipScene.userData.ryxxPillar) {
+        shipScene.userData.ryxxPillar.rotation.y -= delta * 0.6;
+    }
+    // NPC aim hint — shows for whichever NPC is in crosshairs
     const hintEl = document.getElementById('npc-hint');
-    if (hintEl && shipCamera && shipScene.userData.npc) {
+    if (hintEl && shipCamera && shipScene) {
         const raycaster = new THREE.Raycaster();
         raycaster.setFromCamera({ x: 0, y: 0 }, shipCamera);
-        const hits = raycaster.intersectObjects(shipScene.userData.npc.children, true);
-        hintEl.style.opacity = (hits.length > 0 && hits[0].distance < 8) ? '1' : '0';
+        let hintOn = false;
+        if (shipScene.userData.npc) {
+            const h1 = raycaster.intersectObjects(shipScene.userData.npc.children, true);
+            if (h1.length > 0 && h1[0].distance < 10) { hintEl.textContent = 'LOOK AT ZAXON AND CLICK TO TRADE'; hintOn = true; }
+        }
+        if (!hintOn && shipScene.userData.npc2) {
+            const h2 = raycaster.intersectObjects(shipScene.userData.npc2.children, true);
+            if (h2.length > 0 && h2[0].distance < 10) { hintEl.textContent = 'LOOK AT RYXX AND CLICK TO BUY GADGETS'; hintOn = true; }
+        }
+        hintEl.style.opacity = hintOn ? '1' : '0';
     }
 
     // Movement
@@ -2603,13 +2753,20 @@ const player = {
     sprinting: false,
     inventory: [],   // [{ id, ammo, maxAmmo }]
     invIdx: 0,
+    grappleCharges: 0,
+    jetpackFuel: 0,
+    adrenTimer: 0,
+    adrenDoses: 0,
+    empCharges: 0,
+    grappleDash: null,
+    grappleDashTime: 0,
 };
 
 let playerName = 'PLAYER';
 let projectiles = [];
 let hitParticles = [];
 
-const keys = { w: false, a: false, s: false, d: false, shift: false };
+const keys = { w: false, a: false, s: false, d: false, shift: false, space: false };
 
 // ─── Inventory Helpers ────────────────────────────────────────────────────────
 function curWeapon() { return player.inventory[player.invIdx] || player.inventory[0]; }
@@ -3533,7 +3690,9 @@ function updateEnemies(delta, time) {
                        : 1.5;
 
         const isRoaring = e.type === 'trex' && e.roarTimer > 0;
-        if (dist > stopDist && !isRoaring) {
+        if (e.frozenTimer > 0) { e.frozenTimer -= delta; if (e.frozenTimer < 0) e.frozenTimer = 0; }
+        const isFrozen = e.frozenTimer > 0;
+        if (dist > stopDist && !isRoaring && !isFrozen) {
             const nx = dx / dist;
             const nz = dz / dist;
             const nx2 = e.mesh.position.x + nx * e.speed * delta;
@@ -3619,7 +3778,7 @@ function updateEnemies(delta, time) {
         }
 
         // Attack
-        if (dist < e.attackRange && !isRoaring) {
+        if (dist < e.attackRange && !isRoaring && !isFrozen) {
             if (e.type === 'trex') {
                 if (e.biteCooldown <= 0) {
                     damagePlayer(e.damage);
@@ -3723,6 +3882,8 @@ function openShop(nextLevel) {
     document.getElementById('gun-hud').style.display = 'none';
     document.getElementById('shop-overlay').classList.add('hidden');
     document.getElementById('ship-ui').style.display = 'block';
+    if (player.jetpackFuel > 0) player.jetpackFuel = 100;  // refill jet pack on ship entry
+    updateUtilHUD();
     const hint = document.getElementById('npc-hint');
     hint.textContent = 'LOOK AT ZAXON AND CLICK TO TRADE';
     hint.style.opacity = '0';
@@ -4460,7 +4621,9 @@ function updatePlayer(delta) {
         player.sprinting = false;
         if (!keys.shift) player.sprint = Math.min(SPRINT_MAX, player.sprint + SPRINT_REGEN * delta);
     }
-    const sprintFactor = player.sprinting ? SPRINT_MULT : 1;
+    const adrenBoost = player.adrenTimer > 0 ? 1.6 : 1.0;
+    if (player.adrenTimer > 0) { player.adrenTimer -= delta; if (player.adrenTimer < 0) player.adrenTimer = 0; updateUtilHUD(); }
+    const sprintFactor = (player.sprinting ? SPRINT_MULT : 1) * adrenBoost;
 
     // Horizontal movement
     const dir = new THREE.Vector3();
@@ -4477,6 +4640,23 @@ function updatePlayer(delta) {
         const bound = ARENA_HALF - 1.2;
         yawObject.position.x = Math.max(-bound, Math.min(bound, nx));
         yawObject.position.z = Math.max(-bound, Math.min(bound, nz));
+    }
+
+    // Grapple dash — override horizontal for a short burst
+    if (player.grappleDashTime > 0) {
+        player.grappleDashTime -= delta;
+        if (player.grappleDash) {
+            const bound = ARENA_HALF - 1.2;
+            yawObject.position.x = Math.max(-bound, Math.min(bound, yawObject.position.x + player.grappleDash.x * delta));
+            yawObject.position.z = Math.max(-bound, Math.min(bound, yawObject.position.z + player.grappleDash.z * delta));
+        }
+    }
+
+    // Jet pack — upward thrust while SPACE held in air
+    if (!player.isGrounded && keys.space && player.jetpackFuel > 0) {
+        player.velocityY += 22 * delta;
+        player.jetpackFuel = Math.max(0, player.jetpackFuel - 30 * delta);
+        updateUtilHUD();
     }
 
     // Vertical movement (jump + gravity)
@@ -4926,6 +5106,9 @@ function startGame() {
     player.isGrounded = true;
     player.sprint = SPRINT_MAX;
     player.sprinting = false;
+    player.grappleCharges = 0; player.jetpackFuel = 0;
+    player.adrenTimer = 0; player.adrenDoses = 0; player.empCharges = 0;
+    player.grappleDash = null; player.grappleDashTime = 0;
     player.inventory = [
         { id: 'dual_pistol',   ammo: 60, maxAmmo: 60 },
         { id: 'assault_rifle', ammo: 45, maxAmmo: 45 },
@@ -5124,7 +5307,11 @@ document.addEventListener('keydown', e => {
         case 'Tab': switchWeapon(1); e.preventDefault(); break;
         case 'KeyR': startReload(); break;
         case 'KeyM': toggleMuteBtn(); break;
+        case 'KeyG': fireGrapple(); break;
+        case 'KeyQ': detonateEmp(); break;
+        case 'KeyF': injectAdrenaline(); break;
         case 'Space':
+            keys.space = true;
             if (player.isGrounded) {
                 player.velocityY = JUMP_FORCE;
                 player.isGrounded = false;
@@ -5151,21 +5338,26 @@ document.addEventListener('keyup', e => {
         case 'KeyS': keys.s = false; break;
         case 'KeyD': keys.d = false; break;
         case 'ShiftLeft': case 'ShiftRight': keys.shift = false; break;
+        case 'Space': keys.space = false; break;
     }
 });
 
 document.addEventListener('mousedown', e => {
     if (e.button === 0) {
-        const shopOpen = !document.getElementById('shop-overlay').classList.contains('hidden');
+        const shopOpen = !document.getElementById('shop-overlay').classList.contains('hidden')
+                      || !document.getElementById('util-overlay').classList.contains('hidden');
         if (shopOpen) return;
         if (gameState === 'SHIP' && pointerLocked) {
-            // Raycast from screen center toward NPC
-            if (shipCamera && shipScene && shipScene.userData.npc) {
+            if (shipCamera && shipScene) {
                 const raycaster = new THREE.Raycaster();
                 raycaster.setFromCamera({ x: 0, y: 0 }, shipCamera);
-                const hits = raycaster.intersectObjects(shipScene.userData.npc.children, true);
-                if (hits.length > 0 && hits[0].distance < 8) {
-                    openNpcShop();
+                if (shipScene.userData.npc) {
+                    const h1 = raycaster.intersectObjects(shipScene.userData.npc.children, true);
+                    if (h1.length > 0 && h1[0].distance < 10) { openNpcShop(); return; }
+                }
+                if (shipScene.userData.npc2) {
+                    const h2 = raycaster.intersectObjects(shipScene.userData.npc2.children, true);
+                    if (h2.length > 0 && h2[0].distance < 10) { openUtilShop(); return; }
                 }
             }
         } else if (gameState === 'PLAYING' && pointerLocked) {
@@ -5836,6 +6028,117 @@ function openBuffViewer() {
 
 function closeBuffViewer() {
     document.getElementById('buff-viewer-overlay').classList.add('hidden');
+}
+
+// ─── Utility System ───────────────────────────────────────────────────────────
+const UTIL_SHOP_DATA = [
+    { id: 'grapple',    cost: 350, charges: 3,   key: 'G',     label: 'GRAPPLE HOOK',     desc: 'Launch yourself in the aimed direction — great for escape or closing distance.' },
+    { id: 'jetpack',    cost: 450, charges: 100,  key: 'SPACE', label: 'JET PACK',         desc: 'Hold SPACE while airborne to boost upward. 100 fuel per purchase, refills at ship.' },
+    { id: 'adrenaline', cost: 200, charges: 2,    key: 'F',     label: 'ADRENALINE SHOT',  desc: 'Inject for a 10-second 60% speed boost. Press F to activate a dose.' },
+    { id: 'emp',        cost: 300, charges: 2,    key: 'Q',     label: 'EMP GRENADE',      desc: 'Detonate to freeze every enemy in place for 4 seconds. Press Q to use.' },
+];
+
+function openUtilShop() {
+    document.exitPointerLock();
+    renderUtilShop();
+    document.getElementById('util-overlay-backdrop').classList.remove('hidden');
+    document.getElementById('util-overlay').classList.remove('hidden');
+}
+
+function closeUtilShop() {
+    document.getElementById('util-overlay').classList.add('hidden');
+    document.getElementById('util-overlay-backdrop').classList.add('hidden');
+    canvas.requestPointerLock();
+}
+
+function renderUtilShop() {
+    document.getElementById('util-coin-count').textContent = playerCoins;
+    const grid = document.getElementById('util-items-grid');
+    grid.innerHTML = '';
+    UTIL_SHOP_DATA.forEach(u => {
+        const el = document.createElement('div');
+        el.className = 'util-item';
+        const currentVal = u.id === 'jetpack'    ? Math.round(player.jetpackFuel) + ' fuel'
+                         : u.id === 'grapple'    ? player.grappleCharges + ' charges'
+                         : u.id === 'adrenaline' ? (player.adrenTimer > 0 ? player.adrenTimer.toFixed(1) + 's active' : player.adrenDoses + ' doses')
+                         : player.empCharges + ' charges';
+        const canAfford = playerCoins >= u.cost;
+        el.innerHTML = `
+            <div class="util-item-name">${u.label}</div>
+            <div class="util-item-key">KEY: [${u.key}]</div>
+            <div class="util-item-cost">${u.cost} COINS</div>
+            <div class="util-item-desc">${u.desc}</div>
+            <div class="util-item-status">OWNED: ${currentVal}</div>
+            <button class="util-buy-btn" ${canAfford ? '' : 'disabled'} onclick="buyUtility('${u.id}')">BUY (+${u.charges}${u.id==='jetpack'?' fuel':u.id==='adrenaline'?' doses':' charges'})</button>
+        `;
+        grid.appendChild(el);
+    });
+}
+
+function buyUtility(id) {
+    const u = UTIL_SHOP_DATA.find(x => x.id === id);
+    if (!u || playerCoins < u.cost) return;
+    playerCoins -= u.cost;
+    if (id === 'grapple')    player.grappleCharges += u.charges;
+    if (id === 'jetpack')    player.jetpackFuel     = Math.min(100, player.jetpackFuel + u.charges);
+    if (id === 'adrenaline') player.adrenDoses     += u.charges;
+    if (id === 'emp')        player.empCharges     += u.charges;
+    updateUtilHUD();
+    renderUtilShop();
+}
+
+function fireGrapple() {
+    if (gameState !== 'PLAYING' || player.grappleCharges <= 0) return;
+    const fwd = new THREE.Vector3();
+    camera.getWorldDirection(fwd);
+    player.velocityY = fwd.y * 20 + 7;
+    player.grappleDash = new THREE.Vector3(fwd.x, 0, fwd.z).normalize().multiplyScalar(22);
+    player.grappleDashTime = 0.28;
+    player.isGrounded = false;
+    player.grappleCharges--;
+    updateUtilHUD();
+    showPickupNotice('GRAPPLE!', 'shop');
+}
+
+function detonateEmp() {
+    if (gameState !== 'PLAYING' || player.empCharges <= 0) return;
+    enemies.forEach(e => { if (!e.dead) e.frozenTimer = 4.0; });
+    player.empCharges--;
+    updateUtilHUD();
+    showPickupNotice('EMP — ENEMIES FROZEN!', 'shop');
+    const flash = new THREE.PointLight(0x88aaff, 18, 65);
+    flash.position.copy(yawObject.position);
+    scene.add(flash);
+    setTimeout(() => scene.remove(flash), 350);
+}
+
+function injectAdrenaline() {
+    if (gameState !== 'PLAYING' || player.adrenDoses <= 0) return;
+    player.adrenTimer = 10.0;
+    player.adrenDoses--;
+    updateUtilHUD();
+    showPickupNotice('ADRENALINE!', 'health');
+}
+
+function updateUtilHUD() {
+    const bar = document.getElementById('utility-bar');
+    if (!bar) return;
+    const hasAny = player.grappleCharges > 0 || player.jetpackFuel > 0 || player.adrenDoses > 0 || player.empCharges > 0;
+    bar.style.display = hasAny ? 'flex' : 'none';
+
+    const gSlot = document.getElementById('util-slot-grapple');
+    const jSlot = document.getElementById('util-slot-jetpack');
+    const aSlot = document.getElementById('util-slot-adren');
+    const eSlot = document.getElementById('util-slot-emp');
+
+    if (gSlot) { gSlot.className = 'util-slot' + (player.grappleCharges > 0 ? ' active' : ''); document.getElementById('util-grapple-count').textContent = player.grappleCharges; }
+    if (jSlot) { jSlot.className = 'util-slot' + (player.jetpackFuel > 0 ? ' active' : ''); const fill = document.getElementById('util-jetpack-fill'); if (fill) fill.style.width = player.jetpackFuel + '%'; }
+    if (aSlot) {
+        const adrenVal = player.adrenTimer > 0 ? player.adrenTimer.toFixed(1) + 's' : player.adrenDoses;
+        aSlot.className = 'util-slot' + (player.adrenDoses > 0 || player.adrenTimer > 0 ? ' active' : '');
+        document.getElementById('util-adren-val').textContent = adrenVal;
+    }
+    if (eSlot) { eSlot.className = 'util-slot' + (player.empCharges > 0 ? ' active' : ''); document.getElementById('util-emp-count').textContent = player.empCharges; }
 }
 
 function openAlienViewer() {
