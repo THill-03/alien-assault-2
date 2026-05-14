@@ -1794,6 +1794,42 @@ const Audio = (() => {
         });
     }
 
+    function trexRoar() {
+        if (!ctx || muted) return;
+        const t = ctx.currentTime;
+        // Sub-bass rumble — deep sweep up then back down
+        const sub = ctx.createOscillator(); sub.type = 'sawtooth';
+        sub.frequency.setValueAtTime(40, t);
+        sub.frequency.linearRampToValueAtTime(90, t + 1.2);
+        sub.frequency.linearRampToValueAtTime(48, t + 2.4);
+        const subF = ctx.createBiquadFilter(); subF.type = 'lowpass'; subF.frequency.value = 260;
+        const subG = g(0);
+        subG.gain.setValueAtTime(0, t); subG.gain.linearRampToValueAtTime(0.48, t + 0.4);
+        subG.gain.setValueAtTime(0.48, t + 1.6); subG.gain.linearRampToValueAtTime(0, t + 2.6);
+        sub.connect(subF); subF.connect(subG); subG.connect(sfx);
+        sub.start(t); sub.stop(t + 2.7);
+        // Growl layer — distorted mid-range
+        const mid = ctx.createOscillator(); mid.type = 'sawtooth';
+        mid.frequency.setValueAtTime(125, t + 0.1);
+        mid.frequency.linearRampToValueAtTime(320, t + 0.9);
+        mid.frequency.linearRampToValueAtTime(155, t + 2.2);
+        const dst = ctx.createWaveShaper(); dst.curve = makeDistortion(95);
+        const midF = ctx.createBiquadFilter(); midF.type = 'bandpass'; midF.frequency.value = 360; midF.Q.value = 1.4;
+        const midG = g(0);
+        midG.gain.setValueAtTime(0, t + 0.1); midG.gain.linearRampToValueAtTime(0.32, t + 0.55);
+        midG.gain.setValueAtTime(0.32, t + 1.7); midG.gain.linearRampToValueAtTime(0, t + 2.5);
+        mid.connect(dst); dst.connect(midF); midF.connect(midG); midG.connect(sfx);
+        mid.start(t + 0.1); mid.stop(t + 2.6);
+        // Noise burst for guttural texture
+        const noise = ctx.createBufferSource(); noise.buffer = makeNoise(2.5);
+        const noiseF = ctx.createBiquadFilter(); noiseF.type = 'lowpass'; noiseF.frequency.value = 650;
+        const noiseG = g(0);
+        noiseG.gain.setValueAtTime(0, t); noiseG.gain.linearRampToValueAtTime(0.20, t + 0.35);
+        noiseG.gain.setValueAtTime(0.20, t + 1.8); noiseG.gain.linearRampToValueAtTime(0, t + 2.4);
+        noise.connect(noiseF); noiseF.connect(noiseG); noiseG.connect(srev());
+        noise.start(t); noise.stop(t + 2.5);
+    }
+
     function playerHit() {
         if (!ctx || muted) return;
         const now = performance.now();
@@ -1884,7 +1920,7 @@ const Audio = (() => {
 
     function isMuted() { return muted; }
 
-    return { boot, shoot, alienDeath, bossSpawn, playerHit, playerDeath, levelClear, pickup, reload, setBossMode, toggleMute, isMuted };
+    return { boot, shoot, alienDeath, bossSpawn, trexRoar, playerHit, playerDeath, levelClear, pickup, reload, setBossMode, toggleMute, isMuted };
 })();
 
 function toggleMuteBtn() {
@@ -3394,7 +3430,8 @@ function updateEnemies(delta, time) {
                        : e.isBoss ? 2.5
                        : 1.5;
 
-        if (dist > stopDist) {
+        const isRoaring = e.type === 'trex' && e.roarTimer > 0;
+        if (dist > stopDist && !isRoaring) {
             const nx = dx / dist;
             const nz = dz / dist;
             const nx2 = e.mesh.position.x + nx * e.speed * delta;
@@ -3437,10 +3474,35 @@ function updateEnemies(delta, time) {
                 tp.tip.rotation.x = -0.3 + Math.sin(phase + 0.9) * 0.22;
             });
         } else if (e.type === 'trex') {
-            e.mesh.position.y = 4.5 + Math.sin(t * e.speed * 0.5) * 0.2;
             if (e.biteCooldown > 0) e.biteCooldown -= delta;
-            if (e.mesh.userData.headGroup) {
-                e.mesh.userData.headGroup.rotation.x = Math.sin(t * e.speed * 0.38) * 0.07;
+            const hg  = e.mesh.userData.headGroup;
+            const jaw = e.mesh.userData.lowerJaw;
+            const baseJY = e.mesh.userData.lowerJawBaseY;
+            if (e.roarTimer > 0) {
+                e.roarTimer -= delta;
+                const el = e.roarDuration - e.roarTimer; // seconds since spawn
+                // Head tilts back (0→0.45s), holds back (0.45→2.05s), returns (2.05→2.5s)
+                if (hg) {
+                    if (el < 0.45) {
+                        hg.rotation.x = -(el / 0.45) * 0.55;
+                    } else if (el < 2.05) {
+                        hg.rotation.x = -0.55;
+                    } else {
+                        hg.rotation.x = -0.55 * (1 - Math.min(1, (el - 2.05) / 0.45));
+                    }
+                }
+                // Jaw drops open (0.35→0.65s), holds (0.65→1.9s), snaps closed (1.9→2.2s)
+                if (jaw) {
+                    let off = 0;
+                    if (el >= 0.35 && el < 0.65) off = -1.85 * ((el - 0.35) / 0.30);
+                    else if (el >= 0.65 && el < 1.9)  off = -1.85;
+                    else if (el >= 1.9  && el < 2.2)  off = -1.85 * (1 - (el - 1.9) / 0.30);
+                    jaw.position.y = baseJY + off;
+                }
+                e.mesh.position.y = 4.5; // freeze body bob during roar
+            } else {
+                e.mesh.position.y = 4.5 + Math.sin(t * e.speed * 0.5) * 0.2;
+                if (hg) hg.rotation.x = Math.sin(t * e.speed * 0.38) * 0.07;
             }
         } else {
             const baseY = e.type === 'berserker' ? 0.95 : 0.9;
@@ -3455,7 +3517,7 @@ function updateEnemies(delta, time) {
         }
 
         // Attack
-        if (dist < e.attackRange) {
+        if (dist < e.attackRange && !isRoaring) {
             if (e.type === 'trex') {
                 if (e.biteCooldown <= 0) {
                     damagePlayer(e.damage);
@@ -4266,8 +4328,10 @@ function createTRex(level) {
         dead: false,
         isBoss: true,
         type: 'trex',
-        biteCooldown: 0,
+        biteCooldown: 1.0,
         biteInterval: 2.0,
+        roarTimer: 2.5,
+        roarDuration: 2.5,
         animOffset: Math.random() * Math.PI * 2,
     };
 }
@@ -4822,7 +4886,24 @@ function initLevel(level) {
         enemies.push(boss);
         document.getElementById('boss-name').textContent = isTRexWave ? 'THE T-REX' : 'THE WARLORD';
         Audio.setBossMode(true);
-        Audio.bossSpawn();
+        if (isTRexWave) {
+            Audio.trexRoar();
+            // Yellow eye-flash shockwave at roar peak (~0.5 s in)
+            setTimeout(() => {
+                const flash = new THREE.PointLight(0xffdd00, 22, 55);
+                flash.position.copy(boss.mesh.position);
+                flash.position.y += 4.5;
+                scene.add(flash);
+                let t2 = 0;
+                const fade = setInterval(() => {
+                    t2 += 0.05;
+                    flash.intensity = Math.max(0, 22 - t2 * 36);
+                    if (flash.intensity <= 0) { clearInterval(fade); scene.remove(flash); }
+                }, 50);
+            }, 500);
+        } else {
+            Audio.bossSpawn();
+        }
         setTimeout(() => showLevelBanner('BOSS WAVE!'), 100);
     } else {
         Audio.setBossMode(false);
