@@ -4321,7 +4321,7 @@ function createTRex(level) {
         mesh: root,
         health,
         maxHealth: health,
-        speed: 1.1 + tier * 0.15,
+        speed: getLevelConfig(level).speedBase,
         damage: 50,
         attackRange: 7.5,
         hitRadius: 5.2,
