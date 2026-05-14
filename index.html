@@ -4240,10 +4240,10 @@ function createTRex(level) {
     // Skull — long, wide, distinctive T-Rex cranium
     headGroup.add(box(5.5, 3.2, 8.5, mGray));
 
-    // Brow ridges — heavy shelf above the eyes
-    [-1.55, 1.55].forEach(bx => {
-        const brow = box(1.4, 0.6, 0.5, mMid);
-        brow.position.set(bx, 1.85, -3.4);
+    // Brow ridges — sit on top of skull directly above the eye sockets
+    [-2.5, 2.5].forEach(bx => {
+        const brow = box(1.2, 0.55, 0.85, mMid);
+        brow.position.set(bx, 1.6, -1.8);
         headGroup.add(brow);
     });
 
@@ -4280,14 +4280,21 @@ function createTRex(level) {
         lowerJaw.add(t);
     }
 
-    // Large yellow eyes on the sides of the skull, mid-height
-    [-2.55, 2.55].forEach(ex => {
+    // Eye socket mounts — small protrusions on each side of the skull
+    [-2.9, 2.9].forEach(sx => {
+        const socket = box(0.45, 0.85, 0.85, mMid);
+        socket.position.set(sx, 0.3, -1.8);
+        headGroup.add(socket);
+    });
+
+    // Yellow eyes — fully outside the skull on the side mounts
+    [-3.25, 3.25].forEach(ex => {
         const eye = new THREE.Mesh(new THREE.SphereGeometry(0.58, 10, 7), mYellow);
-        eye.position.set(ex, 0.05, -1.5);
+        eye.position.set(ex, 0.3, -1.8);
         headGroup.add(eye);
-        // Slit pupil on the outer lateral face of each eye
-        const pupil = box(0.18, 0.46, 0.22, mBlack);
-        pupil.position.set(ex < 0 ? ex - 0.52 : ex + 0.52, 0.05, -1.5);
+        // Slit pupil on the outer face, pointing sideways
+        const pupil = box(0.18, 0.46, 0.28, mBlack);
+        pupil.position.set(ex < 0 ? ex - 0.55 : ex + 0.55, 0.3, -1.8);
         headGroup.add(pupil);
     });
 
@@ -4315,7 +4322,7 @@ function createTRex(level) {
 
     // ── Eye glow ───────────────────────────────────────────────────────────
     const eyeGlow = new THREE.PointLight(0xffdd00, 3.5, 22);
-    eyeGlow.position.set(0, 4.25, 3.0);  // mid-skull height, slightly forward
+    eyeGlow.position.set(0, 4.5, 2.7);  // between the side eyes
     root.add(eyeGlow);
 
     return {
