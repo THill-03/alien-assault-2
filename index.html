@@ -2643,19 +2643,19 @@ function buildShipScene() {
     shipScene.userData.npc = npc;
     shipScene.add(npc);
 
-    // RYXX NPC — Gadget Tech (orange, left-center of ship)
+    // RYXX NPC — Gadget Tech (orange, right-center of ship — visible from player start)
     const ryxxPlat = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.8, 0.18, 16),
         new THREE.MeshLambertMaterial({ color: 0x1a0d00 }));
-    ryxxPlat.position.set(-7, 0.09, 2);
+    ryxxPlat.position.set(7, 0.09, 2);
     shipScene.add(ryxxPlat);
     const ryxxPillar = new THREE.Mesh(
         new THREE.CylinderGeometry(0.30, 0.30, 2.6, 8),
         new THREE.MeshBasicMaterial({ color: 0xff6600, transparent: true, opacity: 0.25, wireframe: true })
     );
-    ryxxPillar.position.set(-7, 1.3, 2);
+    ryxxPillar.position.set(7, 1.3, 2);
     shipScene.add(ryxxPillar);
-    const ryxxHoloLight = new THREE.PointLight(0xff6600, 2.4, 9);
-    ryxxHoloLight.position.set(-7, 2.3, 2);
+    const ryxxHoloLight = new THREE.PointLight(0xff6600, 2.8, 12);
+    ryxxHoloLight.position.set(7, 2.3, 2);
     shipScene.add(ryxxHoloLight);
     shipScene.userData.ryxxHoloLight = ryxxHoloLight;
     shipScene.userData.ryxxPillar = ryxxPillar;
@@ -2683,8 +2683,8 @@ function buildShipScene() {
     });
     const eye2Glow = new THREE.PointLight(0xffaa00, 0.5, 2.5);
     eye2Glow.position.set(0, 1.76, 0.3); npc2.add(eye2Glow);
-    npc2.position.set(-7, 0.18, 1.55);
-    npc2.rotation.y = Math.PI * 0.5;
+    npc2.position.set(7, 0.18, 1.55);
+    npc2.rotation.y = -Math.PI * 0.5;
     shipScene.userData.npc2 = npc2;
     shipScene.add(npc2);
 
@@ -3920,7 +3920,7 @@ function checkLevelComplete() {
                 player.health = Math.min(MAX_HEALTH, player.health + 30);
                 player.reloading = false;
                 const nxt = currentLevel + 1;
-                if (currentLevel % 5 === 0) {
+                if (currentLevel % 3 === 0) {
                     openShop(nxt);
                 } else {
                     initLevel(nxt);
