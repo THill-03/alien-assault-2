@@ -985,6 +985,110 @@ body {
     border-bottom: 1px solid #1a2a3a;
 }
 
+/* ─── Boss Viewer Overlay ──────────────────────────────── */
+#boss-viewer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(12, 2, 2, 0.97);
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1.5rem 1rem;
+}
+#boss-viewer-overlay.hidden { display: none; }
+#boss-viewer-close-btn {
+    position: absolute;
+    top: 1.2rem;
+    right: 1.5rem;
+    background: transparent;
+    border: 1px solid #552222;
+    color: #884444;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.15em 0.5em;
+    font-family: 'Courier New', monospace;
+    line-height: 1;
+    transition: all 0.15s;
+}
+#boss-viewer-close-btn:hover { border-color: #ff3333; color: #ff3333; }
+#boss-viewer-title-label {
+    font-size: 0.62rem;
+    letter-spacing: 0.45em;
+    color: #663333;
+    margin-bottom: 0.1rem;
+}
+#boss-viewer-warning {
+    font-size: 0.52rem;
+    letter-spacing: 0.3em;
+    color: #ff3333;
+    opacity: 0.7;
+    margin-bottom: 0.2rem;
+}
+#boss-canvas-wrap {
+    width: min(480px, 88vw);
+    height: min(340px, 44vh);
+    border: 1px solid #3a1a1a;
+    background: #0c0202;
+    position: relative;
+    flex-shrink: 0;
+}
+#boss-canvas-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 1px solid #ff333322;
+    pointer-events: none;
+    z-index: 1;
+}
+#boss-viewer-canvas { display: block; width: 100%; height: 100%; }
+#boss-viewer-name {
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-align: center;
+}
+#boss-viewer-subtitle {
+    font-size: 0.68rem;
+    letter-spacing: 0.28em;
+    color: #884444;
+    text-align: center;
+}
+#boss-viewer-desc {
+    font-size: 0.77rem;
+    color: #cc7777;
+    text-align: center;
+    width: min(480px, 88vw);
+    line-height: 1.55;
+    min-height: 3.2em;
+}
+#boss-viewer-stats {
+    width: min(480px, 88vw);
+    background: rgba(20, 2, 2, 0.65);
+    border: 1px solid #3a1a1a;
+    padding: 0.5rem 1.1rem 0.3rem;
+}
+#boss-viewer-counter {
+    font-size: 0.68rem;
+    color: #552222;
+    letter-spacing: 0.25em;
+}
+#boss-viewer-nav { display: flex; gap: 0.8rem; }
+.boss-nav-btn {
+    padding: 0.55em 2em;
+    font-family: 'Courier New', monospace;
+    font-size: 0.88rem;
+    letter-spacing: 0.18em;
+    background: transparent;
+    border: 1px solid #552222;
+    color: #884444;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.boss-nav-btn:hover { background: #ff3333; color: #050510; box-shadow: 0 0 14px #ff333366; }
+
 /* ─── Alien Viewer Overlay ─────────────────────────────── */
 #alien-viewer-overlay {
     position: fixed;
@@ -1235,10 +1339,11 @@ body {
         </div>
     </div>
 
-    <!-- Bottom-right: View Aliens + View Weapons -->
-    <div id="menu-bottom-right" style="display:flex;gap:0.5rem;">
+    <!-- Bottom-right: View Weapons + View Aliens + View Bosses -->
+    <div id="menu-bottom-right" style="display:flex;gap:0.5rem;flex-wrap:wrap;justify-content:flex-end;">
         <button class="btn" onclick="openWeaponViewer()" style="border-color:#ffcc00;color:#ffcc00;font-size:0.85rem;padding:0.65em 1.6em;">VIEW WEAPONS</button>
-        <button class="btn" onclick="openAlienViewer()" style="border-color:#4488ff;color:#4488ff;font-size:0.85rem;padding:0.65em 2em;">VIEW ALIENS</button>
+        <button class="btn" onclick="openAlienViewer()" style="border-color:#4488ff;color:#4488ff;font-size:0.85rem;padding:0.65em 1.6em;">VIEW ALIENS</button>
+        <button class="btn" onclick="openBossViewer()" style="border-color:#ff3333;color:#ff3333;font-size:0.85rem;padding:0.65em 1.6em;">VIEW BOSSES</button>
     </div>
 
     <div class="game-title">ALIEN ASSAULT</div>
@@ -1268,10 +1373,29 @@ body {
     <div id="viewer-subtitle">Standard Infantry</div>
     <div id="viewer-desc"></div>
     <div id="viewer-stats"></div>
-    <div id="viewer-counter">1 / 6</div>
+    <div id="viewer-counter">1 / 5</div>
     <div id="viewer-nav">
         <button class="viewer-nav-btn" onclick="viewerPrev()">&#9668; PREV</button>
         <button class="viewer-nav-btn" onclick="viewerNext()">NEXT &#9658;</button>
+    </div>
+</div>
+
+<!-- ─── Boss Viewer Overlay ─── -->
+<div id="boss-viewer-overlay" class="hidden">
+    <button id="boss-viewer-close-btn" onclick="closeBossViewer()">&#x2715;</button>
+    <div id="boss-viewer-title-label">BOSS CODEX</div>
+    <div id="boss-viewer-warning">⚠ THREAT ASSESSMENT — CLASSIFIED ⚠</div>
+    <div id="boss-canvas-wrap">
+        <canvas id="boss-viewer-canvas"></canvas>
+    </div>
+    <div id="boss-viewer-name">THE WARLORD</div>
+    <div id="boss-viewer-subtitle"></div>
+    <div id="boss-viewer-desc"></div>
+    <div id="boss-viewer-stats"></div>
+    <div id="boss-viewer-counter">1 / 1</div>
+    <div id="boss-viewer-nav">
+        <button class="boss-nav-btn" onclick="bossViewerPrev()">&#9668; PREV</button>
+        <button class="boss-nav-btn" onclick="bossViewerNext()">NEXT &#9658;</button>
     </div>
 </div>
 
@@ -3266,6 +3390,7 @@ function updateEnemies(delta, time) {
         const dist = Math.sqrt(dx * dx + dz * dz);
 
         const stopDist = (e.type === 'psycho' || e.type === 'malien') ? 3.5
+                       : e.type === 'trex' ? 6.0
                        : e.isBoss ? 2.5
                        : 1.5;
 
@@ -3311,6 +3436,9 @@ function updateEnemies(delta, time) {
                 // Tip drags slightly behind during lift
                 tp.tip.rotation.x = -0.3 + Math.sin(phase + 0.9) * 0.22;
             });
+        } else if (e.type === 'trex') {
+            e.mesh.position.y = 4.5 + Math.sin(t * e.speed * 0.5) * 0.22;
+            if (e.biteCooldown > 0) e.biteCooldown -= delta;
         } else {
             const baseY = e.type === 'berserker' ? 0.95 : 0.9;
             e.mesh.position.y = baseY + Math.sin(t * e.speed * 0.8) * 0.06;
@@ -3325,9 +3453,25 @@ function updateEnemies(delta, time) {
 
         // Attack
         if (dist < e.attackRange) {
-            damagePlayer(e.damage * delta);
-            showDamageFlash();
-            updateHUD();
+            if (e.type === 'trex') {
+                if (e.biteCooldown <= 0) {
+                    damagePlayer(e.damage);
+                    showDamageFlash();
+                    updateHUD();
+                    e.biteCooldown = e.biteInterval;
+                    // Snap jaw open and shut
+                    const jaw = e.mesh.userData.lowerJaw;
+                    const baseJawY = e.mesh.userData.lowerJawBaseY;
+                    if (jaw) {
+                        jaw.position.y = baseJawY - 1.1;
+                        setTimeout(() => { if (jaw) jaw.position.y = baseJawY; }, 220);
+                    }
+                }
+            } else {
+                damagePlayer(e.damage * delta);
+                showDamageFlash();
+                updateHUD();
+            }
             if (player.health <= 0) {
                 triggerGameOver();
                 return;
@@ -3936,6 +4080,135 @@ function createBoss(level) {
     };
 }
 
+function createTRex(level) {
+    const tier  = Math.floor(level / 6);
+    const health = 800 + tier * 300;
+
+    const gray     = new THREE.MeshLambertMaterial({ color: 0x888888 });
+    const darkGray = new THREE.MeshLambertMaterial({ color: 0x666666 });
+    const blue     = new THREE.MeshLambertMaterial({ color: 0x2244aa });
+    const toothMat = new THREE.MeshBasicMaterial ({ color: 0xfff5e0 });
+    const black    = new THREE.MeshBasicMaterial ({ color: 0x111111 });
+    const yellMat  = new THREE.MeshBasicMaterial ({ color: 0xffdd00 });
+
+    // ── Torso ──────────────────────────────────────────────────────────────
+    const body = new THREE.Mesh(new THREE.BoxGeometry(8.1, 9.0, 6.0), gray);
+    body.castShadow = true;
+    body.position.set(0, 4.5, -24);
+    scene.add(body);
+
+    // ── Blue dorsal back panel ─────────────────────────────────────────────
+    const backPanel = new THREE.Mesh(new THREE.BoxGeometry(8.1, 9.0, 0.35), blue);
+    backPanel.position.set(0, 0, -3.18);
+    body.add(backPanel);
+
+    // ── Spine plates (blue fins running down the back) ─────────────────────
+    [3.6, 2.1, 0.6, -1.0, -2.4, -3.8].forEach((zOff, i) => {
+        const h = 2.2 - i * 0.2;
+        const plate = new THREE.Mesh(new THREE.BoxGeometry(0.4, h, 0.55), blue);
+        plate.position.set(0, 4.5 + h * 0.5, zOff - 1.2);
+        body.add(plate);
+    });
+
+    // ── Head ───────────────────────────────────────────────────────────────
+    const head = new THREE.Group();
+    head.position.set(0, 4.2, 3.7);
+    body.add(head);
+
+    head.add(new THREE.Mesh(new THREE.BoxGeometry(4.8, 2.6, 6.0), gray));
+
+    const upperJaw = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.7, 5.4), darkGray);
+    upperJaw.position.set(0, -1.65, 0.25);
+    head.add(upperJaw);
+
+    const lowerJaw = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.7, 5.4), darkGray);
+    lowerJaw.position.set(0, -2.45, 0.25);
+    head.add(lowerJaw);
+    body.userData.lowerJaw      = lowerJaw;
+    body.userData.lowerJawBaseY = -2.45;
+
+    // Upper teeth — knife-sharp cones pointing down
+    for (let i = 0; i < 9; i++) {
+        const t = new THREE.Mesh(new THREE.ConeGeometry(0.17, 0.82, 4), toothMat);
+        t.rotation.z = Math.PI;
+        t.position.set(-1.8 + i * 0.45, -0.68, 0.22);
+        upperJaw.add(t);
+    }
+    // Lower teeth — pointing up
+    for (let i = 0; i < 9; i++) {
+        const t = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.76, 4), toothMat);
+        t.position.set(-1.8 + i * 0.45, 0.62, 0.22);
+        lowerJaw.add(t);
+    }
+
+    // Eyes with slit pupils
+    [-1.6, 1.6].forEach(ex => {
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.45, 8, 6), yellMat);
+        eye.position.set(ex, 0.5, -2.7);
+        head.add(eye);
+        const pupil = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.38, 0.17), black);
+        pupil.position.set(ex, 0.5, -3.15);
+        head.add(pupil);
+    });
+
+    // ── Tiny T-Rex arms with sharp claws ───────────────────────────────────
+    [-4.5, 4.5].forEach(ax => {
+        const arm = new THREE.Mesh(new THREE.BoxGeometry(0.95, 2.2, 0.95), darkGray);
+        arm.position.set(ax, 1.8, 2.6);
+        arm.rotation.z = ax < 0 ? 0.65 : -0.65;
+        body.add(arm);
+        [-0.32, 0.32].forEach(cx => {
+            const claw = new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.58, 4), black);
+            claw.rotation.z = ax < 0 ? Math.PI - 0.3 : Math.PI + 0.3;
+            claw.position.set(cx, -1.2, 0.18);
+            arm.add(claw);
+        });
+    });
+
+    // ── Massive feet with toenails ─────────────────────────────────────────
+    [-2.6, 2.6].forEach(fx => {
+        const foot = new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.0, 3.6), darkGray);
+        foot.position.set(fx, -4.75, 1.1);
+        body.add(foot);
+        [-0.9, 0, 0.9].forEach((tx, ti) => {
+            const nail = new THREE.Mesh(new THREE.ConeGeometry(0.26, 1.15, 4), black);
+            nail.rotation.x = -Math.PI / 2 - 0.25;
+            nail.position.set(tx, -0.25, 2.15 - ti * 0.08);
+            foot.add(nail);
+        });
+    });
+
+    // ── Tail ───────────────────────────────────────────────────────────────
+    const tail1 = new THREE.Mesh(new THREE.BoxGeometry(2.6, 2.2, 7.2), gray);
+    tail1.position.set(0, -1.2, -5.2);
+    tail1.rotation.x = 0.2;
+    body.add(tail1);
+    const tail2 = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.5, 4.8), gray);
+    tail2.position.set(0, 0, -5.6);
+    tail2.rotation.x = 0.28;
+    tail1.add(tail2);
+
+    // Yellow glow from eyes
+    const glow = new THREE.PointLight(0xffdd00, 3.5, 20);
+    glow.position.set(0, 6.0, 3.5);
+    body.add(glow);
+
+    return {
+        mesh: body,
+        health,
+        maxHealth: health,
+        speed: 1.1 + tier * 0.15,
+        damage: 50,
+        attackRange: 7.5,
+        dead: false,
+        isBoss: true,
+        type: 'trex',
+        biteCooldown: 0,
+        biteInterval: 2.0,
+        animOffset: Math.random() * Math.PI * 2,
+    };
+}
+
 // ─── SECTION 6: Player Controller ────────────────────────────────────────────
 function updatePlayer(delta) {
     const moving = keys.w || keys.a || keys.s || keys.d;
@@ -4481,7 +4754,10 @@ function initLevel(level) {
         // Fewer regular enemies plus one boss
         const regularCount = Math.max(2, Math.floor(cfg.enemies * 0.4));
         spawnEnemies(regularCount, level);
-        enemies.push(createBoss(level));
+        const isTRexWave = level % 6 === 0;
+        const boss = isTRexWave ? createTRex(level) : createBoss(level);
+        enemies.push(boss);
+        document.getElementById('boss-name').textContent = isTRexWave ? 'THE T-REX' : 'THE WARLORD';
         Audio.setBossMode(true);
         Audio.bossSpawn();
         setTimeout(() => showLevelBanner('BOSS WAVE!'), 100);
@@ -4843,24 +5119,139 @@ const ALIEN_DEFS = [
             { label: 'THREAT',        value: '★★★☆☆  Medium',     cls: 'cy'  },
         ],
     },
+];
+
+// ─── Boss Viewer ─────────────────────────────────────────────────────────────
+const BOSS_DEFS = [
     {
-        name: 'BOSS',
-        subtitle: 'The Warlord',
-        desc: 'Armoured colossus. Grows stronger every three waves. Its HP and damage scale up with each appearance — do not underestimate it.',
+        name: 'THE WARLORD',
+        subtitle: 'Armoured Colossus',
+        desc: 'A hulking war machine that grows stronger with every encounter. Its armour absorbs damage, its reach is lethal, and it never stops advancing.',
         color: '#ff3333',
         createFn() { const e = createBoss(3); scene.remove(e.mesh); return e.mesh; },
         meshPos: [0, 2.1, 0], camPos: [0, 5.0, 12.5], lookAt: [0, 4.5, 0],
         stats: [
-            { label: 'HP',            value: '700+ (scales)',        cls: 'cr'  },
-            { label: 'SPEED',         value: 'Slow',                 cls: ''    },
-            { label: 'ATTACK TYPE',   value: 'Heavy Melee',          cls: 'cr'  },
-            { label: 'DAMAGE',        value: '27 / sec (scales)',    cls: 'cr'  },
-            { label: 'ATTACK RANGE',  value: '2.8 m',                cls: ''    },
-            { label: 'SPAWNS',        value: 'Every 3rd Wave',       cls: 'cr'  },
-            { label: 'THREAT',        value: '★★★★★  EXTREME',     cls: 'cr'  },
+            { label: 'HP',            value: '700+ (scales per wave)',  cls: 'cr' },
+            { label: 'DAMAGE',        value: '27 / sec  (scales)',      cls: 'cr' },
+            { label: 'ATTACK TYPE',   value: 'Heavy Melee',             cls: 'cr' },
+            { label: 'ATTACK RANGE',  value: '2.8 m',                   cls: ''   },
+            { label: 'MOVEMENT',      value: 'Slow but unstoppable',    cls: 'co' },
+            { label: 'SPAWNS',        value: 'Every 3rd wave',          cls: 'cy' },
+            { label: 'WEAKNESS',      value: 'Sustained fire, Railgun', cls: 'cg' },
+            { label: 'THREAT',        value: '★★★★★  EXTREME',         cls: 'cr' },
+        ],
+    },
+    {
+        name: 'THE T-REX',
+        subtitle: 'Apex Predator',
+        desc: 'An ancient terror reborn in alien flesh. Two bites ends your run. Its bone-white fangs slice through steel — keep distance or die.',
+        color: '#4488ff',
+        createFn() { const e = createTRex(6); scene.remove(e.mesh); return e.mesh; },
+        meshPos: [0, 4.5, 0], camPos: [0, 7.0, 24.0], lookAt: [0, 8.0, 0],
+        stats: [
+            { label: 'HP',            value: '800+ (scales per wave)',  cls: 'cr' },
+            { label: 'DAMAGE',        value: '50 per bite',             cls: 'cr' },
+            { label: 'ATTACK TYPE',   value: 'Bite (instant)',          cls: 'cr' },
+            { label: 'ATTACK RANGE',  value: '7.5 m',                   cls: ''   },
+            { label: 'BITES TO KILL', value: '2 bites = instant death', cls: 'cr' },
+            { label: 'BITE COOLDOWN', value: '2 seconds',               cls: 'co' },
+            { label: 'SPAWNS',        value: 'Every 6th wave',          cls: 'cy' },
+            { label: 'WEAKNESS',      value: 'Railgun, stay far back',  cls: 'cg' },
+            { label: 'THREAT',        value: '★★★★★  EXTREME',         cls: 'cr' },
         ],
     },
 ];
+
+let bossViewerRenderer = null;
+let bossViewerScene    = null;
+let bossViewerCamera   = null;
+let bossViewerMesh     = null;
+let bossViewerLight    = null;
+let bossViewerIdx      = 0;
+let bossViewerAnimId   = null;
+
+function openBossViewer() {
+    document.getElementById('boss-viewer-overlay').classList.remove('hidden');
+    const wrap   = document.getElementById('boss-canvas-wrap');
+    const canvas = document.getElementById('boss-viewer-canvas');
+    const w = wrap.clientWidth, h = wrap.clientHeight;
+    canvas.width = w; canvas.height = h;
+
+    bossViewerRenderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    bossViewerRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    bossViewerRenderer.setSize(w, h, false);
+    bossViewerRenderer.setClearColor(0x0c0202, 1);
+
+    bossViewerScene = new THREE.Scene();
+    bossViewerScene.fog = new THREE.FogExp2(0x0c0202, 0.05);
+    bossViewerScene.add(new THREE.AmbientLight(0x331111, 1.2));
+    const keyL = new THREE.DirectionalLight(0xff6644, 1.8);
+    keyL.position.set(4, 10, 6);
+    bossViewerScene.add(keyL);
+    const fillL = new THREE.DirectionalLight(0xff2200, 0.5);
+    fillL.position.set(-5, 2, -3);
+    bossViewerScene.add(fillL);
+    const rimL = new THREE.DirectionalLight(0xffaa44, 0.25);
+    rimL.position.set(0, -3, -8);
+    bossViewerScene.add(rimL);
+
+    bossViewerCamera = new THREE.PerspectiveCamera(50, w / h, 0.1, 100);
+    bossViewerIdx = 0;
+    loadBossInViewer(0);
+    bossViewerLoop();
+}
+
+function closeBossViewer() {
+    document.getElementById('boss-viewer-overlay').classList.add('hidden');
+    if (bossViewerAnimId)  { cancelAnimationFrame(bossViewerAnimId); bossViewerAnimId = null; }
+    if (bossViewerLight && bossViewerScene)  { bossViewerScene.remove(bossViewerLight); bossViewerLight = null; }
+    if (bossViewerMesh  && bossViewerScene)  { bossViewerScene.remove(bossViewerMesh);  bossViewerMesh  = null; }
+    if (bossViewerRenderer) { bossViewerRenderer.dispose(); bossViewerRenderer = null; }
+    bossViewerScene = null; bossViewerCamera = null;
+}
+
+function loadBossInViewer(idx) {
+    if (bossViewerLight && bossViewerScene) { bossViewerScene.remove(bossViewerLight); bossViewerLight = null; }
+    if (bossViewerMesh  && bossViewerScene) { bossViewerScene.remove(bossViewerMesh);  bossViewerMesh  = null; }
+    bossViewerIdx = ((idx % BOSS_DEFS.length) + BOSS_DEFS.length) % BOSS_DEFS.length;
+    const def = BOSS_DEFS[bossViewerIdx];
+
+    bossViewerMesh = def.createFn();
+    const [mx, my, mz] = def.meshPos;
+    bossViewerMesh.position.set(mx, my, mz);
+    bossViewerScene.add(bossViewerMesh);
+
+    const [cx, cy, cz] = def.camPos;
+    const [lx, ly, lz] = def.lookAt;
+    bossViewerCamera.position.set(cx, cy, cz);
+    bossViewerCamera.lookAt(lx, ly, lz);
+
+    bossViewerLight = new THREE.PointLight(0xff3333, 2.2, 18);
+    bossViewerLight.position.set(0, ly + 1, 2);
+    bossViewerScene.add(bossViewerLight);
+
+    const col = def.color;
+    const nameEl = document.getElementById('boss-viewer-name');
+    nameEl.textContent  = def.name;
+    nameEl.style.color  = col;
+    nameEl.style.textShadow = `0 0 28px ${col}99`;
+    document.getElementById('boss-viewer-subtitle').textContent = def.subtitle;
+    document.getElementById('boss-viewer-desc').textContent     = def.desc;
+    document.getElementById('boss-viewer-stats').innerHTML      = def.stats.map(s =>
+        `<div class="vstat"><span class="vstat-label">${s.label}</span><span class="vstat-value${s.cls ? ' ' + s.cls : ''}">${s.value}</span></div>`
+    ).join('');
+    document.getElementById('boss-viewer-counter').textContent  = `${bossViewerIdx + 1} / ${BOSS_DEFS.length}`;
+}
+
+function bossViewerNext() { loadBossInViewer(bossViewerIdx + 1); }
+function bossViewerPrev() { loadBossInViewer(bossViewerIdx - 1); }
+
+function bossViewerLoop() {
+    bossViewerAnimId = requestAnimationFrame(bossViewerLoop);
+    if (!bossViewerRenderer || !bossViewerScene || !bossViewerCamera) return;
+    if (bossViewerMesh) bossViewerMesh.rotation.y += 0.008;
+    bossViewerRenderer.render(bossViewerScene, bossViewerCamera);
+}
 
 let viewerRenderer    = null;
 let viewerScene       = null;
