@@ -2016,8 +2016,8 @@ const SHOP_WEAPONS = [
     { id: 'frost',        cost: 500, desc: 'Slows hit enemy to 30% speed for 3 seconds' },
     { id: 'lightning',    cost: 600, desc: 'Primary hit + chains to 2 nearby enemies' },
     { id: 'flamethrower', cost: 550, desc: 'Short-range 5-ray cone, huge ammo pool' },
-    { id: 'blackhole',    cost: 750, desc: 'Pulls all nearby enemies and crushes them' },
-    { id: 'railgun',      cost: 900, desc: 'White-hot beam pierces every alien in line' },
+    { id: 'blackhole',    cost: 1400, desc: 'Pulls all nearby enemies and crushes them' },
+    { id: 'railgun',      cost: 800,  desc: 'White-hot beam pierces every alien in line' },
 ];
 
 const SHOP_WEAPON_IDS = new Set(SHOP_WEAPONS.map(w => w.id));
@@ -2038,8 +2038,8 @@ const WEAPON_VIEWER_DATA = [
     { id: 'frost',         source: 'shop',   dmg: '45',       special: 'Slows hit enemy 70% for 3s' },
     { id: 'lightning',     source: 'shop',   dmg: '55 + 40',  special: 'Chains to 2 nearby enemies' },
     { id: 'flamethrower',  source: 'shop',   dmg: '18 × 5',   special: 'Short-range 5-ray cone' },
-    { id: 'blackhole',     source: 'shop',   dmg: '35',       special: 'Pulls & crushes all nearby' },
-    { id: 'railgun',       source: 'shop',   dmg: '250',      special: 'Pierces every alien in line' },
+    { id: 'blackhole',     source: 'shop',   dmg: '100 × all',  special: 'Pulls & crushes all in 15m' },
+    { id: 'railgun',       source: 'shop',   dmg: '250',        special: 'Pierces every alien in line' },
 ];
 const ALL_CSS_CLASSES = ['dual','assault','rocket','fireball','laser','shotgun','sniper','plasma','minigun','grenade','frost','lightning','flame','blackhole','railgun'];
 
@@ -4574,7 +4574,7 @@ function shoot() {
                 if (e.dead) return;
                 const dist = e.mesh.position.distanceTo(bhPos);
                 if (dist < 15) {
-                    e.health -= 35;
+                    e.health -= 100;
                     const pull = new THREE.Vector3().subVectors(bhPos, e.mesh.position).normalize();
                     e.mesh.position.addScaledVector(pull, Math.min(dist * 0.5, 6));
                     e.mesh.position.x = Math.max(-ARENA_HALF+1, Math.min(ARENA_HALF-1, e.mesh.position.x));
