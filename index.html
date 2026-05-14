@@ -1133,6 +1133,51 @@ body {
     color: #22ff88;
 }
 
+/* ─── Utility Viewer Overlay ──────────────────────────── */
+#util-viewer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 5, 16, 0.97);
+    z-index: 200;
+    overflow-y: auto;
+    padding: 4rem 1.5rem 2rem;
+}
+#util-viewer-overlay.hidden { display: none; }
+#util-viewer-close-btn {
+    position: fixed;
+    top: 1.2rem;
+    right: 1.5rem;
+    background: transparent;
+    border: 1px solid #334;
+    color: #6688aa;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.15em 0.5em;
+    font-family: 'Courier New', monospace;
+    line-height: 1;
+    transition: all 0.15s;
+    z-index: 201;
+}
+#util-viewer-close-btn:hover { border-color: #e94560; color: #e94560; }
+#util-viewer-title {
+    text-align: center;
+    font-size: 0.65rem;
+    letter-spacing: 0.45em;
+    color: #445566;
+    margin-bottom: 1.4rem;
+}
+.util-viewer-badge {
+    display: inline-block;
+    font-size: 0.50rem;
+    padding: 0.13em 0.5em;
+    border-radius: 2px;
+    margin-top: 0.45rem;
+    letter-spacing: 0.13em;
+    background: rgba(255,136,0,0.08);
+    border: 1px solid #ff880044;
+    color: #ff8800;
+}
+
 /* ─── Boss Viewer Overlay ──────────────────────────────── */
 #boss-viewer-overlay {
     position: fixed;
@@ -1501,6 +1546,7 @@ body {
     <div id="menu-bottom-right" style="display:flex;gap:0.5rem;flex-wrap:wrap;justify-content:flex-end;">
         <button class="btn" onclick="openWeaponViewer()" style="border-color:#ffcc00;color:#ffcc00;font-size:0.85rem;padding:0.65em 1.6em;">VIEW WEAPONS</button>
         <button class="btn" onclick="openBuffViewer()" style="border-color:#22ff88;color:#22ff88;font-size:0.85rem;padding:0.65em 1.6em;">VIEW BUFFS</button>
+        <button class="btn" onclick="openUtilViewer()" style="border-color:#ff8800;color:#ff8800;font-size:0.85rem;padding:0.65em 1.6em;">VIEW UTILITIES</button>
         <button class="btn" onclick="openAlienViewer()" style="border-color:#4488ff;color:#4488ff;font-size:0.85rem;padding:0.65em 1.6em;">VIEW ALIENS</button>
         <button class="btn" onclick="openBossViewer()" style="border-color:#ff3333;color:#ff3333;font-size:0.85rem;padding:0.65em 1.6em;">VIEW BOSSES</button>
     </div>
@@ -1570,6 +1616,13 @@ body {
     <button id="buff-viewer-close-btn" onclick="closeBuffViewer()">&#x2715;</button>
     <div id="buff-viewer-title">BUFF CODEX</div>
     <div class="buff-grid" id="buff-grid"></div>
+</div>
+
+<!-- ─── Utility Viewer Overlay ─── -->
+<div id="util-viewer-overlay" class="hidden">
+    <button id="util-viewer-close-btn" onclick="closeUtilViewer()">&#x2715;</button>
+    <div id="util-viewer-title">UTILITY CODEX</div>
+    <div class="buff-grid" id="util-viewer-grid"></div>
 </div>
 
 <!-- ─── Shop Overlay ─── -->
@@ -6028,6 +6081,72 @@ function openBuffViewer() {
 
 function closeBuffViewer() {
     document.getElementById('buff-viewer-overlay').classList.add('hidden');
+}
+
+const UTIL_VIEWER_DATA = [
+    {
+        id: 'grapple',
+        name: 'GRAPPLE HOOK',
+        color: '#ff8800',
+        key: 'G',
+        cost: 350,
+        svgIcon: `<svg width="64" height="64" viewBox="0 0 64 64"><line x1="12" y1="52" x2="44" y2="20" stroke="#ff8800" stroke-width="2.5" stroke-linecap="round"/><circle cx="46" cy="18" r="5" fill="none" stroke="#ffaa44" stroke-width="2"/><polygon points="46,10 50,18 42,18" fill="#ff8800"/><circle cx="14" cy="50" r="4" fill="#cc5500" stroke="#ff8800" stroke-width="1.5"/></svg>`,
+        charges: '3 charges per purchase',
+        desc: 'Fires a hook in your aimed direction, launching you through the air at high speed. Perfect for rapid repositioning, closing distance on a fleeing enemy, or escaping a lethal situation. Pairs well with the jet pack.',
+    },
+    {
+        id: 'jetpack',
+        name: 'JET PACK',
+        color: '#ffaa00',
+        key: 'SPACE (airborne)',
+        cost: 450,
+        svgIcon: `<svg width="64" height="64" viewBox="0 0 64 64"><rect x="24" y="18" width="16" height="24" rx="4" fill="#cc6600" stroke="#ffaa00" stroke-width="1.5"/><rect x="28" y="14" width="8" height="8" rx="2" fill="#ff8800"/><ellipse cx="28" cy="44" rx="4" ry="7" fill="#ff4400" opacity="0.7"/><ellipse cx="36" cy="44" rx="4" ry="7" fill="#ff6600" opacity="0.6"/><ellipse cx="32" cy="46" rx="3" ry="5" fill="#ffdd00" opacity="0.9"/></svg>`,
+        charges: '100 fuel per purchase — refills at ship',
+        desc: 'Hold SPACE while airborne to ignite the thrusters and push upward. Great for reaching high ground, hovering over enemies, or extending air time after a grapple launch. Fuel refills automatically every time you return to the ship.',
+    },
+    {
+        id: 'adrenaline',
+        name: 'ADRENALINE SHOT',
+        color: '#ff4488',
+        key: 'F',
+        cost: 200,
+        svgIcon: `<svg width="64" height="64" viewBox="0 0 64 64"><rect x="28" y="12" width="8" height="30" rx="3" fill="#cc1155" stroke="#ff4488" stroke-width="1.5"/><polygon points="32,44 26,56 38,56" fill="#ff4488"/><circle cx="32" cy="20" r="5" fill="#ff88aa" opacity="0.7"/><line x1="20" y1="26" x2="44" y2="26" stroke="#ff4488" stroke-width="1.5" stroke-dasharray="3,2" opacity="0.5"/></svg>`,
+        charges: '2 doses per purchase',
+        desc: 'Press F to inject a combat stimulant that boosts your movement speed by 60% for 10 seconds. Use it when you\'re surrounded, making a run for cover, or trying to outpace a T-Rex. The clock shows your remaining boost time in the utility bar.',
+    },
+    {
+        id: 'emp',
+        name: 'EMP GRENADE',
+        color: '#88aaff',
+        key: 'Q',
+        cost: 300,
+        svgIcon: `<svg width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="10" fill="#223388" stroke="#88aaff" stroke-width="2"/><circle cx="32" cy="32" r="18" fill="none" stroke="#88aaff" stroke-width="1.2" opacity="0.5"/><circle cx="32" cy="32" r="26" fill="none" stroke="#88aaff" stroke-width="0.8" opacity="0.25"/><line x1="32" y1="14" x2="32" y2="22" stroke="#aaccff" stroke-width="2"/><line x1="32" y1="42" x2="32" y2="50" stroke="#aaccff" stroke-width="2"/><line x1="14" y1="32" x2="22" y2="32" stroke="#aaccff" stroke-width="2"/><line x1="42" y1="32" x2="50" y2="32" stroke="#aaccff" stroke-width="2"/></svg>`,
+        charges: '2 charges per purchase',
+        desc: 'Press Q to release an electromagnetic pulse that instantly freezes every enemy in the arena for 4 seconds. All movement, attacks, and abilities are halted. Use it to reset a bad situation, buy time to reload, or set up a clean sweep with a powerful weapon.',
+    },
+];
+
+function openUtilViewer() {
+    const grid = document.getElementById('util-viewer-grid');
+    grid.innerHTML = '';
+    UTIL_VIEWER_DATA.forEach(u => {
+        const card = document.createElement('div');
+        card.className = 'buff-card';
+        card.innerHTML = `
+            <div class="buff-orb-wrap">${u.svgIcon}</div>
+            <div class="buff-card-name" style="color:${u.color};">${u.name}</div>
+            <div class="buff-stat-row"><span>KEY</span><span class="buff-stat-val">[${u.key}]</span></div>
+            <div class="buff-stat-row"><span>COST</span><span class="buff-stat-val">${u.cost} COINS</span></div>
+            <div class="buff-stat-row" style="margin-top:0.25rem;color:#334455;font-size:0.60rem;font-style:italic;display:block;">${u.desc}</div>
+            <div><span class="util-viewer-badge">RYXX — GADGET TECH · ${u.charges}</span></div>
+        `;
+        grid.appendChild(card);
+    });
+    document.getElementById('util-viewer-overlay').classList.remove('hidden');
+}
+
+function closeUtilViewer() {
+    document.getElementById('util-viewer-overlay').classList.add('hidden');
 }
 
 // ─── Utility System ───────────────────────────────────────────────────────────
