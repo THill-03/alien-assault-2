@@ -4045,7 +4045,8 @@ function fireProjectile(type = 'fireball') {
     group.add(new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 6), new THREE.MeshBasicMaterial({ color: cfg.core })));
     group.add(Object.assign(new THREE.Mesh(new THREE.SphereGeometry(0.35, 8, 6), new THREE.MeshBasicMaterial({ color: cfg.halo, transparent: true, opacity: 0.35 }))));
     group.add(new THREE.PointLight(cfg.light, 4, 10));
-    const dir = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion).normalize();
+    const dir = new THREE.Vector3();
+    camera.getWorldDirection(dir);
     group.position.copy(yawObject.position).addScaledVector(dir, 1.4);
     scene.add(group);
     projectiles.push({ mesh: group, velocity: dir.clone().multiplyScalar(cfg.speed), dead: false, life: 3.5, projType: type, dmg: cfg.dmg, splash: cfg.splash, boomCol: cfg.light });
