@@ -37,7 +37,7 @@ body {
 .overlay.hidden { display: none; }
 
 /* ─── Name input ────────────────────────────────────────────── */
-#name-section { margin-bottom: 1.2rem; text-align: center; }
+#name-section { margin-bottom: 0; text-align: center; }
 #name-label {
     font-size: 0.65rem;
     letter-spacing: 0.3em;
@@ -112,11 +112,11 @@ body {
 }
 
 .subtitle {
-    font-size: 1rem;
-    color: #6688aa;
-    letter-spacing: 0.3em;
+    font-size: 0.85rem;
+    color: #4a6680;
+    letter-spacing: 0.35em;
     text-transform: uppercase;
-    margin-bottom: 3rem;
+    margin-bottom: 0;
 }
 
 .btn {
@@ -863,6 +863,17 @@ body {
     letter-spacing: 0.12em;
     text-shadow: 0 0 8px #ffcc0066;
 }
+#ship-coin-display {
+    position: absolute;
+    top: 1.5rem;
+    left: 2rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #ffcc00;
+    letter-spacing: 0.14em;
+    text-shadow: 0 0 10px #ffcc0088;
+}
 
 /* ─── Inventory bar (HUD) ────────────────────────────────────── */
 #inventory-bar {
@@ -1466,12 +1477,6 @@ body {
     align-items: flex-start;
     z-index: 110;
 }
-#menu-bottom-right {
-    position: absolute;
-    bottom: 1.5rem;
-    right: 1.5rem;
-    z-index: 110;
-}
 .menu-panel-wrap { position: relative; }
 .menu-corner-btn {
     background: transparent;
@@ -1641,6 +1646,101 @@ body {
     flex-shrink: 0;
 }
 
+/* ─── Commander Viewer Overlay ─── */
+#cmd-viewer-overlay {
+    position: fixed; inset: 0;
+    background: rgba(2, 12, 8, 0.97);
+    z-index: 200;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 0.5rem; padding: 1.5rem 1rem;
+    font-family: 'Courier New', monospace;
+}
+#cmd-viewer-overlay.hidden { display: none; }
+#cmd-viewer-close-btn {
+    position: absolute; top: 1.2rem; right: 1.5rem;
+    background: transparent; border: 1px solid #1a4433;
+    color: #336655; font-size: 1.5rem; cursor: pointer;
+    padding: 0.15em 0.5em; font-family: 'Courier New', monospace; line-height: 1;
+    transition: all 0.15s;
+}
+#cmd-viewer-close-btn:hover { border-color: #22ff44; color: #22ff44; }
+#cmd-viewer-title-label { font-size: 0.62rem; letter-spacing: 0.45em; color: #1e5533; margin-bottom: 0.1rem; }
+#cmd-viewer-tagline { font-size: 0.52rem; letter-spacing: 0.3em; color: #22ff4488; margin-bottom: 0.2rem; }
+#cmd-canvas-wrap {
+    width: min(480px, 88vw); height: min(320px, 40vh);
+    border: 1px solid #1a3a28; background: #020c06; position: relative; flex-shrink: 0;
+}
+#cmd-canvas-wrap::before {
+    content: ''; position: absolute; inset: 0;
+    border: 1px solid #22ff4418; pointer-events: none; z-index: 1;
+}
+#cmd-viewer-canvas { display: block; width: 100%; height: 100%; }
+#cmd-viewer-name {
+    font-size: clamp(1.5rem, 4vw, 2.2rem); font-weight: 900;
+    letter-spacing: 0.12em; text-align: center;
+}
+#cmd-viewer-subtitle { font-size: 0.68rem; letter-spacing: 0.28em; color: #336655; text-align: center; }
+#cmd-viewer-desc {
+    font-size: 0.77rem; color: #55aa77; text-align: center;
+    width: min(480px, 88vw); line-height: 1.55; min-height: 3.2em;
+}
+#cmd-viewer-stats {
+    width: min(480px, 88vw); background: rgba(2,16,8,0.65);
+    border: 1px solid #1a3a28; padding: 0.5rem 1.1rem 0.3rem;
+}
+#cmd-viewer-counter { font-size: 0.68rem; color: #1e5533; letter-spacing: 0.25em; }
+#cmd-viewer-nav { display: flex; gap: 0.8rem; }
+.cmd-nav-btn {
+    padding: 0.55em 2em; font-family: 'Courier New', monospace;
+    font-size: 0.88rem; letter-spacing: 0.18em;
+    background: transparent; border: 1px solid #1a4433;
+    color: #336655; cursor: pointer; transition: all 0.15s;
+}
+.cmd-nav-btn:hover { background: #22ff44; color: #020c06; box-shadow: 0 0 14px #22ff4466; }
+
+/* ─── Menu Home UX ─── */
+#menu-overlay {
+    background-color: rgba(2, 4, 15, 0.97);
+    background-image: radial-gradient(ellipse at 50% 36%, rgba(34,255,68,0.06) 0%, transparent 60%);
+}
+.menu-divider {
+    width: min(360px, 78vw);
+    height: 1px;
+    background: linear-gradient(to right, transparent, #1a3322 50%, transparent);
+    margin: 1.1rem 0;
+    flex-shrink: 0;
+}
+#play-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.65rem;
+}
+#start-btn {
+    font-size: 1.25rem;
+    padding: 1em 5em;
+    letter-spacing: 0.22em;
+    margin-top: 0.3rem;
+    animation: start-pulse 2.8s ease-in-out infinite;
+}
+#start-btn:hover { animation: none; }
+@keyframes start-pulse {
+    0%, 100% { box-shadow: 0 0 14px rgba(34,255,68,0.18); }
+    50% { box-shadow: 0 0 32px rgba(34,255,68,0.5), 0 0 60px rgba(34,255,68,0.18); }
+}
+#scoreboard-section { margin-top: 0; }
+.codex-btn {
+    display: block; width: 100%; text-align: left;
+    padding: 0.38em 0.6em;
+    font-family: 'Courier New', monospace;
+    font-size: 0.72rem; letter-spacing: 0.14em;
+    background: transparent; border: 1px solid transparent;
+    cursor: pointer; transition: background 0.12s, border-color 0.12s;
+    margin-bottom: 0.18rem;
+}
+.codex-btn:hover { background: rgba(255,255,255,0.05); border-color: currentColor; }
+
 /* ─── Character Select Button ─── */
 #char-select-btn {
     margin: 0.9rem 0 0.5rem;
@@ -1755,32 +1855,40 @@ body {
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Bottom-right: View Weapons + View Aliens + View Bosses -->
-    <div id="menu-bottom-right" style="display:flex;gap:0.5rem;flex-wrap:wrap;justify-content:flex-end;">
-        <button class="btn" onclick="openWeaponViewer()" style="border-color:#ffcc00;color:#ffcc00;font-size:0.85rem;padding:0.65em 1.6em;">VIEW WEAPONS</button>
-        <button class="btn" onclick="openBuffViewer()" style="border-color:#22ff88;color:#22ff88;font-size:0.85rem;padding:0.65em 1.6em;">VIEW BUFFS</button>
-        <button class="btn" onclick="openUtilViewer()" style="border-color:#ff8800;color:#ff8800;font-size:0.85rem;padding:0.65em 1.6em;">VIEW UTILITIES</button>
-        <button class="btn" onclick="openAlienViewer()" style="border-color:#4488ff;color:#4488ff;font-size:0.85rem;padding:0.65em 1.6em;">VIEW ALIENS</button>
-        <button class="btn" onclick="openBossViewer()" style="border-color:#ff3333;color:#ff3333;font-size:0.85rem;padding:0.65em 1.6em;">VIEW BOSSES</button>
+        <div class="menu-panel-wrap">
+            <button class="menu-corner-btn" id="codex-corner-btn" onclick="toggleMenuPanel('codex-panel','codex-corner-btn')">CODEX</button>
+            <div id="codex-panel" class="menu-panel">
+                <div class="menu-panel-label">View Codex</div>
+                <button class="codex-btn" style="color:#22ff88;" onclick="openCommanderViewer()">&#9654; COMMANDERS</button>
+                <button class="codex-btn" style="color:#4488ff;" onclick="openAlienViewer()">&#9654; ALIENS</button>
+                <button class="codex-btn" style="color:#ff4444;" onclick="openBossViewer()">&#9654; BOSSES</button>
+                <button class="codex-btn" style="color:#ffcc00;" onclick="openWeaponViewer()">&#9654; WEAPONS</button>
+                <button class="codex-btn" style="color:#ff8800;" onclick="openUtilViewer()">&#9654; UTILITIES</button>
+                <button class="codex-btn" style="color:#aaddff;" onclick="openBuffViewer()">&#9654; BUFFS</button>
+            </div>
+        </div>
     </div>
 
     <div class="game-title">ALIEN ASSAULT</div>
     <div class="subtitle">First Person Shooter</div>
 
-    <!-- Character Select Button -->
-    <button id="char-select-btn" onclick="openCharSelect()">
-        <span class="csb-emoji">🧔</span>
-        <span id="char-select-btn-label">CHARACTER: DAD</span>
-    </button>
+    <div class="menu-divider"></div>
 
-    <div id="name-section">
-        <div id="name-label">ENTER YOUR NAME</div>
-        <input type="text" id="player-name-input" placeholder="COMMANDER" maxlength="16" autocomplete="off" spellcheck="false">
+    <div id="play-section">
+        <button id="char-select-btn" onclick="openCharSelect()">
+            <span class="csb-emoji">🧔</span>
+            <span id="char-select-btn-label">CHARACTER: DAD</span>
+        </button>
+
+        <div id="name-section">
+            <div id="name-label">ENTER YOUR NAME</div>
+            <input type="text" id="player-name-input" placeholder="COMMANDER" maxlength="16" autocomplete="off" spellcheck="false">
+        </div>
+
+        <button class="btn" id="start-btn">START GAME</button>
     </div>
 
-    <button class="btn" id="start-btn">START GAME</button>
+    <div class="menu-divider"></div>
 
     <div id="scoreboard-section">
         <div id="scoreboard-title">TOP SCORES</div>
@@ -1822,6 +1930,25 @@ body {
     <div id="boss-viewer-nav">
         <button class="boss-nav-btn" onclick="bossViewerPrev()">&#9668; PREV</button>
         <button class="boss-nav-btn" onclick="bossViewerNext()">NEXT &#9658;</button>
+    </div>
+</div>
+
+<!-- ─── Commander Viewer Overlay ─── -->
+<div id="cmd-viewer-overlay" class="hidden">
+    <button id="cmd-viewer-close-btn" onclick="closeCommanderViewer()">&#x2715;</button>
+    <div id="cmd-viewer-title-label">COMMANDER CODEX</div>
+    <div id="cmd-viewer-tagline">&#9670; ALLIED FORCES — PERSONNEL FILES &#9670;</div>
+    <div id="cmd-canvas-wrap">
+        <canvas id="cmd-viewer-canvas"></canvas>
+    </div>
+    <div id="cmd-viewer-name"></div>
+    <div id="cmd-viewer-subtitle"></div>
+    <div id="cmd-viewer-desc"></div>
+    <div id="cmd-viewer-stats"></div>
+    <div id="cmd-viewer-counter">1 / 4</div>
+    <div id="cmd-viewer-nav">
+        <button class="cmd-nav-btn" onclick="cmdViewerPrev()">&#9668; PREV</button>
+        <button class="cmd-nav-btn" onclick="cmdViewerNext()">NEXT &#9658;</button>
     </div>
 </div>
 
@@ -1903,6 +2030,7 @@ body {
 <!-- Ship HUD (shown during SHIP state) -->
 <div id="ship-ui" style="display:none;position:fixed;inset:0;pointer-events:none;z-index:50;">
     <div id="npc-hint" style="position:absolute;bottom:7rem;left:50%;transform:translateX(-50%);font-family:'Courier New',monospace;font-size:0.72rem;letter-spacing:0.22em;color:#22ff4499;text-align:center;white-space:nowrap;opacity:0;transition:opacity 0.4s;"></div>
+    <div id="ship-coin-display">&#9679; 0 COINS</div>
 </div>
 
 <div id="shop-overlay-backdrop" class="hidden"></div>
@@ -3138,6 +3266,9 @@ function updateShipPlayer(delta, time) {
     shipYaw.position.x = Math.max(-SHIP_HX + 0.8, Math.min(SHIP_HX - 0.8, shipYaw.position.x));
     shipYaw.position.z = Math.max(-SHIP_HZ + 0.8, Math.min(SHIP_HZ - 0.8, shipYaw.position.z));
     shipYaw.position.y = PLAYER_HEIGHT;
+
+    const moving = shipKeys.w || shipKeys.a || shipKeys.s || shipKeys.d;
+    document.getElementById('gun-hud').classList.toggle('walking', moving);
 }
 
 // ─── SECTION 4: Game State ────────────────────────────────────────────────────
@@ -4401,9 +4532,10 @@ function openShop(nextLevel) {
     resetToFirstPerson();
     gameState = 'SHIP';
     document.getElementById('hud').classList.remove('visible');
-    document.getElementById('gun-hud').style.display = 'none';
     document.getElementById('shop-overlay').classList.add('hidden');
     document.getElementById('ship-ui').style.display = 'block';
+    syncWeapon();
+    updateShipCoin();
     if (player.jetpackFuel > 0) player.jetpackFuel = 100;  // refill jet pack on ship entry
     updateUtilHUD();
     const hint = document.getElementById('npc-hint');
@@ -4445,8 +4577,14 @@ function closeShop() {
     launchNextWave();
 }
 
+function updateShipCoin() {
+    const el = document.getElementById('ship-coin-display');
+    if (el) el.textContent = `⦿ ${playerCoins} COINS`;
+}
+
 function renderShop() {
     document.getElementById('shop-coin-count').textContent = playerCoins;
+    updateShipCoin();
 
     // Inventory panel
     const invList = document.getElementById('shop-inv-list');
@@ -5636,6 +5774,7 @@ function updateHUD() {
     document.getElementById('score-display').textContent = `SCORE: ${player.score.toLocaleString()}`;
     document.getElementById('level-display').textContent = `LEVEL ${currentLevel}`;
     document.getElementById('coin-display').textContent = `⬤ ${playerCoins} COINS`;
+    updateShipCoin();
 
     // Inventory bar
     const bar = document.getElementById('inventory-bar');
@@ -6862,6 +7001,7 @@ function closeUtilShop() {
 
 function renderUtilShop() {
     document.getElementById('util-coin-count').textContent = playerCoins;
+    updateShipCoin();
     const grid = document.getElementById('util-items-grid');
     grid.innerHTML = '';
     UTIL_SHOP_DATA.forEach(u => {
@@ -7036,6 +7176,247 @@ function viewerLoop() {
     if (!viewerRenderer || !viewerScene || !viewerCamera) return;
     if (viewerMesh) viewerMesh.rotation.y += 0.010;
     viewerRenderer.render(viewerScene, viewerCamera);
+}
+
+// ─── Commander Viewer ────────────────────────────────────────────────────────
+const COMMANDER_DEFS = [
+    {
+        id: 'dad',
+        name: 'DAD',
+        subtitle: 'The Breadwinner',
+        color: '#ff8833',
+        desc: 'Built like a tank and twice as stubborn. Absorbs punishment that would flatten lesser soldiers, and every kill puts extra money in the family budget.',
+        stats: [
+            { label: 'MAX HEALTH',   value: '130',            cls: 'cg' },
+            { label: 'SPEED',        value: '8  (Slower)',    cls: 'cy' },
+            { label: 'COIN BONUS',   value: '+25%',           cls: 'co' },
+            { label: 'START COINS',  value: '200',            cls: 'cy' },
+            { label: 'LOADOUT',      value: 'Shotgun + Pistol', cls: '' },
+            { label: 'SPRINT',       value: '2.5 s capacity', cls: ''  },
+            { label: 'ROLE',         value: 'Tank / Earner',  cls: 'co' },
+        ],
+        meshPos: [0, 0, 0], camPos: [0, 1.55, 4.8], lookAt: [0, 1.25, 0],
+        createFn() {
+            const g = new THREE.Group();
+            const mk = (geo, col) => new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ color: col }));
+            const add = (geo, col, x, y, z) => { const m = mk(geo, col); m.position.set(x,y,z); g.add(m); return m; };
+            // Stocky torso
+            add(new THREE.BoxGeometry(1.08, 0.88, 0.60), 0x445566, 0, 1.22, 0);
+            add(new THREE.BoxGeometry(0.72, 0.46, 0.63), 0x2a3a55, 0, 1.28, 0); // chest plate
+            // Orange badge
+            add(new THREE.BoxGeometry(0.22, 0.18, 0.64), 0xff8800, 0, 1.38, 0);
+            // Head
+            add(new THREE.BoxGeometry(0.62, 0.52, 0.60), 0x2a3a55, 0, 1.80, 0);
+            add(new THREE.BoxGeometry(0.46, 0.18, 0.10), 0xff8833, 0, 1.83, 0.32); // visor
+            // Legs (wide stance)
+            add(new THREE.BoxGeometry(0.38, 0.82, 0.42), 0x1a2a44, -0.24, 0.61, 0);
+            add(new THREE.BoxGeometry(0.38, 0.82, 0.42), 0x1a2a44,  0.24, 0.61, 0);
+            // Boots
+            add(new THREE.BoxGeometry(0.40, 0.24, 0.50), 0x111122, -0.24, 0.11, 0.05);
+            add(new THREE.BoxGeometry(0.40, 0.24, 0.50), 0x111122,  0.24, 0.11, 0.05);
+            // Arms (thick)
+            add(new THREE.BoxGeometry(0.30, 0.76, 0.34), 0x445566, -0.68, 1.18, 0.05);
+            add(new THREE.BoxGeometry(0.30, 0.76, 0.34), 0x445566,  0.68, 1.18, 0.05);
+            return g;
+        },
+    },
+    {
+        id: 'mom',
+        name: 'MOM',
+        subtitle: 'The Guardian',
+        color: '#44ddff',
+        desc: 'Precise, disciplined, and impossible to wear down. Her shield regenerates passively and she outruns most threats before they become a problem.',
+        stats: [
+            { label: 'MAX HEALTH',       value: '100',              cls: ''   },
+            { label: 'SPEED',            value: '10  (Fast)',        cls: 'cg' },
+            { label: 'SHIELD REGEN',     value: '+2 / sec passive',  cls: 'cb' },
+            { label: 'SPRINT REGEN',     value: '1.2× faster',      cls: 'cg' },
+            { label: 'START COINS',      value: '150',              cls: 'cy' },
+            { label: 'LOADOUT',          value: 'Dual Pistols + AR', cls: ''  },
+            { label: 'ROLE',             value: 'Survivor / Support', cls: 'cb' },
+        ],
+        meshPos: [0, 0, 0], camPos: [0, 1.55, 4.5], lookAt: [0, 1.2, 0],
+        createFn() {
+            const g = new THREE.Group();
+            const add = (geo, col, x, y, z) => { const m = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ color: col })); m.position.set(x,y,z); g.add(m); return m; };
+            // Torso (sleek)
+            add(new THREE.BoxGeometry(0.86, 0.82, 0.52), 0x1a6677, 0, 1.24, 0);
+            add(new THREE.BoxGeometry(0.60, 0.44, 0.55), 0x0e3a55, 0, 1.30, 0);
+            // Teal highlight stripe
+            add(new THREE.BoxGeometry(0.64, 0.08, 0.56), 0x44ddff, 0, 1.52, 0);
+            // Head (taller)
+            add(new THREE.BoxGeometry(0.54, 0.52, 0.54), 0x0e3a55, 0, 1.84, 0);
+            add(new THREE.BoxGeometry(0.40, 0.18, 0.10), 0xeeffff, 0, 1.87, 0.30); // white visor
+            // Legs
+            add(new THREE.BoxGeometry(0.32, 0.84, 0.36), 0x0e3355, -0.20, 0.62, 0);
+            add(new THREE.BoxGeometry(0.32, 0.84, 0.36), 0x0e3355,  0.20, 0.62, 0);
+            // Boots
+            add(new THREE.BoxGeometry(0.34, 0.22, 0.44), 0x081830, -0.20, 0.11, 0.05);
+            add(new THREE.BoxGeometry(0.34, 0.22, 0.44), 0x081830,  0.20, 0.11, 0.05);
+            // Arms
+            add(new THREE.BoxGeometry(0.26, 0.72, 0.28), 0x1a6677, -0.60, 1.18, 0.04);
+            add(new THREE.BoxGeometry(0.26, 0.72, 0.28), 0x1a6677,  0.60, 1.18, 0.04);
+            return g;
+        },
+    },
+    {
+        id: 'kid',
+        name: '8-YEAR-OLD',
+        subtitle: 'The Reckless One',
+        color: '#aaff00',
+        desc: 'Fearless, fast, and absolutely not safe to hand a rocket launcher to. Hits harder than anyone on the field — provided they survive long enough to pull the trigger.',
+        stats: [
+            { label: 'MAX HEALTH',   value: '75  (Fragile)',   cls: 'cr' },
+            { label: 'SPEED',        value: '11  (Very Fast)', cls: 'cg' },
+            { label: 'DAMAGE MULT',  value: '+40%',            cls: 'co' },
+            { label: 'SPRINT',       value: '4.0 s capacity',  cls: 'cg' },
+            { label: 'START COINS',  value: '0',               cls: 'cr' },
+            { label: 'LOADOUT',      value: 'Rocket + Pistol', cls: 'co' },
+            { label: 'ROLE',         value: 'Glass Cannon',    cls: 'co' },
+        ],
+        meshPos: [0, 0, 0], camPos: [0, 1.2, 4.0], lookAt: [0, 1.0, 0],
+        createFn() {
+            const g = new THREE.Group();
+            const add = (geo, col, x, y, z) => { const m = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ color: col })); m.position.set(x,y,z); g.add(m); return m; };
+            const s = 0.80; // smaller scale
+            g.scale.set(s, s, s);
+            add(new THREE.BoxGeometry(0.84, 0.76, 0.48), 0x226611, 0, 1.22, 0); // torso
+            add(new THREE.BoxGeometry(0.58, 0.38, 0.51), 0x113300, 0, 1.26, 0); // plate
+            add(new THREE.BoxGeometry(0.30, 0.14, 0.52), 0xffff00, 0, 1.48, 0); // yellow stripe
+            add(new THREE.BoxGeometry(0.52, 0.50, 0.52), 0x113300, 0, 1.76, 0); // head
+            add(new THREE.BoxGeometry(0.38, 0.16, 0.10), 0xffff00, 0, 1.79, 0.29); // yellow visor
+            add(new THREE.BoxGeometry(0.30, 0.76, 0.34), 0x113300, -0.18, 0.62, 0); // leg L
+            add(new THREE.BoxGeometry(0.30, 0.76, 0.34), 0x113300,  0.18, 0.62, 0); // leg R
+            add(new THREE.BoxGeometry(0.32, 0.20, 0.44), 0x0a1800, -0.18, 0.11, 0.05); // boot L
+            add(new THREE.BoxGeometry(0.32, 0.20, 0.44), 0x0a1800,  0.18, 0.11, 0.05); // boot R
+            add(new THREE.BoxGeometry(0.24, 0.68, 0.28), 0x226611, -0.57, 1.18, 0.04); // arm L
+            add(new THREE.BoxGeometry(0.24, 0.68, 0.28), 0x226611,  0.57, 1.18, 0.04); // arm R
+            return g;
+        },
+    },
+    {
+        id: 'toddler',
+        name: '3-YEAR-OLD',
+        subtitle: 'The Chaos Agent',
+        color: '#ffcc00',
+        desc: 'No strategy, no fear, infinite stamina. Tears across the battlefield at speeds that defy physics, double-dips on every coin, and shows up armed with something completely unreasonable.',
+        stats: [
+            { label: 'MAX HEALTH',   value: '60  (Critical)',   cls: 'cr' },
+            { label: 'SPEED',        value: '13  (Max)',        cls: 'cg' },
+            { label: 'SPRINT',       value: 'Infinite',         cls: 'cg' },
+            { label: 'COIN BONUS',   value: '+100% (×2)',       cls: 'cy' },
+            { label: 'START COINS',  value: '0',               cls: 'cr' },
+            { label: 'LOADOUT',      value: 'Random Rare + Pistol', cls: 'cy' },
+            { label: 'ROLE',         value: 'Chaos / Speedster', cls: 'cy' },
+        ],
+        meshPos: [0, 0, 0], camPos: [0, 0.9, 3.6], lookAt: [0, 0.75, 0],
+        createFn() {
+            const g = new THREE.Group();
+            const add = (geo, col, x, y, z) => { const m = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ color: col })); m.position.set(x,y,z); g.add(m); return m; };
+            const s = 0.58;
+            g.scale.set(s, s, s);
+            add(new THREE.BoxGeometry(0.90, 0.72, 0.54), 0xcc5500, 0, 1.18, 0); // torso (chubby)
+            add(new THREE.BoxGeometry(0.62, 0.34, 0.57), 0x993300, 0, 1.22, 0); // plate
+            add(new THREE.BoxGeometry(0.68, 0.56, 0.62), 0x993300, 0, 1.74, 0); // head (big round)
+            add(new THREE.BoxGeometry(0.44, 0.18, 0.10), 0xffffff, 0, 1.77, 0.34); // white visor
+            add(new THREE.BoxGeometry(0.24, 0.10, 0.64), 0xffcc00, 0, 1.44, 0); // gold stripe
+            add(new THREE.BoxGeometry(0.34, 0.68, 0.38), 0x993300, -0.17, 0.60, 0); // leg L
+            add(new THREE.BoxGeometry(0.34, 0.68, 0.38), 0x993300,  0.17, 0.60, 0); // leg R
+            add(new THREE.BoxGeometry(0.36, 0.20, 0.46), 0x220800, -0.17, 0.10, 0.05); // boot L
+            add(new THREE.BoxGeometry(0.36, 0.20, 0.46), 0x220800,  0.17, 0.10, 0.05); // boot R
+            add(new THREE.BoxGeometry(0.28, 0.58, 0.30), 0xcc5500, -0.64, 1.14, 0.04); // arm L
+            add(new THREE.BoxGeometry(0.28, 0.58, 0.30), 0xcc5500,  0.64, 1.14, 0.04); // arm R
+            return g;
+        },
+    },
+];
+
+let cmdViewerRenderer = null;
+let cmdViewerScene    = null;
+let cmdViewerCamera   = null;
+let cmdViewerMesh     = null;
+let cmdViewerLight    = null;
+let cmdViewerIdx      = 0;
+let cmdViewerAnimId   = null;
+
+function openCommanderViewer() {
+    document.getElementById('cmd-viewer-overlay').classList.remove('hidden');
+    const wrap   = document.getElementById('cmd-canvas-wrap');
+    const canvas = document.getElementById('cmd-viewer-canvas');
+    const w = wrap.clientWidth, h = wrap.clientHeight;
+    canvas.width = w; canvas.height = h;
+
+    cmdViewerRenderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    cmdViewerRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    cmdViewerRenderer.setSize(w, h, false);
+    cmdViewerRenderer.setClearColor(0x020c06, 1);
+
+    cmdViewerScene = new THREE.Scene();
+    cmdViewerScene.fog = new THREE.FogExp2(0x020c06, 0.055);
+    cmdViewerScene.add(new THREE.AmbientLight(0x113322, 1.4));
+    const keyL = new THREE.DirectionalLight(0xccffdd, 2.0);
+    keyL.position.set(4, 10, 6);
+    cmdViewerScene.add(keyL);
+    const fillL = new THREE.DirectionalLight(0x22ff88, 0.5);
+    fillL.position.set(-5, 2, -3);
+    cmdViewerScene.add(fillL);
+
+    cmdViewerCamera = new THREE.PerspectiveCamera(50, w / h, 0.1, 100);
+    cmdViewerIdx = 0;
+    loadCommanderInViewer(0);
+    cmdViewerLoop();
+}
+
+function closeCommanderViewer() {
+    document.getElementById('cmd-viewer-overlay').classList.add('hidden');
+    if (cmdViewerAnimId)  { cancelAnimationFrame(cmdViewerAnimId); cmdViewerAnimId = null; }
+    if (cmdViewerLight && cmdViewerScene) { cmdViewerScene.remove(cmdViewerLight); cmdViewerLight = null; }
+    if (cmdViewerMesh  && cmdViewerScene) { cmdViewerScene.remove(cmdViewerMesh);  cmdViewerMesh  = null; }
+    if (cmdViewerRenderer) { cmdViewerRenderer.dispose(); cmdViewerRenderer = null; }
+    cmdViewerScene = null; cmdViewerCamera = null;
+}
+
+function loadCommanderInViewer(idx) {
+    if (cmdViewerLight && cmdViewerScene) { cmdViewerScene.remove(cmdViewerLight); cmdViewerLight = null; }
+    if (cmdViewerMesh  && cmdViewerScene) { cmdViewerScene.remove(cmdViewerMesh);  cmdViewerMesh  = null; }
+    cmdViewerIdx = ((idx % COMMANDER_DEFS.length) + COMMANDER_DEFS.length) % COMMANDER_DEFS.length;
+    const def = COMMANDER_DEFS[cmdViewerIdx];
+
+    cmdViewerMesh = def.createFn();
+    const [mx, my, mz] = def.meshPos;
+    cmdViewerMesh.position.set(mx, my, mz);
+    cmdViewerScene.add(cmdViewerMesh);
+
+    const [cx, cy, cz] = def.camPos;
+    const [lx, ly, lz] = def.lookAt;
+    cmdViewerCamera.position.set(cx, cy, cz);
+    cmdViewerCamera.lookAt(lx, ly, lz);
+
+    const accentCol = parseInt(def.color.replace('#', ''), 16);
+    cmdViewerLight = new THREE.PointLight(accentCol, 2.0, 16);
+    cmdViewerLight.position.set(0, ly + 1, 2.5);
+    cmdViewerScene.add(cmdViewerLight);
+
+    const nameEl = document.getElementById('cmd-viewer-name');
+    nameEl.textContent = def.name;
+    nameEl.style.color = def.color;
+    nameEl.style.textShadow = `0 0 24px ${def.color}99`;
+    document.getElementById('cmd-viewer-subtitle').textContent = def.subtitle;
+    document.getElementById('cmd-viewer-desc').textContent     = def.desc;
+    document.getElementById('cmd-viewer-stats').innerHTML = def.stats.map(s =>
+        `<div class="vstat"><span class="vstat-label">${s.label}</span><span class="vstat-value${s.cls ? ' '+s.cls : ''}">${s.value}</span></div>`
+    ).join('');
+    document.getElementById('cmd-viewer-counter').textContent = `${cmdViewerIdx + 1} / ${COMMANDER_DEFS.length}`;
+}
+
+function cmdViewerNext() { loadCommanderInViewer(cmdViewerIdx + 1); }
+function cmdViewerPrev() { loadCommanderInViewer(cmdViewerIdx - 1); }
+
+function cmdViewerLoop() {
+    cmdViewerAnimId = requestAnimationFrame(cmdViewerLoop);
+    if (!cmdViewerRenderer || !cmdViewerScene || !cmdViewerCamera) return;
+    if (cmdViewerMesh) cmdViewerMesh.rotation.y += 0.009;
+    cmdViewerRenderer.render(cmdViewerScene, cmdViewerCamera);
 }
 
 // ─── SECTION 11 & 12: Bootstrap + Main Loop ──────────────────────────────────
