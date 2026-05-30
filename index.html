@@ -635,6 +635,178 @@ body {
 }
 #gun-hud.fireball #gun-barrel::before { background: #1a0300; }
 
+/* ─── Shotgun overlay (wide wood + brass double barrel) ─────── */
+#gun-hud.shotgun #gun-barrel {
+    width: 24px; height: 78px;
+    background: linear-gradient(to right, #3a2a14, #6a4a22, #2e2010);
+    box-shadow: -15px 0 0 0 #4a3418, 0 0 8px #cc994433;
+    border-radius: 4px 4px 0 0;
+}
+#gun-hud.shotgun #gun-body {
+    background: linear-gradient(to bottom, #5a3e1e, #2e2010);
+    box-shadow: inset 0 2px 4px rgba(255,200,120,0.1), 0 0 12px #cc994433;
+}
+#gun-hud.shotgun #gun-handle { background: linear-gradient(to bottom, #3a2814, #20140a); }
+#gun-hud.shotgun #gun-muzzle-flash {
+    background: radial-gradient(ellipse, #ffffd0 0%, #ffcc66 40%, #ff8800 72%, transparent 88%);
+    width: 36px; height: 30px;
+}
+
+/* ─── Sniper overlay (long thin barrel + scope) ────────────── */
+#gun-hud.sniper #gun-barrel {
+    width: 9px; height: 135px;
+    background: linear-gradient(to right, #1a2230, #44567a, #141a26);
+    box-shadow: 0 0 10px #88aaff33;
+}
+#gun-hud.sniper #gun-body {
+    width: 110px;
+    background: linear-gradient(to bottom, #20283a, #131a26);
+    box-shadow: inset 0 2px 4px rgba(140,170,255,0.08), 0 0 12px #88aaff22;
+}
+#gun-hud.sniper #gun-accent {
+    width: 64px; height: 12px; bottom: 76px; right: 70px;
+    background: linear-gradient(to bottom, #0a0e16, #1a2230);
+    border-radius: 6px;
+    box-shadow: 0 0 6px #88aaff55;
+}
+#gun-hud.sniper #gun-muzzle-flash {
+    background: radial-gradient(ellipse, #ffffff 0%, #aaccff 45%, transparent 80%);
+    width: 16px; height: 22px;
+}
+
+/* ─── Plasma overlay (violet energy) ───────────────────────── */
+#gun-hud.plasma #gun-barrel {
+    width: 16px;
+    background: linear-gradient(to right, #2a0a44, #6a2acc, #1a0533);
+    box-shadow: 0 0 16px #aa44ff66;
+}
+#gun-hud.plasma #gun-body {
+    background: linear-gradient(to bottom, #2e0d4a, #18062b);
+    box-shadow: inset 0 2px 4px rgba(180,80,255,0.15), 0 0 16px #aa44ff44;
+}
+#gun-hud.plasma #gun-body::after { background: linear-gradient(to right, #aa44ff55, transparent); }
+#gun-hud.plasma #gun-muzzle-flash {
+    background: radial-gradient(ellipse, #ffffff 0%, #cc88ff 35%, #8822ff 65%, transparent 88%);
+    width: 28px; height: 36px;
+}
+
+/* ─── Minigun overlay (fat multi-barrel) ───────────────────── */
+#gun-hud.minigun #gun-barrel {
+    width: 30px; height: 96px;
+    background: linear-gradient(to right, #1a1a20, #4a4a52, #15151a);
+    box-shadow: -10px 0 0 -2px #33333a, 10px 0 0 -2px #33333a, 0 0 12px #ffaa0033;
+    border-radius: 3px;
+}
+#gun-hud.minigun #gun-body {
+    width: 124px;
+    background: linear-gradient(to bottom, #33333c, #1a1a20);
+    box-shadow: inset 0 2px 4px rgba(255,170,0,0.1), 0 0 14px #ffaa0033;
+}
+#gun-hud.minigun #gun-accent { background: linear-gradient(to bottom, #aa6600, #663d00); width: 66px; }
+#gun-hud.minigun #gun-muzzle-flash {
+    background: radial-gradient(ellipse, #ffffff 0%, #ffcc44 40%, #ff8800 70%, transparent 88%);
+    width: 34px; height: 38px;
+}
+
+/* ─── Grenade launcher overlay (fat olive bore) ────────────── */
+#gun-hud.grenade #gun-barrel {
+    width: 28px; height: 64px;
+    background: linear-gradient(to right, #2a3315, #556a28, #1e2410);
+    box-shadow: 0 0 10px #88aa4433;
+    border-radius: 6px 6px 0 0;
+}
+#gun-hud.grenade #gun-barrel::before { width: 22px; height: 12px; background: #0d1206; }
+#gun-hud.grenade #gun-body {
+    background: linear-gradient(to bottom, #3a4a1e, #202810);
+    box-shadow: inset 0 2px 4px rgba(150,200,80,0.12), 0 0 12px #88aa4433;
+}
+#gun-hud.grenade #gun-muzzle-flash {
+    background: radial-gradient(ellipse, #f0ffd0 0%, #aacc66 45%, transparent 82%);
+    width: 30px; height: 26px;
+}
+
+/* ─── Frost cannon overlay (icy cyan) ──────────────────────── */
+#gun-hud.frost #gun-barrel {
+    width: 18px;
+    background: linear-gradient(to right, #134452, #3fc9e6, #0d2e3a);
+    box-shadow: 0 0 16px #44ddff66;
+}
+#gun-hud.frost #gun-body {
+    background: linear-gradient(to bottom, #14424f, #0a2630);
+    box-shadow: inset 0 2px 4px rgba(150,240,255,0.15), 0 0 16px #44ddff44;
+}
+#gun-hud.frost #gun-body::after { background: linear-gradient(to right, #aef0ff66, transparent); }
+#gun-hud.frost #gun-muzzle-flash {
+    background: radial-gradient(ellipse, #ffffff 0%, #bff3ff 45%, #44ddff 72%, transparent 88%);
+    width: 28px; height: 32px;
+}
+
+/* ─── Lightning rod overlay (electric yellow) ──────────────── */
+#gun-hud.lightning #gun-barrel {
+    width: 12px; height: 100px;
+    background: linear-gradient(to right, #4a4410, #e6d83a, #2e2a08);
+    box-shadow: 0 0 18px #ffee4477;
+}
+#gun-hud.lightning #gun-body {
+    background: linear-gradient(to bottom, #3a3608, #1e1c05);
+    box-shadow: inset 0 2px 4px rgba(255,240,80,0.18), 0 0 16px #ffee4444;
+}
+#gun-hud.lightning #gun-muzzle-flash {
+    background: radial-gradient(ellipse, #ffffff 0%, #ffff88 40%, #ffdd00 70%, transparent 88%);
+    width: 30px; height: 40px;
+}
+
+/* ─── Flamethrower overlay (orange nozzle + tank) ──────────── */
+#gun-hud.flame #gun-barrel {
+    width: 22px; height: 70px;
+    background: linear-gradient(to right, #3a1505, #aa4410, #2a0f04);
+    box-shadow: 0 0 16px #ff550066;
+    border-radius: 8px 8px 0 0;
+}
+#gun-hud.flame #gun-body {
+    background: linear-gradient(to bottom, #4a2008, #281204);
+    box-shadow: inset 0 2px 4px rgba(255,120,0,0.15), 0 0 16px #ff550044;
+}
+#gun-hud.flame #gun-accent { background: linear-gradient(to bottom, #aa3311, #661e0a); width: 40px; border-radius: 8px; }
+#gun-hud.flame #gun-muzzle-flash {
+    background: radial-gradient(ellipse, #ffffd0 0%, #ffaa00 30%, #ff3300 65%, transparent 86%);
+    width: 38px; height: 48px;
+}
+
+/* ─── Black hole gun overlay (dark violet) ─────────────────── */
+#gun-hud.blackhole #gun-barrel {
+    width: 22px;
+    background: linear-gradient(to right, #150522, #4a1a6a, #0a0214);
+    box-shadow: 0 0 20px #aa33ff66;
+    border-radius: 8px 8px 0 0;
+}
+#gun-hud.blackhole #gun-barrel::before { width: 16px; height: 12px; background: #000; box-shadow: 0 0 8px #cc44ff; }
+#gun-hud.blackhole #gun-body {
+    background: linear-gradient(to bottom, #1e0833, #0a0214);
+    box-shadow: inset 0 2px 4px rgba(180,80,255,0.18), 0 0 18px #aa33ff44;
+}
+#gun-hud.blackhole #gun-muzzle-flash {
+    background: radial-gradient(ellipse, #2a003a 0%, #6a1aaa 40%, #cc44ff 65%, transparent 85%);
+    width: 34px; height: 34px;
+}
+
+/* ─── Railgun overlay (sleek white/silver) ─────────────────── */
+#gun-hud.railgun #gun-barrel {
+    width: 14px; height: 130px;
+    background: linear-gradient(to right, #888c99, #eef2ff, #777b88);
+    box-shadow: 0 0 16px #ffffff66;
+}
+#gun-hud.railgun #gun-body {
+    width: 112px;
+    background: linear-gradient(to bottom, #aab0c0, #5a606e);
+    box-shadow: inset 0 2px 4px rgba(255,255,255,0.25), 0 0 14px #ccddff55;
+}
+#gun-hud.railgun #gun-accent { background: linear-gradient(to bottom, #44aaff, #2266cc); width: 72px; }
+#gun-hud.railgun #gun-muzzle-flash {
+    background: radial-gradient(ellipse, #ffffff 0%, #cce6ff 45%, #66aaff 72%, transparent 88%);
+    width: 22px; height: 50px;
+}
+
 /* ─── Shop Overlay ──────────────────────────────────────────── */
 #shop-overlay {
     position: fixed;
@@ -1756,8 +1928,8 @@ body {
                     <span class="key">WAVES</span><span class="desc">Survive endless alien waves</span>
                     <span class="key">LEVEL 3, 12, 21...</span><span class="desc">Warlord boss wave</span>
                     <span class="key">LEVEL 6, 15, 24...</span><span class="desc">T-Rex boss wave</span>
-                    <span class="key">LEVEL 9, 18, 27...</span><span class="desc">Megalodon boss wave</span>
-                    <span class="key">MEGALODON</span><span class="desc">Arrives with a fast piranha swarm instead of aliens</span>
+                    <span class="key">LEVEL 9, 18, 27...</span><span class="desc">King Piranha boss wave</span>
+                    <span class="key">KING PIRANHA</span><span class="desc">Giant crowned piranha; arrives with a fast piranha swarm instead of aliens</span>
                     <span class="key">COINS</span><span class="desc">Earned by killing enemies</span>
                     <span class="key">SHOP</span><span class="desc">Spend coins between waves</span>
                     <span class="key">BUFFS</span><span class="desc">Orbs spawn on arena floor</span>
@@ -2718,6 +2890,164 @@ function buildWallTexture() {
     return tex;
 }
 
+// ── Freshwater theme (King Piranha waves) ──────────────────────────────────
+function buildOceanWallTexture() {
+    // Murky freshwater river (Amazon-style) — the kind of water piranhas live in
+    const w = 512, h = 256;
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const ctx = c.getContext('2d');
+    // Vertical gradient: tea-stained green near surface → dark murky olive-brown below
+    const g = ctx.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0,   '#5b7a3a');
+    g.addColorStop(0.45,'#3a5a2e');
+    g.addColorStop(1,   '#1c2e1a');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+    // Soft, hazy light filtering through silty water (weaker than open ocean)
+    ctx.globalAlpha = 0.08; ctx.fillStyle = '#d8e8a0';
+    for (let i = 0; i < 5; i++) {
+        const x = Math.random() * w;
+        ctx.beginPath();
+        ctx.moveTo(x, 0); ctx.lineTo(x + 50, 0);
+        ctx.lineTo(x + 20 + Math.random() * 40, h); ctx.lineTo(x - 40, h);
+        ctx.closePath(); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    // Submerged tree branches / roots reaching down from above
+    ctx.strokeStyle = 'rgba(40,28,16,0.75)'; ctx.lineCap = 'round';
+    for (let i = 0; i < 6; i++) {
+        const x = Math.random() * w;
+        ctx.lineWidth = 5 + Math.random() * 4;
+        ctx.beginPath(); ctx.moveTo(x, 0);
+        let cx = x, cy = 0;
+        const segs = 3 + Math.floor(Math.random() * 3);
+        for (let s = 0; s < segs; s++) { cx += (Math.random() - 0.5) * 40; cy += 30 + Math.random() * 35; ctx.lineTo(cx, cy); }
+        ctx.stroke();
+        // a small offshoot twig
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + (Math.random() - 0.5) * 50, cy - 20); ctx.stroke();
+    }
+    // Tall reeds / river grass rising from the bed
+    ctx.strokeStyle = 'rgba(46,82,30,0.8)'; ctx.lineWidth = 3;
+    for (let i = 0; i < 16; i++) {
+        const x = Math.random() * w;
+        ctx.beginPath(); ctx.moveTo(x, h);
+        for (let yy = h; yy > h - 60 - Math.random() * 70; yy -= 8) ctx.lineTo(x + Math.sin(yy * 0.18) * 7, yy);
+        ctx.stroke();
+    }
+    // Lily-pad / leaf silhouettes drifting near the surface
+    ctx.fillStyle = 'rgba(30,55,22,0.5)';
+    for (let i = 0; i < 7; i++) {
+        const x = Math.random() * w, y = Math.random() * 40, r = 7 + Math.random() * 12;
+        ctx.beginPath(); ctx.ellipse(x, y, r, r * 0.45, 0, 0, Math.PI * 2); ctx.fill();
+    }
+    // Suspended silt / sediment specks (murky water)
+    for (let i = 0; i < 220; i++) {
+        const x = Math.random() * w, y = Math.random() * h, r = Math.random() * 1.6;
+        ctx.fillStyle = Math.random() < 0.5 ? 'rgba(120,130,80,0.35)' : 'rgba(60,50,30,0.4)';
+        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(1, 1);
+    return tex;
+}
+
+function buildSandFloorTexture() {
+    const size = 256;
+    const c = document.createElement('canvas');
+    c.width = c.height = size;
+    const ctx = c.getContext('2d');
+    // Silty olive-tan riverbed (murkier than beach sand, to match the freshwater walls)
+    ctx.fillStyle = '#9c8e5a'; ctx.fillRect(0, 0, size, size);
+    // Muddy green-brown patches
+    for (let i = 0; i < 40; i++) {
+        const x = Math.random() * size, y = Math.random() * size, r = 10 + Math.random() * 28;
+        ctx.fillStyle = Math.random() < 0.5 ? 'rgba(78,84,44,0.25)' : 'rgba(120,108,62,0.25)';
+        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+    }
+    // Grain speckle
+    for (let i = 0; i < 2600; i++) {
+        const x = Math.random() * size, y = Math.random() * size, r = Math.random() * 1.6;
+        ctx.fillStyle = Math.random() < 0.5 ? 'rgba(96,90,48,0.5)' : 'rgba(196,184,128,0.55)';
+        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+    }
+    // Rippled sediment ridges
+    ctx.strokeStyle = 'rgba(70,62,34,0.25)'; ctx.lineWidth = 3;
+    for (let yy = 0; yy < size; yy += 14) {
+        ctx.beginPath();
+        for (let xx = 0; xx <= size; xx += 8) {
+            const y = yy + Math.sin(xx * 0.05 + yy * 0.3) * 4;
+            xx === 0 ? ctx.moveTo(xx, y) : ctx.lineTo(xx, y);
+        }
+        ctx.stroke();
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(8, 8);
+    return tex;
+}
+
+// Underside of a murky freshwater surface — green caustic web of light, seen looking up
+function buildWaterSurfaceTexture() {
+    const size = 256;
+    const c = document.createElement('canvas');
+    c.width = c.height = size;
+    const ctx = c.getContext('2d');
+    const g = ctx.createLinearGradient(0, 0, size, size);
+    g.addColorStop(0, '#4f8a4a');
+    g.addColorStop(1, '#2b5e30');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, size, size);
+    // Caustic light cells — rippling pale-green polygons
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 90; i++) {
+        const x = Math.random() * size, y = Math.random() * size, r = 6 + Math.random() * 22;
+        const a = 0.10 + Math.random() * 0.30;
+        ctx.strokeStyle = `rgba(206,240,170,${a})`;
+        ctx.beginPath();
+        for (let k = 0; k <= 6; k++) {
+            const ang = (k / 6) * Math.PI * 2;
+            const rr = r * (0.6 + Math.random() * 0.5);
+            const px = x + Math.cos(ang) * rr, py = y + Math.sin(ang) * rr;
+            k === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+        }
+        ctx.closePath(); ctx.stroke();
+    }
+    // Sunlit glints
+    for (let i = 0; i < 120; i++) {
+        const x = Math.random() * size, y = Math.random() * size, r = Math.random() * 2 + 0.5;
+        ctx.fillStyle = `rgba(228,250,200,${0.25 + Math.random() * 0.4})`;
+        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(3, 3);
+    return tex;
+}
+
+let arenaFloorMesh = null, arenaWallMat = null, arenaCeilMesh = null;
+let arenaFloorTexDefault = null, arenaWallTexDefault = null, arenaCeilTexDefault = null;
+let oceanWallTex = null, sandFloorTex = null, waterCeilTex = null;
+let oceanThemeOn = false;
+
+// Swap the arena between the default tech look and an underwater ocean look
+function setOceanTheme(on) {
+    if (on === oceanThemeOn) return;
+    oceanThemeOn = on;
+    if (!arenaFloorMesh || !arenaWallMat) return;
+    if (on && !oceanWallTex)  oceanWallTex  = buildOceanWallTexture();
+    if (on && !sandFloorTex)  sandFloorTex  = buildSandFloorTexture();
+    if (on && !waterCeilTex)  waterCeilTex  = buildWaterSurfaceTexture();
+    arenaWallMat.map = on ? oceanWallTex : arenaWallTexDefault;
+    arenaWallMat.needsUpdate = true;
+    arenaFloorMesh.material.map = on ? sandFloorTex : arenaFloorTexDefault;
+    arenaFloorMesh.material.needsUpdate = true;
+    if (arenaCeilMesh) {
+        arenaCeilMesh.material.map = on ? waterCeilTex : arenaCeilTexDefault;
+        arenaCeilMesh.material.needsUpdate = true;
+    }
+}
+
 function buildArena() {
     const floorTex = buildFloorTexture();
     const ceilTex = buildCeilTexture();
@@ -2732,6 +3062,8 @@ function buildArena() {
     floor.position.y = 0;
     floor.receiveShadow = true;
     scene.add(floor);
+    arenaFloorMesh = floor;
+    arenaFloorTexDefault = floorTex;
 
     // Ceiling
     const ceil = new THREE.Mesh(
@@ -2741,9 +3073,13 @@ function buildArena() {
     ceil.rotation.x = Math.PI / 2;
     ceil.position.y = WALL_HEIGHT;
     scene.add(ceil);
+    arenaCeilMesh = ceil;
+    arenaCeilTexDefault = ceilTex;
 
     // Walls
     const wallMat = new THREE.MeshLambertMaterial({ map: wallTex });
+    arenaWallMat = wallMat;
+    arenaWallTexDefault = wallTex;
     const walls = [
         { pos: [0, WALL_HEIGHT/2, -ARENA_HALF], rot: [0, 0, 0] },
         { pos: [0, WALL_HEIGHT/2,  ARENA_HALF], rot: [0, Math.PI, 0] },
@@ -4148,7 +4484,7 @@ function spawnEnemies(count, level) {
     }
 }
 
-// Small, fast swarm fish that accompany the Megalodon
+// Small, fast swarm fish that accompany the King Piranha
 function createPiranha(x, z, level) {
     const cfg = getLevelConfig(level);
     const g = new THREE.Group();
@@ -4310,7 +4646,7 @@ function updateEnemies(delta, time) {
                 // Tip drags slightly behind during lift
                 tp.tip.rotation.x = -0.3 + Math.sin(phase + 0.9) * 0.22;
             });
-        } else if (e.type === 'megalodon') {
+        } else if (e.type === 'kingpiranha') {
             if (e.biteCooldown > 0) e.biteCooldown -= delta;
             // Sinuous swimming motion
             e.mesh.position.y = 2.8 + Math.sin(t * e.speed * 0.45 + e.animOffset) * 0.4;
@@ -4378,7 +4714,7 @@ function updateEnemies(delta, time) {
                         setTimeout(() => { if (jaw) jaw.position.y = baseJawY; }, 220);
                     }
                 }
-            } else if (e.type === 'megalodon') {
+            } else if (e.type === 'kingpiranha') {
                 if (e.biteCooldown <= 0) {
                     damagePlayer(e.damage);
                     showDamageFlash();
@@ -5230,121 +5566,146 @@ function createTRex(level) {
     };
 }
 
-function createMegalodon(level) {
+function createKingPiranha(level) {
     const tier   = Math.floor(level / 9);
     const health = 850 + tier * 280;
 
-    const mBody  = new THREE.MeshLambertMaterial({ color: 0x1f6fd6 });
-    const mBelly = new THREE.MeshLambertMaterial({ color: 0xbfdcf5 });
-    const mFin   = new THREE.MeshLambertMaterial({ color: 0x123a78 });
-    const mTooth = new THREE.MeshBasicMaterial  ({ color: 0xeeeeee });
-    const mGum   = new THREE.MeshLambertMaterial({ color: 0xcc3355 });
-    const mEyeR  = new THREE.MeshBasicMaterial  ({ color: 0xff1100 });
-    const mDummy = new THREE.MeshLambertMaterial({ color: 0x1f6fd6 }); // placeholder to keep structure
+    const mBody  = new THREE.MeshLambertMaterial({ color: 0x4a5b52 }); // murky green gunmetal
+    const mBelly = new THREE.MeshLambertMaterial({ color: 0xc23b2a }); // signature red belly
+    const mFin   = new THREE.MeshLambertMaterial({ color: 0x2e3a33 });
+    const mTooth = new THREE.MeshBasicMaterial  ({ color: 0xf2f2e8 });
+    const mGum   = new THREE.MeshLambertMaterial({ color: 0x992233 });
+    const mEye   = new THREE.MeshBasicMaterial  ({ color: 0xffcc00 });
+    const mGold  = new THREE.MeshPhongMaterial   ({ color: 0xffd83a, emissive: 0x5a4400, shininess: 120 });
+    const mJewel = new THREE.MeshBasicMaterial   ({ color: 0xff2255 });
 
     const root = new THREE.Group();
     root.position.set(0, 2.8, -24);
     scene.add(root);
 
-    // ── Main body (elongated along Z = forward direction) ─────────────────────
-    const body = new THREE.Mesh(new THREE.SphereGeometry(1.4, 16, 10), mBody.clone());
-    body.scale.set(1.0, 0.88, 2.6);
+    // ── Body — tall, laterally compressed piranha (thin in X, deep in Y) ──────
+    const body = new THREE.Mesh(new THREE.SphereGeometry(1.5, 16, 12), mBody.clone());
+    body.scale.set(0.62, 1.25, 1.5);
     root.add(body);
 
-    // ── Belly (lighter underside) ─────────────────────────────────────────────
-    const bellyMesh = new THREE.Mesh(new THREE.SphereGeometry(1.2, 12, 8), mBelly.clone());
-    bellyMesh.scale.set(0.90, 0.36, 2.2);
-    bellyMesh.position.y = -0.95;
-    root.add(bellyMesh);
+    // ── Red underbelly ────────────────────────────────────────────────────────
+    const belly = new THREE.Mesh(new THREE.SphereGeometry(1.2, 12, 10), mBelly.clone());
+    belly.scale.set(0.5, 0.7, 1.25);
+    belly.position.set(0, -0.95, 0.4);
+    root.add(belly);
 
-    // ── Snout (pointed, extends along +Z) ─────────────────────────────────────
-    const snout = new THREE.Mesh(new THREE.ConeGeometry(0.52, 2.2, 8), mBody.clone());
-    snout.rotation.x = Math.PI / 2;
-    snout.position.set(0, 0.18, 3.5);
-    root.add(snout);
+    // ── Blunt face block toward +Z (forward) ─────────────────────────────────
+    const face = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.8, 0.9), mBody.clone());
+    face.position.set(0, 0.35, 1.45);
+    root.add(face);
 
-    // ── Dorsal fin ────────────────────────────────────────────────────────────
-    const dorsal = new THREE.Mesh(new THREE.BoxGeometry(0.20, 2.6, 1.1), mFin.clone());
-    dorsal.position.set(0, 2.3, -0.2);
-    dorsal.rotation.x = 0.15;
+    // ── Dorsal fin (top) ──────────────────────────────────────────────────────
+    const dorsal = new THREE.Mesh(new THREE.ConeGeometry(0.6, 1.5, 4), mFin.clone());
+    dorsal.position.set(0, 1.9, -0.2);
+    dorsal.scale.set(0.3, 1, 1.2);
     root.add(dorsal);
-    const dorsalFront = new THREE.Mesh(new THREE.BoxGeometry(0.16, 1.5, 0.55), mFin.clone());
-    dorsalFront.position.set(0, 1.8, 0.65);
-    root.add(dorsalFront);
+
+    // ── Anal fin (bottom rear) ────────────────────────────────────────────────
+    const anal = new THREE.Mesh(new THREE.ConeGeometry(0.4, 0.9, 4), mFin.clone());
+    anal.rotation.z = Math.PI;
+    anal.position.set(0, -1.7, -1.2);
+    anal.scale.set(0.3, 1, 1);
+    root.add(anal);
 
     // ── Pectoral fins (sides) ─────────────────────────────────────────────────
     [-1, 1].forEach(side => {
-        const pec = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.18, 1.1), mFin.clone());
-        pec.position.set(side * 2.3, -0.55, 0.4);
-        pec.rotation.z = side * -0.28;
-        pec.rotation.x = 0.12;
+        const pec = new THREE.Mesh(new THREE.ConeGeometry(0.35, 1.0, 4), mFin.clone());
+        pec.rotation.z = side * Math.PI / 2;
+        pec.position.set(side * 0.75, -0.4, 0.6);
+        pec.scale.set(1, 1, 0.4);
         root.add(pec);
     });
 
-    // ── Caudal (tail) fin – two lobes at -Z ──────────────────────────────────
+    // ── Caudal (tail) fin — two lobes at -Z ───────────────────────────────────
     [-1, 1].forEach(side => {
-        const lobe = new THREE.Mesh(new THREE.BoxGeometry(0.18, 1.5, 1.8), mFin.clone());
-        lobe.position.set(0, side * 1.0, -4.2);
-        lobe.rotation.x = side * -0.4;
+        const lobe = new THREE.Mesh(new THREE.ConeGeometry(0.5, 1.6, 4), mFin.clone());
+        lobe.position.set(0, side * 0.8, -2.2);
+        lobe.rotation.x = side * -0.5;
+        lobe.scale.set(0.3, 1, 1);
         root.add(lobe);
     });
-    const peduncle = new THREE.Mesh(new THREE.SphereGeometry(0.52, 8, 6), mBody.clone());
-    peduncle.scale.set(0.75, 0.65, 1.4);
-    peduncle.position.set(0, 0, -3.3);
-    root.add(peduncle);
 
-    // ── Upper jaw ─────────────────────────────────────────────────────────────
-    const upperJaw = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.36, 1.6), mBody.clone());
-    upperJaw.position.set(0, -0.52, 2.85);
+    // ── Upper jaw (fixed) ─────────────────────────────────────────────────────
+    const upperJaw = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.5, 0.8), mBody.clone());
+    upperJaw.position.set(0, -0.35, 1.95);
     root.add(upperJaw);
 
-    // ── Lower jaw (animated on bite) ─────────────────────────────────────────
+    // ── Lower jaw (animated on bite) ──────────────────────────────────────────
     const jawGroup = new THREE.Group();
-    jawGroup.position.set(0, -0.92, 2.85);
+    jawGroup.position.set(0, -0.95, 1.95);
     root.add(jawGroup);
     root.userData.lowerJaw    = jawGroup;
-    root.userData.lowerJawBaseY = -0.92;
-    jawGroup.add(new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.28, 1.45), mGum.clone()));
+    root.userData.lowerJawBaseY = -0.95;
+    jawGroup.add(new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.45, 0.8), mGum.clone()));
 
-    // ── Upper teeth ───────────────────────────────────────────────────────────
-    for (let i = 0; i < 10; i++) {
-        const t = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.50, 5), mTooth.clone());
+    // ── Upper teeth (point down) ──────────────────────────────────────────────
+    for (let i = 0; i < 7; i++) {
+        const t = new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.5, 4), mTooth.clone());
         t.rotation.x = Math.PI;
-        t.position.set(-0.54 + i * 0.12, -0.74, 2.85);
+        t.position.set(-0.55 + i * 0.18, -0.1, 2.25);
         root.add(t);
     }
-    // ── Lower teeth ───────────────────────────────────────────────────────────
-    for (let i = 0; i < 9; i++) {
-        const t = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.42, 5), mTooth.clone());
-        t.position.set(-0.48 + i * 0.12, 0.22, 0);
+    // ── Lower teeth (point up) ────────────────────────────────────────────────
+    for (let i = 0; i < 6; i++) {
+        const t = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.45, 4), mTooth.clone());
+        t.position.set(-0.5 + i * 0.2, 0.28, 0.1);
         jawGroup.add(t);
     }
 
-    // ── Eyes (side-facing, glowing red) ──────────────────────────────────────
+    // ── Eyes (side-facing, glowing) + dark pupils ─────────────────────────────
     [-1, 1].forEach(side => {
-        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 6), mEyeR.clone());
-        eye.position.set(side * 1.22, 0.38, 2.3);
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.28, 10, 8), mEye.clone());
+        eye.position.set(side * 0.78, 0.5, 1.55);
         root.add(eye);
-        const gl = new THREE.PointLight(0xff1100, 4.5, 9);
-        gl.position.copy(eye.position);
+        const pup = new THREE.Mesh(new THREE.SphereGeometry(0.12, 6, 6), new THREE.MeshBasicMaterial({ color: 0x111111 }));
+        pup.position.set(side * 0.9, 0.5, 1.72);
+        root.add(pup);
+        const gl = new THREE.PointLight(0xffaa00, 3.0, 8);
+        gl.position.set(side * 0.8, 0.5, 1.7);
         root.add(gl);
     });
 
-    // ── Underbelly blue glow ──────────────────────────────────────────────────
-    const baseGlow = new THREE.PointLight(0x1133bb, 2.5, 18);
-    baseGlow.position.set(0, -1.3, 0);
+    // ── Golden crown on top of the head ───────────────────────────────────────
+    const crown = new THREE.Group();
+    crown.position.set(0, 1.7, 1.35);
+    root.add(crown);
+    crown.add(new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.72, 0.45, 14), mGold.clone())); // band
+    const pts = 6;
+    for (let i = 0; i < pts; i++) {
+        const ang = (i / pts) * Math.PI * 2;
+        const px = Math.cos(ang) * 0.66, pz = Math.sin(ang) * 0.66;
+        const spike = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.55, 5), mGold.clone());
+        spike.position.set(px, 0.42, pz);
+        crown.add(spike);
+        const jewel = new THREE.Mesh(new THREE.SphereGeometry(0.08, 6, 6), mJewel.clone());
+        jewel.position.set(px, 0.72, pz);
+        crown.add(jewel);
+    }
+    const centerJewel = new THREE.Mesh(new THREE.SphereGeometry(0.15, 10, 10), mJewel.clone());
+    centerJewel.position.set(0, 0.05, 0.68);
+    crown.add(centerJewel);
+    crown.add(new THREE.PointLight(0xffdd55, 2.0, 8));
+
+    // ── Menacing red belly glow ───────────────────────────────────────────────
+    const baseGlow = new THREE.PointLight(0xff3322, 2.0, 16);
+    baseGlow.position.set(0, -1.2, 0.5);
     root.add(baseGlow);
 
     return {
         mesh: root,
         health, maxHealth: health,
-        speed: getLevelConfig(level).speedBase * 0.78,
+        speed: getLevelConfig(level).speedBase * 0.82,
         damage: 40,
         attackRange: 4.5,
         hitRadius: 4.2,
-        dead: false, isBoss: true, type: 'megalodon',
+        dead: false, isBoss: true, type: 'kingpiranha',
         biteCooldown: 0,
-        biteInterval: 2.0,
+        biteInterval: 1.8,
         animOffset: Math.random() * Math.PI * 2,
     };
 }
@@ -6064,6 +6425,7 @@ function initLevel(level) {
     levelTransition = false;
     clearPowerups();
     clearPixelClones();
+    setOceanTheme(false);  // default arena look; King Piranha waves switch it on below
 
     const isBossLevel = level % 3 === 0;
     const cfg = getLevelConfig(level);
@@ -6078,21 +6440,21 @@ function initLevel(level) {
         enemies = [];
         setTimeout(() => showLevelBanner(`LEVEL ${level} — SANDBOX`), 100);
     } else if (isBossLevel) {
-        // Round 3=Warlord, 6=T-Rex, 9=Megalodon, then repeats
-        const bossType = level % 9 === 0 ? 'megalodon' : level % 9 === 6 ? 'trex' : 'warlord';
-        // Megalodon brings a piranha swarm; other bosses get a few regular enemies
-        if (bossType === 'megalodon') {
+        // Round 3=Warlord, 6=T-Rex, 9=King Piranha, then repeats
+        const bossType = level % 9 === 0 ? 'kingpiranha' : level % 9 === 6 ? 'trex' : 'warlord';
+        // King Piranha brings a piranha swarm; other bosses get a few regular enemies
+        if (bossType === 'kingpiranha') {
             spawnPiranhas(12 + Math.floor(level / 9) * 4, level);
         } else {
             const regularCount = Math.max(2, Math.floor(cfg.enemies * 0.4));
             spawnEnemies(regularCount, level);
         }
-        const boss = bossType === 'megalodon' ? createMegalodon(level)
+        const boss = bossType === 'kingpiranha' ? createKingPiranha(level)
                    : bossType === 'trex'      ? createTRex(level)
                    : createBoss(level);
         enemies.push(boss);
         document.getElementById('boss-name').textContent =
-            bossType === 'megalodon' ? 'MEGALODON' : bossType === 'trex' ? 'THE T-REX' : 'THE WARLORD';
+            bossType === 'kingpiranha' ? 'KING PIRANHA' : bossType === 'trex' ? 'THE T-REX' : 'THE WARLORD';
         Audio.setBossMode(true);
         if (bossType === 'trex') {
             Audio.trexRoar();
@@ -6108,8 +6470,9 @@ function initLevel(level) {
                     if (flash.intensity <= 0) { clearInterval(fade); scene.remove(flash); }
                 }, 50);
             }, 500);
-        } else if (bossType === 'megalodon') {
+        } else if (bossType === 'kingpiranha') {
             Audio.bossSpawn();
+            setOceanTheme(true);  // walls become the ocean, floor becomes sand
             // Blue deep-sea flash
             setTimeout(() => {
                 const flash = new THREE.PointLight(0x1155ff, 20, 55);
@@ -6122,11 +6485,11 @@ function initLevel(level) {
                     if (flash.intensity <= 0) { clearInterval(fade); scene.remove(flash); }
                 }, 50);
             }, 150);
-            setTimeout(() => showLevelBanner('MEGALODON RISES!'), 100);
+            setTimeout(() => showLevelBanner('KING PIRANHA RISES!'), 100);
         } else {
             Audio.bossSpawn();
         }
-        if (bossType !== 'megalodon') setTimeout(() => showLevelBanner('BOSS WAVE!'), 100);
+        if (bossType !== 'kingpiranha') setTimeout(() => showLevelBanner('BOSS WAVE!'), 100);
     } else {
         Audio.setBossMode(false);
         spawnEnemies(cfg.enemies, level);
@@ -6552,19 +6915,19 @@ const BOSS_DEFS = [
         ],
     },
     {
-        name: 'MEGALODON',
-        subtitle: 'Ancient Sea Terror',
-        desc: 'A prehistoric leviathan tearing through reality itself. When it surfaces, every alien on the field is consumed by its corruption — transformed into zombie fish that move faster and hunger for blood.',
-        color: '#1155ff',
-        createFn() { const e = createMegalodon(9); scene.remove(e.mesh); return e.mesh; },
-        meshPos: [0, 2.8, 0], camPos: [0, 5.0, 18.0], lookAt: [0, 2.8, 0],
+        name: 'KING PIRANHA',
+        subtitle: 'Tyrant of the River',
+        desc: 'A monstrous crowned piranha that rules the freshwater depths. When it surfaces, the arena floods into its murky river domain and a relentless piranha swarm boils up to feed alongside their king.',
+        color: '#c23b2a',
+        createFn() { const e = createKingPiranha(9); scene.remove(e.mesh); return e.mesh; },
+        meshPos: [0, 2.8, 0], camPos: [0, 4.2, 14.0], lookAt: [0, 2.5, 0],
         stats: [
             { label: 'HP',            value: '850+ (scales per wave)',  cls: 'cr' },
             { label: 'DAMAGE',        value: '40 per bite',             cls: 'cr' },
             { label: 'ATTACK TYPE',   value: 'Bite (instant)',          cls: 'cr' },
             { label: 'ATTACK RANGE',  value: '4.5 m',                   cls: ''   },
-            { label: 'ON SPAWN',      value: 'All aliens → zombie fish', cls: 'cr' },
-            { label: 'ZOMBIE FISH',   value: '1.2× speed, corrupted',  cls: 'co' },
+            { label: 'ON SPAWN',      value: 'Floods arena, piranha swarm', cls: 'cr' },
+            { label: 'SWARM',         value: 'Fast fragile fish',       cls: 'co' },
             { label: 'SPAWNS',        value: 'Waves 9, 18, 27…',        cls: 'cy' },
             { label: 'WEAKNESS',      value: 'Railgun, stay mobile',    cls: 'cg' },
             { label: 'THREAT',        value: '★★★★★  EXTREME',          cls: 'cr' },
@@ -7312,6 +7675,11 @@ function mainLoop(ts) {
         updateHitParticles(delta);
         updateCompanion(delta, ts / 1000);
         updatePixelClones(delta, ts / 1000);
+        // Shimmer the water surface ceiling during King Piranha (freshwater) waves
+        if (oceanThemeOn && waterCeilTex) {
+            const tt = ts / 1000;
+            waterCeilTex.offset.set(Math.sin(tt * 0.18) * 0.08, tt * 0.035);
+        }
         drawMinimap();
 
         if (thirdPerson) {
@@ -7481,6 +7849,7 @@ function sandboxKillAll() {
     if (gameState !== 'PLAYING') return;
     enemies.forEach(e => { if (!e.dead) { e.dead = true; scene.remove(e.mesh); } });
     enemies = [];
+    setOceanTheme(false);  // revert freshwater look once the King Piranha swarm is gone
     updateHUD();
 }
 
@@ -7516,15 +7885,16 @@ function sandboxSpawn(type) {
 function sandboxSpawnBoss(type) {
     if (gameState !== 'PLAYING') return;
     const lvl = currentLevel;
-    const boss = type === 'megalodon' ? createMegalodon(lvl)
+    const boss = type === 'kingpiranha' ? createKingPiranha(lvl)
                : type === 'trex'      ? createTRex(lvl)
                : createBoss(lvl);
     enemies.push(boss);
     document.getElementById('boss-name').textContent =
-        type === 'megalodon' ? 'MEGALODON' : type === 'trex' ? 'THE T-REX' : 'THE WARLORD';
+        type === 'kingpiranha' ? 'KING PIRANHA' : type === 'trex' ? 'THE T-REX' : 'THE WARLORD';
     Audio.setBossMode(true);
     if (type === 'trex') Audio.trexRoar();
-    if (type === 'megalodon') {
+    if (type === 'kingpiranha') {
+        setOceanTheme(true);
         for (let i = 0; i < 6; i++) { const [px, pz] = getSpawnPosition(); enemies.push(createPiranha(px, pz, lvl)); }
     }
 }
@@ -7577,7 +7947,7 @@ function sandboxClearInventory() {
         <div class="sb-btn-grid">
             <button class="sb-btn sb-red" onclick="sandboxSpawnBoss('warlord')">THE WARLORD</button>
             <button class="sb-btn sb-red" onclick="sandboxSpawnBoss('trex')">THE T-REX</button>
-            <button class="sb-btn sb-red" onclick="sandboxSpawnBoss('megalodon')">MEGALODON</button>
+            <button class="sb-btn sb-red" onclick="sandboxSpawnBoss('kingpiranha')">KING PIRANHA</button>
         </div>
     </div>
 
