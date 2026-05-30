@@ -563,6 +563,7 @@ body {
 #pickup-notice.laser    { color: #00ccff; }
 #pickup-notice.shop     { color: #ffcc00; }
 #pickup-notice.shield   { color: #44aaff; }
+#pickup-notice.gameboy  { color: #9bbc0f; }
 
 /* ─── Dual Pistols overlay ──────────────────────────────────── */
 #gun-hud.dual #gun-barrel {
@@ -1547,6 +1548,30 @@ body {
     border-color: #ffaa33;
     color: #ffaa33;
 }
+.sandbox-wave-dropdown {
+    width: 100%;
+    padding: 0.5em 0.6em;
+    font-family: 'Courier New', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: rgba(255, 136, 0, 0.06);
+    border: 1px solid #ff880055;
+    color: #ffaa44;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.sandbox-wave-dropdown:hover { border-color: #ff8800; background: rgba(255,136,0,0.12); }
+.sandbox-wave-dropdown:focus { outline: none; border-color: #ff8800; }
+.sandbox-wave-dropdown option { background: #0a0a12; color: #ffaa44; }
+.sandbox-wave-hint {
+    font-size: 0.5rem;
+    letter-spacing: 0.08em;
+    color: #7a5a33;
+    margin-top: 0.45rem;
+    line-height: 1.5;
+}
 
 /* ─── Sandbox Panel ─────────────────────────────────────────── */
 #sandbox-panel {
@@ -1646,59 +1671,6 @@ body {
     flex-shrink: 0;
 }
 
-/* ─── Commander Viewer Overlay ─── */
-#cmd-viewer-overlay {
-    position: fixed; inset: 0;
-    background: rgba(2, 12, 8, 0.97);
-    z-index: 200;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    gap: 0.5rem; padding: 1.5rem 1rem;
-    font-family: 'Courier New', monospace;
-}
-#cmd-viewer-overlay.hidden { display: none; }
-#cmd-viewer-close-btn {
-    position: absolute; top: 1.2rem; right: 1.5rem;
-    background: transparent; border: 1px solid #1a4433;
-    color: #336655; font-size: 1.5rem; cursor: pointer;
-    padding: 0.15em 0.5em; font-family: 'Courier New', monospace; line-height: 1;
-    transition: all 0.15s;
-}
-#cmd-viewer-close-btn:hover { border-color: #22ff44; color: #22ff44; }
-#cmd-viewer-title-label { font-size: 0.62rem; letter-spacing: 0.45em; color: #1e5533; margin-bottom: 0.1rem; }
-#cmd-viewer-tagline { font-size: 0.52rem; letter-spacing: 0.3em; color: #22ff4488; margin-bottom: 0.2rem; }
-#cmd-canvas-wrap {
-    width: min(480px, 88vw); height: min(320px, 40vh);
-    border: 1px solid #1a3a28; background: #020c06; position: relative; flex-shrink: 0;
-}
-#cmd-canvas-wrap::before {
-    content: ''; position: absolute; inset: 0;
-    border: 1px solid #22ff4418; pointer-events: none; z-index: 1;
-}
-#cmd-viewer-canvas { display: block; width: 100%; height: 100%; }
-#cmd-viewer-name {
-    font-size: clamp(1.5rem, 4vw, 2.2rem); font-weight: 900;
-    letter-spacing: 0.12em; text-align: center;
-}
-#cmd-viewer-subtitle { font-size: 0.68rem; letter-spacing: 0.28em; color: #336655; text-align: center; }
-#cmd-viewer-desc {
-    font-size: 0.77rem; color: #55aa77; text-align: center;
-    width: min(480px, 88vw); line-height: 1.55; min-height: 3.2em;
-}
-#cmd-viewer-stats {
-    width: min(480px, 88vw); background: rgba(2,16,8,0.65);
-    border: 1px solid #1a3a28; padding: 0.5rem 1.1rem 0.3rem;
-}
-#cmd-viewer-counter { font-size: 0.68rem; color: #1e5533; letter-spacing: 0.25em; }
-#cmd-viewer-nav { display: flex; gap: 0.8rem; }
-.cmd-nav-btn {
-    padding: 0.55em 2em; font-family: 'Courier New', monospace;
-    font-size: 0.88rem; letter-spacing: 0.18em;
-    background: transparent; border: 1px solid #1a4433;
-    color: #336655; cursor: pointer; transition: all 0.15s;
-}
-.cmd-nav-btn:hover { background: #22ff44; color: #020c06; box-shadow: 0 0 14px #22ff4466; }
-
 /* ─── Menu Home UX ─── */
 #menu-overlay {
     background-color: rgba(2, 4, 15, 0.97);
@@ -1741,48 +1713,6 @@ body {
 }
 .codex-btn:hover { background: rgba(255,255,255,0.05); border-color: currentColor; }
 
-/* ─── Character Select Button ─── */
-#char-select-btn {
-    margin: 0.9rem 0 0.5rem;
-    background: rgba(0,0,0,0.5); border: 2px solid #444; color: #22ff44;
-    font-family: 'Courier New', monospace; font-size: 0.8rem; letter-spacing: 0.14em;
-    padding: 0.55em 2em; cursor: pointer; transition: border-color 0.15s, background 0.15s;
-    display: flex; align-items: center; gap: 0.5em;
-}
-#char-select-btn:hover { border-color: #22ff44; background: rgba(34,255,68,0.08); }
-#char-select-btn .csb-emoji { font-size: 1.1rem; line-height: 1; }
-
-/* ─── Character Select Overlay ─── */
-#char-select-overlay {
-    position: fixed; inset: 0; z-index: 900;
-    background: rgba(0,0,0,0.88);
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    font-family: 'Courier New', monospace;
-}
-#char-select-overlay.hidden { display: none; }
-#char-overlay-title { color: #22ff44; font-size: 1.1rem; letter-spacing: 0.22em; margin-bottom: 0.3rem; }
-#char-overlay-subtitle { color: #555; font-size: 0.65rem; letter-spacing: 0.12em; margin-bottom: 1.5rem; }
-.char-grid { display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; }
-.char-card {
-    border: 2px solid #333; padding: 1rem 1.1rem; cursor: pointer;
-    min-width: 130px; max-width: 155px; text-align: center;
-    transition: border-color 0.15s, background 0.15s;
-    background: rgba(0,0,0,0.55); user-select: none;
-}
-.char-card:hover { border-color: #22ff44; background: rgba(34,255,68,0.07); }
-.char-card.selected { border-color: #22ff44; background: rgba(34,255,68,0.14); box-shadow: 0 0 12px rgba(34,255,68,0.25); }
-.char-emoji { font-size: 2.2rem; line-height: 1; }
-.char-name { color: #22ff44; font-size: 0.8rem; letter-spacing: 0.13em; margin: 0.32rem 0 0.14rem; font-weight: bold; }
-.char-tagline { color: #555; font-size: 0.62rem; letter-spacing: 0.08em; margin-bottom: 0.42rem; }
-.char-perks { color: #bbb; font-size: 0.62rem; line-height: 1.6; text-align: left; }
-.char-perks span { display: block; padding-left: 0.85em; position: relative; }
-.char-perks span::before { content: '+'; color: #22ff44; position: absolute; left: 0; }
-#char-overlay-close {
-    margin-top: 1.6rem; background: none; border: 2px solid #444;
-    color: #888; font-family: 'Courier New', monospace; font-size: 0.75rem;
-    letter-spacing: 0.14em; padding: 0.45em 2em; cursor: pointer; transition: border-color 0.15s, color 0.15s;
-}
-#char-overlay-close:hover { border-color: #22ff44; color: #22ff44; }
 </style>
 </head>
 <body>
@@ -1827,7 +1757,7 @@ body {
                     <span class="key">LEVEL 3, 12, 21...</span><span class="desc">Warlord boss wave</span>
                     <span class="key">LEVEL 6, 15, 24...</span><span class="desc">T-Rex boss wave</span>
                     <span class="key">LEVEL 9, 18, 27...</span><span class="desc">Megalodon boss wave</span>
-                    <span class="key">MEGALODON</span><span class="desc">Corrupts all aliens into zombie fish (1.2× speed)</span>
+                    <span class="key">MEGALODON</span><span class="desc">Arrives with a fast piranha swarm instead of aliens</span>
                     <span class="key">COINS</span><span class="desc">Earned by killing enemies</span>
                     <span class="key">SHOP</span><span class="desc">Spend coins between waves</span>
                     <span class="key">BUFFS</span><span class="desc">Orbs spawn on arena floor</span>
@@ -1853,13 +1783,19 @@ body {
                     <button class="mode-btn active" id="mode-normal-btn" onclick="setGameMode('normal')">NORMAL</button>
                     <button class="mode-btn" id="mode-sandbox-btn" onclick="setGameMode('sandbox')">&#9881; SANDBOX</button>
                 </div>
+                <div id="sandbox-wave-select" style="display:none;margin-top:0.7rem;">
+                    <div class="menu-panel-label" style="color:#7a5a33;margin-bottom:0.4rem;">Start Wave</div>
+                    <select id="sandbox-start-wave-input" class="sandbox-wave-dropdown" onchange="setSandboxStartWave(this.value)">
+                        <option value="">EMPTY — SPAWN MANUALLY</option>
+                    </select>
+                    <div class="sandbox-wave-hint">Pick a wave (1&ndash;30) to begin there with enemies spawned. Leave EMPTY to start a clear arena and spawn enemies yourself.</div>
+                </div>
             </div>
         </div>
         <div class="menu-panel-wrap">
             <button class="menu-corner-btn" id="codex-corner-btn" onclick="toggleMenuPanel('codex-panel','codex-corner-btn')">CODEX</button>
             <div id="codex-panel" class="menu-panel">
                 <div class="menu-panel-label">View Codex</div>
-                <button class="codex-btn" style="color:#22ff88;" onclick="openCommanderViewer()">&#9654; COMMANDERS</button>
                 <button class="codex-btn" style="color:#4488ff;" onclick="openAlienViewer()">&#9654; ALIENS</button>
                 <button class="codex-btn" style="color:#ff4444;" onclick="openBossViewer()">&#9654; BOSSES</button>
                 <button class="codex-btn" style="color:#ffcc00;" onclick="openWeaponViewer()">&#9654; WEAPONS</button>
@@ -1875,11 +1811,6 @@ body {
     <div class="menu-divider"></div>
 
     <div id="play-section">
-        <button id="char-select-btn" onclick="openCharSelect()">
-            <span class="csb-emoji">🧔</span>
-            <span id="char-select-btn-label">CHARACTER: DAD</span>
-        </button>
-
         <div id="name-section">
             <div id="name-label">ENTER YOUR NAME</div>
             <input type="text" id="player-name-input" placeholder="COMMANDER" maxlength="16" autocomplete="off" spellcheck="false">
@@ -1931,78 +1862,6 @@ body {
         <button class="boss-nav-btn" onclick="bossViewerPrev()">&#9668; PREV</button>
         <button class="boss-nav-btn" onclick="bossViewerNext()">NEXT &#9658;</button>
     </div>
-</div>
-
-<!-- ─── Commander Viewer Overlay ─── -->
-<div id="cmd-viewer-overlay" class="hidden">
-    <button id="cmd-viewer-close-btn" onclick="closeCommanderViewer()">&#x2715;</button>
-    <div id="cmd-viewer-title-label">COMMANDER CODEX</div>
-    <div id="cmd-viewer-tagline">&#9670; ALLIED FORCES — PERSONNEL FILES &#9670;</div>
-    <div id="cmd-canvas-wrap">
-        <canvas id="cmd-viewer-canvas"></canvas>
-    </div>
-    <div id="cmd-viewer-name"></div>
-    <div id="cmd-viewer-subtitle"></div>
-    <div id="cmd-viewer-desc"></div>
-    <div id="cmd-viewer-stats"></div>
-    <div id="cmd-viewer-counter">1 / 4</div>
-    <div id="cmd-viewer-nav">
-        <button class="cmd-nav-btn" onclick="cmdViewerPrev()">&#9668; PREV</button>
-        <button class="cmd-nav-btn" onclick="cmdViewerNext()">NEXT &#9658;</button>
-    </div>
-</div>
-
-<!-- ─── Character Select Overlay ─── -->
-<div id="char-select-overlay" class="hidden">
-    <div id="char-overlay-title">CHOOSE YOUR FIGHTER</div>
-    <div id="char-overlay-subtitle">SELECT A CHARACTER TO PLAY AS</div>
-    <div class="char-grid">
-        <div class="char-card selected" id="char-dad" onclick="selectCharacter('dad')">
-            <div class="char-emoji">🧔</div>
-            <div class="char-name">DAD</div>
-            <div class="char-tagline">The Breadwinner</div>
-            <div class="char-perks">
-                <span>+30 max health</span>
-                <span>+25% coin bonus</span>
-                <span>200 starting coins</span>
-                <span>Starts with shotgun</span>
-            </div>
-        </div>
-        <div class="char-card" id="char-mom" onclick="selectCharacter('mom')">
-            <div class="char-emoji">👩</div>
-            <div class="char-name">MOM</div>
-            <div class="char-tagline">The Guardian</div>
-            <div class="char-perks">
-                <span>Passive shield regen</span>
-                <span>Faster sprint regen</span>
-                <span>150 starting coins</span>
-                <span>Boosted speed</span>
-            </div>
-        </div>
-        <div class="char-card" id="char-kid" onclick="selectCharacter('kid')">
-            <div class="char-emoji">🧒</div>
-            <div class="char-name">8-YEAR-OLD</div>
-            <div class="char-tagline">The Reckless One</div>
-            <div class="char-perks">
-                <span>+40% weapon damage</span>
-                <span>Extra sprint capacity</span>
-                <span>Starts with rocket</span>
-                <span>75 max health</span>
-            </div>
-        </div>
-        <div class="char-card" id="char-toddler" onclick="selectCharacter('toddler')">
-            <div class="char-emoji">👶</div>
-            <div class="char-name">3-YEAR-OLD</div>
-            <div class="char-tagline">The Chaos Agent</div>
-            <div class="char-perks">
-                <span>Infinite sprint</span>
-                <span>Double coin earnings</span>
-                <span>Random rare weapon</span>
-                <span>Max speed boost</span>
-            </div>
-        </div>
-    </div>
-    <button id="char-overlay-close" onclick="closeCharSelect()">CONFIRM</button>
 </div>
 
 <!-- ─── Weapon Viewer Overlay ─── -->
@@ -2628,6 +2487,10 @@ const SPRINT_MULT = 1.75;
 const SPRINT_MAX = 3.0;
 const SPRINT_REGEN = 0.9;
 const LASER_AMMO = 8;
+const GAMEBOY_DURATION       = 12;    // seconds the pixel squad lasts
+const GAMEBOY_CLONE_COUNT    = 3;     // pixel clones summoned
+const GAMEBOY_CLONE_DMG      = 16;    // damage per clone laser shot
+const GAMEBOY_CLONE_COOLDOWN = 0.85;  // seconds between clone shots
 
 // ─── Currency ─────────────────────────────────────────────────────────────────
 const COIN_ALIEN     = 10;
@@ -2671,30 +2534,8 @@ const CHARACTERS = {
     },
 };
 
-let selectedCharacter = 'dad';
-
-const CHAR_LABELS = { dad: ['🧔', 'DAD'], mom: ['👩', 'MOM'], kid: ['🧒', '8-YEAR-OLD'], toddler: ['👶', '3-YEAR-OLD'] };
-
-function selectCharacter(id) {
-    selectedCharacter = id;
-    document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
-    const card = document.getElementById('char-' + id);
-    if (card) card.classList.add('selected');
-    const lbl = CHAR_LABELS[id] || CHAR_LABELS.dad;
-    const btn = document.getElementById('char-select-btn');
-    if (btn) {
-        btn.querySelector('.csb-emoji').textContent = lbl[0];
-        document.getElementById('char-select-btn-label').textContent = 'CHARACTER: ' + lbl[1];
-    }
-}
-
-function openCharSelect() {
-    document.getElementById('char-select-overlay').classList.remove('hidden');
-}
-
-function closeCharSelect() {
-    document.getElementById('char-select-overlay').classList.add('hidden');
-}
+// Fixed default character (Dad) — character selection has been removed.
+const selectedCharacter = 'dad';
 
 function applyCharacterStats() {
     const ch = CHARACTERS[selectedCharacter] || CHARACTERS.dad;
@@ -2974,6 +2815,8 @@ function setupLighting() {
 let shipScene = null, shipCamera = null, shipYaw = null, shipPitch = null;
 const SHIP_HX = 11, SHIP_HZ = 13, SHIP_H = 5.5;
 const shipKeys = { w: false, a: false, s: false, d: false };
+let shipVelocityY = 0;
+let shipGrounded = true;
 const SHIP_SPEED = 4.5;
 
 function buildShipScene() {
@@ -3198,6 +3041,7 @@ function buildShipScene() {
     // Camera rig
     shipYaw = new THREE.Object3D();
     shipYaw.position.set(0, PLAYER_HEIGHT, SHIP_HZ - 2);
+    shipVelocityY = 0; shipGrounded = true;
     shipPitch = new THREE.Object3D();
     shipCamera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 60);
     shipPitch.add(shipCamera);
@@ -3246,11 +3090,11 @@ function updateShipPlayer(delta, time) {
         let hintOn = false;
         if (shipScene.userData.npc) {
             const h1 = raycaster.intersectObjects(shipScene.userData.npc.children, true);
-            if (h1.length > 0 && h1[0].distance < 10) { hintEl.textContent = 'LOOK AT ZAXON AND CLICK TO TRADE'; hintOn = true; }
+            if (h1.length > 0 && h1[0].distance < 16) { hintEl.textContent = 'LOOK AT ZAXON AND CLICK TO TRADE'; hintOn = true; }
         }
         if (!hintOn && shipScene.userData.npc2) {
             const h2 = raycaster.intersectObjects(shipScene.userData.npc2.children, true);
-            if (h2.length > 0 && h2[0].distance < 10) { hintEl.textContent = 'LOOK AT RYXX AND CLICK TO BUY GADGETS'; hintOn = true; }
+            if (h2.length > 0 && h2[0].distance < 16) { hintEl.textContent = 'LOOK AT RYXX AND CLICK TO BUY GADGETS'; hintOn = true; }
         }
         hintEl.style.opacity = hintOn ? '1' : '0';
     }
@@ -3265,7 +3109,12 @@ function updateShipPlayer(delta, time) {
     if (shipKeys.d) shipYaw.position.addScaledVector(right,  SHIP_SPEED * delta);
     shipYaw.position.x = Math.max(-SHIP_HX + 0.8, Math.min(SHIP_HX - 0.8, shipYaw.position.x));
     shipYaw.position.z = Math.max(-SHIP_HZ + 0.8, Math.min(SHIP_HZ - 0.8, shipYaw.position.z));
-    shipYaw.position.y = PLAYER_HEIGHT;
+
+    // Vertical (jump + gravity), floor at standing height
+    if (!shipGrounded) shipVelocityY += GRAVITY * delta;
+    let ny = shipYaw.position.y + shipVelocityY * delta;
+    if (ny <= PLAYER_HEIGHT) { ny = PLAYER_HEIGHT; shipVelocityY = 0; shipGrounded = true; }
+    shipYaw.position.y = ny;
 
     const moving = shipKeys.w || shipKeys.a || shipKeys.s || shipKeys.d;
     document.getElementById('gun-hud').classList.toggle('walking', moving);
@@ -4299,6 +4148,99 @@ function spawnEnemies(count, level) {
     }
 }
 
+// Small, fast swarm fish that accompany the Megalodon
+function createPiranha(x, z, level) {
+    const cfg = getLevelConfig(level);
+    const g = new THREE.Group();
+
+    const bodyMat  = new THREE.MeshLambertMaterial({ color: 0x3b4a55 });
+    const bellyMat = new THREE.MeshLambertMaterial({ color: 0xa83828 });
+    const finMat   = new THREE.MeshLambertMaterial({ color: 0x2a363f });
+    const toothMat = new THREE.MeshBasicMaterial  ({ color: 0xeeeeee });
+    const eyeMat   = new THREE.MeshBasicMaterial  ({ color: 0xffdd33 });
+
+    // Body — stout teardrop, elongated along +Z (head forward, matches lookAt orientation)
+    const body = new THREE.Mesh(new THREE.SphereGeometry(0.3, 10, 8), bodyMat);
+    body.scale.set(0.85, 0.95, 1.6);
+    body.castShadow = true;
+    g.add(body);
+
+    // Red underbelly
+    const belly = new THREE.Mesh(new THREE.SphereGeometry(0.26, 8, 6), bellyMat);
+    belly.scale.set(0.72, 0.5, 1.35);
+    belly.position.y = -0.13;
+    g.add(belly);
+
+    // Snout + jagged teeth at the front (+Z)
+    const jaw = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.15, 0.22), bodyMat);
+    jaw.position.set(0, -0.1, 0.42);
+    g.add(jaw);
+    for (let i = 0; i < 4; i++) {
+        const tooth = new THREE.Mesh(new THREE.ConeGeometry(0.035, 0.12, 4), toothMat);
+        tooth.rotation.x = Math.PI;
+        tooth.position.set(-0.12 + i * 0.08, -0.02, 0.5);
+        g.add(tooth);
+    }
+
+    // Dorsal fin
+    const dorsal = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.3, 4), finMat);
+    dorsal.rotation.x = -0.3;
+    dorsal.position.set(0, 0.28, -0.05);
+    g.add(dorsal);
+
+    // Pectoral fins
+    [-1, 1].forEach(side => {
+        const pec = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.22, 4), finMat);
+        pec.rotation.z = side * Math.PI / 2;
+        pec.position.set(side * 0.26, -0.06, 0.05);
+        g.add(pec);
+    });
+
+    // Glowing eyes
+    [-1, 1].forEach(side => {
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 5), eyeMat);
+        eye.position.set(side * 0.16, 0.08, 0.34);
+        g.add(eye);
+    });
+
+    // Tail on a pivot at the rear (-Z) so it can wag
+    const tailPivot = new THREE.Object3D();
+    tailPivot.position.set(0, 0, -0.48);
+    g.add(tailPivot);
+    const tail = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.45, 4), finMat);
+    tail.rotation.x = Math.PI / 2;   // flare backward
+    tail.scale.set(0.35, 1, 1);      // flatten into a vertical fan
+    tail.position.z = -0.22;
+    tailPivot.add(tail);
+
+    const hoverY = 0.9 + Math.random() * 1.4;
+    g.position.set(x, hoverY, z);
+    scene.add(g);
+
+    const hp = Math.max(14, Math.round(cfg.healthBase * 0.4));
+    return {
+        mesh: g,
+        health: hp, maxHealth: hp,
+        speed: cfg.speedBase * 1.5,
+        damage: 9 + (level - 1) * 2,
+        attackRange: 1.5,
+        dead: false,
+        type: 'piranha',
+        hoverY,
+        tailPivot,
+        animOffset: Math.random() * Math.PI * 2,
+    };
+}
+
+function spawnPiranhas(count, level) {
+    enemies.forEach(e => scene.remove(e.mesh));
+    enemies = [];
+    for (let i = 0; i < count; i++) {
+        const [x, z] = getSpawnPosition();
+        enemies.push(createPiranha(x, z, level));
+    }
+}
+
 function updateEnemies(delta, time) {
     const px = yawObject.position.x;
     const pz = yawObject.position.z;
@@ -4373,6 +4315,11 @@ function updateEnemies(delta, time) {
             // Sinuous swimming motion
             e.mesh.position.y = 2.8 + Math.sin(t * e.speed * 0.45 + e.animOffset) * 0.4;
             e.mesh.rotation.z = Math.sin(t * e.speed * 0.45 + e.animOffset) * 0.05;
+        } else if (e.type === 'piranha') {
+            // Bobbing swim, body roll, and a fast tail wag
+            e.mesh.position.y = e.hoverY + Math.sin(t * 3.2 + e.animOffset) * 0.18;
+            e.mesh.rotation.z = Math.sin(t * 6 + e.animOffset) * 0.16;
+            if (e.tailPivot) e.tailPivot.rotation.y = Math.sin(t * 16 + e.animOffset) * 0.6;
         } else if (e.type === 'trex') {
             if (e.biteCooldown > 0) e.biteCooldown -= delta;
             const hg  = e.mesh.userData.headGroup;
@@ -4567,6 +4514,9 @@ function launchNextWave() {
     document.getElementById('hud').classList.add('visible');
     document.getElementById('gun-hud').style.display = 'block';
     teardownShipScene();
+    // Clear any movement keys that were held during the ship visit so the
+    // player doesn't auto-walk into the next wave
+    keys.w = keys.a = keys.s = keys.d = keys.shift = keys.space = false;
     gameState = 'PLAYING';
     levelTransition = false;
     initLevel(nextLevelAfterShop);
@@ -4774,6 +4724,7 @@ function spawnPowerup(type, x, z) {
                : type === 'shield'   ? createShieldPackMesh()
                : type === 'rocket'   ? createRocketPackMesh()
                : type === 'fireball' ? createFireballPackMesh()
+               : type === 'gameboy'  ? createGameboyMesh()
                : createSpaceshipMesh();
     mesh.position.set(x, 1.3, z);
     scene.add(mesh);
@@ -4810,6 +4761,13 @@ function spawnLevelPowerups(level) {
         const r4 = 8 + Math.random() * 10;
         spawnPowerup('laser', Math.cos(angle4) * r4, Math.sin(angle4) * r4);
     }
+
+    // Gameboy (pixel squad) — early taste on wave 2, then every 4th wave
+    if (level === 2 || (level >= 4 && level % 4 === 0)) {
+        const angleG = angle1 - Math.PI * 0.25 + (Math.random() - 0.5) * 0.8;
+        const rG = 8 + Math.random() * 10;
+        spawnPowerup('gameboy', Math.cos(angleG) * rG, Math.sin(angleG) * rG);
+    }
 }
 
 function updatePowerups(delta, time) {
@@ -4830,7 +4788,7 @@ function updatePowerups(delta, time) {
 function collectPowerup(p) {
     p.dead = true;
     Audio.pickup();
-    const flashCol = p.type === 'health' ? 0x22ff44 : p.type === 'shield' ? 0x44aaff : p.type === 'laser' ? 0x00ccff : 0xff6600;
+    const flashCol = p.type === 'health' ? 0x22ff44 : p.type === 'shield' ? 0x44aaff : p.type === 'laser' ? 0x00ccff : p.type === 'gameboy' ? 0x9bbc0f : 0xff6600;
     const flash = new THREE.PointLight(flashCol, 6, 14);
     flash.position.copy(p.mesh.position);
     scene.add(flash);
@@ -4843,6 +4801,9 @@ function collectPowerup(p) {
     } else if (p.type === 'shield') {
         player.shield = Math.min(SHIELD_MAX, player.shield + SHIELD_RESTORE);
         showPickupNotice(`SHIELD + ${SHIELD_RESTORE}`, 'shield');
+    } else if (p.type === 'gameboy') {
+        spawnPixelClones();
+        showPickupNotice('GAMEBOY — PIXEL SQUAD!', 'gameboy');
     } else {
         const ammoMap = { rocket: ROCKET_AMMO, fireball: FIREBALL_AMMO, laser: LASER_AMMO };
         addToInventory(p.type, ammoMap[p.type]);
@@ -5273,13 +5234,13 @@ function createMegalodon(level) {
     const tier   = Math.floor(level / 9);
     const health = 850 + tier * 280;
 
-    const mBody  = new THREE.MeshLambertMaterial({ color: 0x3a4a5a });
-    const mBelly = new THREE.MeshLambertMaterial({ color: 0xb0c4cc });
-    const mFin   = new THREE.MeshLambertMaterial({ color: 0x253040 });
+    const mBody  = new THREE.MeshLambertMaterial({ color: 0x1f6fd6 });
+    const mBelly = new THREE.MeshLambertMaterial({ color: 0xbfdcf5 });
+    const mFin   = new THREE.MeshLambertMaterial({ color: 0x123a78 });
     const mTooth = new THREE.MeshBasicMaterial  ({ color: 0xeeeeee });
     const mGum   = new THREE.MeshLambertMaterial({ color: 0xcc3355 });
     const mEyeR  = new THREE.MeshBasicMaterial  ({ color: 0xff1100 });
-    const mDummy = new THREE.MeshLambertMaterial({ color: 0x3a4a5a }); // placeholder to keep structure
+    const mDummy = new THREE.MeshLambertMaterial({ color: 0x1f6fd6 }); // placeholder to keep structure
 
     const root = new THREE.Group();
     root.position.set(0, 2.8, -24);
@@ -5386,29 +5347,6 @@ function createMegalodon(level) {
         biteInterval: 2.0,
         animOffset: Math.random() * Math.PI * 2,
     };
-}
-
-function zombifyEnemies() {
-    enemies.forEach(e => {
-        if (e.isBoss || e.zombieFish) return;
-        e.zombieFish = true;
-        e.speed *= 1.2;
-        if (e.baseSpeed) e.baseSpeed *= 1.2;
-        e.mesh.traverse(obj => {
-            if (!obj.isMesh) return;
-            const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
-            mats.forEach(m => {
-                if (m.color) {
-                    const r = m.color.r, g = m.color.g, b = m.color.b;
-                    m.color.setRGB(r * 0.15 + 0.0, g * 0.55 + 0.25, b * 0.12 + 0.05);
-                }
-                if (m.emissive) m.emissive.setHex(0x002200);
-            });
-        });
-        const gl = new THREE.PointLight(0x00ff55, 2.2, 5);
-        gl.position.set(0, e.type === 'octopus' ? 2.8 : 1.8, 0.4);
-        e.mesh.add(gl);
-    });
 }
 
 // ─── SECTION 6: Player Controller ────────────────────────────────────────────
@@ -5900,6 +5838,154 @@ function updateCompanion(delta, time) {
     companion.mesh.rotation.z = Math.sin(time * 1.8) * 0.12;
 }
 
+// ─── Gameboy Power-up: Pixel Squad ───────────────────────────────────────────
+// Game Boy "DMG" 4-shade green palette
+const GB_PALETTE = [0x0f380f, 0x306230, 0x8bac0f, 0x9bbc0f];
+let pixelClones = [];
+let gameboyTimer = 0;
+
+// The floor pickup — a little Game Boy handheld
+function createGameboyMesh() {
+    const g = new THREE.Group();
+    const shellMat  = new THREE.MeshLambertMaterial({ color: 0xb8b8a0 });
+    const bezelMat  = new THREE.MeshLambertMaterial({ color: 0x6a6a78 });
+    const screenMat = new THREE.MeshBasicMaterial  ({ color: 0x9bbc0f });
+    const btnMat    = new THREE.MeshLambertMaterial({ color: 0x8a1538 });
+    const dpadMat   = new THREE.MeshLambertMaterial({ color: 0x2a2a30 });
+
+    const shell = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.78, 0.1), shellMat);
+    g.add(shell);
+    const bezel = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.34, 0.04), bezelMat);
+    bezel.position.set(0, 0.18, 0.07); g.add(bezel);
+    const screen = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.24, 0.02), screenMat);
+    screen.position.set(0, 0.18, 0.1); g.add(screen);
+    const led = new THREE.Mesh(new THREE.SphereGeometry(0.02, 6, 6), new THREE.MeshBasicMaterial({ color: 0xff3333 }));
+    led.position.set(-0.17, 0.18, 0.09); g.add(led);
+    // D-pad cross
+    const dpH = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.05, 0.03), dpadMat);
+    dpH.position.set(-0.13, -0.18, 0.08); g.add(dpH);
+    const dpV = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.16, 0.03), dpadMat);
+    dpV.position.set(-0.13, -0.18, 0.08); g.add(dpV);
+    // A / B buttons
+    [[0.1, -0.14], [0.21, -0.22]].forEach(([bx, by]) => {
+        const b = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.03, 10), btnMat);
+        b.rotation.x = Math.PI / 2; b.position.set(bx, by, 0.08); g.add(b);
+    });
+    g.add(new THREE.PointLight(0x9bbc0f, 1.2, 6));
+    g.scale.set(1.15, 1.15, 1.15);
+    return g;
+}
+
+// A pixelated copy of the player, assembled from small cubes
+function createPixelClone() {
+    const g = new THREE.Group();
+    const P = 0.2; // pixel size
+    const rows = [
+        '..XX..',
+        '..XX..',
+        '.XXXX.',
+        'XXXXXX',
+        'XXXXXX',
+        '.XXXX.',
+        '.X..X.',
+        '.X..X.',
+    ];
+    const cols = rows[0].length, h = rows.length;
+    rows.forEach((row, r) => {
+        for (let c = 0; c < cols; c++) {
+            if (row[c] !== 'X') continue;
+            const col = GB_PALETTE[(r + c) % 2 === 0 ? 2 : 1];
+            const cube = new THREE.Mesh(
+                new THREE.BoxGeometry(P * 0.92, P * 0.92, P * 0.92),
+                new THREE.MeshLambertMaterial({ color: col, emissive: 0x152808 })
+            );
+            cube.position.set((c - (cols - 1) / 2) * P, ((h - 1) / 2 - r) * P, 0);
+            g.add(cube);
+        }
+    });
+    // Bright laser-blaster pixels jutting out to the side at chest height
+    const gunRow = 3;
+    for (let i = 0; i < 2; i++) {
+        const cube = new THREE.Mesh(
+            new THREE.BoxGeometry(P * 0.9, P * 0.6, P * 0.6),
+            new THREE.MeshBasicMaterial({ color: 0x9bbc0f })
+        );
+        cube.position.set(((cols - 1) / 2 + 1 + i) * P, ((h - 1) / 2 - gunRow) * P, 0);
+        g.add(cube);
+    }
+    g.add(new THREE.PointLight(0x9bbc0f, 0.8, 5));
+    return g;
+}
+
+function spawnPixelClones() {
+    clearPixelClones();
+    for (let i = 0; i < GAMEBOY_CLONE_COUNT; i++) {
+        const m = createPixelClone();
+        m.position.copy(yawObject.position);
+        scene.add(m);
+        pixelClones.push({ mesh: m, shootTimer: i * 0.25, phase: Math.random() * Math.PI * 2 });
+    }
+    gameboyTimer = GAMEBOY_DURATION;
+    const flash = new THREE.PointLight(0x9bbc0f, 8, 16);
+    flash.position.copy(yawObject.position);
+    scene.add(flash);
+    setTimeout(() => scene.remove(flash), 300);
+}
+
+function clearPixelClones() {
+    pixelClones.forEach(cl => scene.remove(cl.mesh));
+    pixelClones = [];
+    gameboyTimer = 0;
+}
+
+function pixelCloneShoot(cl, target) {
+    if (!target || target.dead) return;
+    const from = cl.mesh.position.clone().add(new THREE.Vector3(0, 0.2, 0));
+    const to   = target.mesh.position.clone().add(new THREE.Vector3(0, 0.5, 0));
+    buildBeam(from, to, 0x9bbc0f, 0x8bac0f, 200);
+    const fl = new THREE.PointLight(0x9bbc0f, 4, 6);
+    fl.position.copy(from); scene.add(fl);
+    setTimeout(() => scene.remove(fl), 110);
+    target.health -= GAMEBOY_CLONE_DMG * player.damageMult;
+    showHitMarker();
+    if (target.health <= 0) killEnemy(target);
+}
+
+function updatePixelClones(delta, time) {
+    if (gameState !== 'PLAYING' || pixelClones.length === 0) return;
+    gameboyTimer -= delta;
+    if (gameboyTimer <= 0) {
+        clearPixelClones();
+        showPickupNotice('PIXEL SQUAD FADED', 'gameboy');
+        return;
+    }
+    const n = pixelClones.length;
+    const baseAngle = yawObject.rotation.y;
+    const target = findNearestEnemy(40);
+    pixelClones.forEach((cl, i) => {
+        // Orbit around the player, fanned out behind
+        const ang = baseAngle + Math.PI + (i - (n - 1) / 2) * 0.8;
+        const rad = 2.4;
+        cl.mesh.position.set(
+            yawObject.position.x + Math.sin(ang) * rad,
+            0.9 + Math.sin(time * 3 + cl.phase) * 0.12,
+            yawObject.position.z + Math.cos(ang) * rad
+        );
+        // Billboard the flat sprite toward the camera (retro look)
+        cl.mesh.rotation.y = Math.atan2(
+            camera.position.x - cl.mesh.position.x,
+            camera.position.z - cl.mesh.position.z
+        );
+        // Low-battery flicker in the final 2 seconds
+        cl.mesh.visible = !(gameboyTimer < 2 && Math.sin(time * 18) < -0.3);
+        cl.shootTimer -= delta;
+        if (target && cl.mesh.visible && cl.shootTimer <= 0) {
+            pixelCloneShoot(cl, target);
+            cl.shootTimer = GAMEBOY_CLONE_COOLDOWN + Math.random() * 0.25;
+        }
+    });
+}
+
 // ─── SECTION 9: State Transitions ────────────────────────────────────────────
 function startGame() {
     // Read player name from input
@@ -5965,7 +6051,9 @@ function startGame() {
     companion.shootTimer = companion.shootCooldown;
     scene.add(companion.mesh);
 
-    initLevel(1);
+    const startLevel = (sandboxMode && sandboxStartWave) ? sandboxStartWave : 1;
+    sandboxPendingWaveSpawn = sandboxMode && !!sandboxStartWave;
+    initLevel(startLevel);
     updateHUD();
 
     canvas.requestPointerLock();
@@ -5975,21 +6063,30 @@ function initLevel(level) {
     currentLevel = level;
     levelTransition = false;
     clearPowerups();
+    clearPixelClones();
 
     const isBossLevel = level % 3 === 0;
     const cfg = getLevelConfig(level);
 
-    if (sandboxMode) {
+    // In sandbox, spawn the chosen start wave normally (one-shot); otherwise keep the arena empty.
+    const sandboxSpawnWave = sandboxMode && sandboxPendingWaveSpawn && level === sandboxStartWave;
+    if (sandboxSpawnWave) sandboxPendingWaveSpawn = false;
+
+    if (sandboxMode && !sandboxSpawnWave) {
         Audio.setBossMode(false);
         enemies.forEach(e => { if (!e.dead) { e.dead = true; scene.remove(e.mesh); } });
         enemies = [];
         setTimeout(() => showLevelBanner(`LEVEL ${level} — SANDBOX`), 100);
     } else if (isBossLevel) {
-        // Fewer regular enemies plus one boss
-        const regularCount = Math.max(2, Math.floor(cfg.enemies * 0.4));
-        spawnEnemies(regularCount, level);
         // Round 3=Warlord, 6=T-Rex, 9=Megalodon, then repeats
         const bossType = level % 9 === 0 ? 'megalodon' : level % 9 === 6 ? 'trex' : 'warlord';
+        // Megalodon brings a piranha swarm; other bosses get a few regular enemies
+        if (bossType === 'megalodon') {
+            spawnPiranhas(12 + Math.floor(level / 9) * 4, level);
+        } else {
+            const regularCount = Math.max(2, Math.floor(cfg.enemies * 0.4));
+            spawnEnemies(regularCount, level);
+        }
         const boss = bossType === 'megalodon' ? createMegalodon(level)
                    : bossType === 'trex'      ? createTRex(level)
                    : createBoss(level);
@@ -6013,8 +6110,7 @@ function initLevel(level) {
             }, 500);
         } else if (bossType === 'megalodon') {
             Audio.bossSpawn();
-            // Blue deep-sea flash + zombify all regular enemies
-            zombifyEnemies();
+            // Blue deep-sea flash
             setTimeout(() => {
                 const flash = new THREE.PointLight(0x1155ff, 20, 55);
                 flash.position.copy(boss.mesh.position);
@@ -6086,6 +6182,7 @@ function triggerGameOver() {
     setTimeout(() => {
         enemies = [];
         clearPowerups();
+        clearPixelClones();
         projectiles.forEach(p => scene.remove(p.mesh));
         projectiles = [];
         hitParticles.forEach(p => scene.remove(p.mesh));
@@ -6156,6 +6253,10 @@ document.addEventListener('keydown', e => {
             case 'KeyS': shipKeys.s = true; break;
             case 'KeyD': shipKeys.d = true; break;
             case 'KeyM': toggleMuteBtn(); break;
+            case 'Space':
+                if (shipGrounded) { shipVelocityY = JUMP_FORCE; shipGrounded = false; }
+                e.preventDefault();
+                break;
         }
         return;
     }
@@ -6217,11 +6318,11 @@ document.addEventListener('mousedown', e => {
                 raycaster.setFromCamera({ x: 0, y: 0 }, shipCamera);
                 if (shipScene.userData.npc) {
                     const h1 = raycaster.intersectObjects(shipScene.userData.npc.children, true);
-                    if (h1.length > 0 && h1[0].distance < 10) { openNpcShop(); return; }
+                    if (h1.length > 0 && h1[0].distance < 16) { openNpcShop(); return; }
                 }
                 if (shipScene.userData.npc2) {
                     const h2 = raycaster.intersectObjects(shipScene.userData.npc2.children, true);
-                    if (h2.length > 0 && h2[0].distance < 10) { openUtilShop(); return; }
+                    if (h2.length > 0 && h2[0].distance < 16) { openUtilShop(); return; }
                 }
             }
         } else if (gameState === 'PLAYING' && pointerLocked) {
@@ -6887,6 +6988,15 @@ const BUFF_DATA = [
         desc: 'Adds 8 instant-kill laser shots; equips laser immediately',
         spawns: 'Every 5th wave',
     },
+    {
+        id: 'gameboy',
+        name: 'GAMEBOY',
+        color: '#9bbc0f',
+        orbSvg: `<svg width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="22" fill="#9bbc0f" opacity="0.12"/><rect x="22" y="14" width="20" height="32" rx="3" fill="#b8b8a0"/><rect x="25" y="18" width="14" height="11" fill="#9bbc0f"/><rect x="25" y="33" width="3" height="3" fill="#2a2a30"/><rect x="22" y="32" width="3" height="3" fill="#2a2a30"/><rect x="28" y="32" width="3" height="3" fill="#2a2a30"/><rect x="25" y="35" width="3" height="3" fill="#2a2a30"/><circle cx="37" cy="36" r="2" fill="#8a1538"/></svg>`,
+        effect: 'PIXEL SQUAD (12s)',
+        desc: 'Summons 3 pixelated copies of you that auto-fire green lasers at nearby enemies for a short time',
+        spawns: 'Wave 2, then every 4th wave',
+    },
 ];
 
 function openBuffViewer() {
@@ -7178,247 +7288,6 @@ function viewerLoop() {
     viewerRenderer.render(viewerScene, viewerCamera);
 }
 
-// ─── Commander Viewer ────────────────────────────────────────────────────────
-const COMMANDER_DEFS = [
-    {
-        id: 'dad',
-        name: 'DAD',
-        subtitle: 'The Breadwinner',
-        color: '#ff8833',
-        desc: 'Built like a tank and twice as stubborn. Absorbs punishment that would flatten lesser soldiers, and every kill puts extra money in the family budget.',
-        stats: [
-            { label: 'MAX HEALTH',   value: '130',            cls: 'cg' },
-            { label: 'SPEED',        value: '8  (Slower)',    cls: 'cy' },
-            { label: 'COIN BONUS',   value: '+25%',           cls: 'co' },
-            { label: 'START COINS',  value: '200',            cls: 'cy' },
-            { label: 'LOADOUT',      value: 'Shotgun + Pistol', cls: '' },
-            { label: 'SPRINT',       value: '2.5 s capacity', cls: ''  },
-            { label: 'ROLE',         value: 'Tank / Earner',  cls: 'co' },
-        ],
-        meshPos: [0, 0, 0], camPos: [0, 1.55, 4.8], lookAt: [0, 1.25, 0],
-        createFn() {
-            const g = new THREE.Group();
-            const mk = (geo, col) => new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ color: col }));
-            const add = (geo, col, x, y, z) => { const m = mk(geo, col); m.position.set(x,y,z); g.add(m); return m; };
-            // Stocky torso
-            add(new THREE.BoxGeometry(1.08, 0.88, 0.60), 0x445566, 0, 1.22, 0);
-            add(new THREE.BoxGeometry(0.72, 0.46, 0.63), 0x2a3a55, 0, 1.28, 0); // chest plate
-            // Orange badge
-            add(new THREE.BoxGeometry(0.22, 0.18, 0.64), 0xff8800, 0, 1.38, 0);
-            // Head
-            add(new THREE.BoxGeometry(0.62, 0.52, 0.60), 0x2a3a55, 0, 1.80, 0);
-            add(new THREE.BoxGeometry(0.46, 0.18, 0.10), 0xff8833, 0, 1.83, 0.32); // visor
-            // Legs (wide stance)
-            add(new THREE.BoxGeometry(0.38, 0.82, 0.42), 0x1a2a44, -0.24, 0.61, 0);
-            add(new THREE.BoxGeometry(0.38, 0.82, 0.42), 0x1a2a44,  0.24, 0.61, 0);
-            // Boots
-            add(new THREE.BoxGeometry(0.40, 0.24, 0.50), 0x111122, -0.24, 0.11, 0.05);
-            add(new THREE.BoxGeometry(0.40, 0.24, 0.50), 0x111122,  0.24, 0.11, 0.05);
-            // Arms (thick)
-            add(new THREE.BoxGeometry(0.30, 0.76, 0.34), 0x445566, -0.68, 1.18, 0.05);
-            add(new THREE.BoxGeometry(0.30, 0.76, 0.34), 0x445566,  0.68, 1.18, 0.05);
-            return g;
-        },
-    },
-    {
-        id: 'mom',
-        name: 'MOM',
-        subtitle: 'The Guardian',
-        color: '#44ddff',
-        desc: 'Precise, disciplined, and impossible to wear down. Her shield regenerates passively and she outruns most threats before they become a problem.',
-        stats: [
-            { label: 'MAX HEALTH',       value: '100',              cls: ''   },
-            { label: 'SPEED',            value: '10  (Fast)',        cls: 'cg' },
-            { label: 'SHIELD REGEN',     value: '+2 / sec passive',  cls: 'cb' },
-            { label: 'SPRINT REGEN',     value: '1.2× faster',      cls: 'cg' },
-            { label: 'START COINS',      value: '150',              cls: 'cy' },
-            { label: 'LOADOUT',          value: 'Dual Pistols + AR', cls: ''  },
-            { label: 'ROLE',             value: 'Survivor / Support', cls: 'cb' },
-        ],
-        meshPos: [0, 0, 0], camPos: [0, 1.55, 4.5], lookAt: [0, 1.2, 0],
-        createFn() {
-            const g = new THREE.Group();
-            const add = (geo, col, x, y, z) => { const m = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ color: col })); m.position.set(x,y,z); g.add(m); return m; };
-            // Torso (sleek)
-            add(new THREE.BoxGeometry(0.86, 0.82, 0.52), 0x1a6677, 0, 1.24, 0);
-            add(new THREE.BoxGeometry(0.60, 0.44, 0.55), 0x0e3a55, 0, 1.30, 0);
-            // Teal highlight stripe
-            add(new THREE.BoxGeometry(0.64, 0.08, 0.56), 0x44ddff, 0, 1.52, 0);
-            // Head (taller)
-            add(new THREE.BoxGeometry(0.54, 0.52, 0.54), 0x0e3a55, 0, 1.84, 0);
-            add(new THREE.BoxGeometry(0.40, 0.18, 0.10), 0xeeffff, 0, 1.87, 0.30); // white visor
-            // Legs
-            add(new THREE.BoxGeometry(0.32, 0.84, 0.36), 0x0e3355, -0.20, 0.62, 0);
-            add(new THREE.BoxGeometry(0.32, 0.84, 0.36), 0x0e3355,  0.20, 0.62, 0);
-            // Boots
-            add(new THREE.BoxGeometry(0.34, 0.22, 0.44), 0x081830, -0.20, 0.11, 0.05);
-            add(new THREE.BoxGeometry(0.34, 0.22, 0.44), 0x081830,  0.20, 0.11, 0.05);
-            // Arms
-            add(new THREE.BoxGeometry(0.26, 0.72, 0.28), 0x1a6677, -0.60, 1.18, 0.04);
-            add(new THREE.BoxGeometry(0.26, 0.72, 0.28), 0x1a6677,  0.60, 1.18, 0.04);
-            return g;
-        },
-    },
-    {
-        id: 'kid',
-        name: '8-YEAR-OLD',
-        subtitle: 'The Reckless One',
-        color: '#aaff00',
-        desc: 'Fearless, fast, and absolutely not safe to hand a rocket launcher to. Hits harder than anyone on the field — provided they survive long enough to pull the trigger.',
-        stats: [
-            { label: 'MAX HEALTH',   value: '75  (Fragile)',   cls: 'cr' },
-            { label: 'SPEED',        value: '11  (Very Fast)', cls: 'cg' },
-            { label: 'DAMAGE MULT',  value: '+40%',            cls: 'co' },
-            { label: 'SPRINT',       value: '4.0 s capacity',  cls: 'cg' },
-            { label: 'START COINS',  value: '0',               cls: 'cr' },
-            { label: 'LOADOUT',      value: 'Rocket + Pistol', cls: 'co' },
-            { label: 'ROLE',         value: 'Glass Cannon',    cls: 'co' },
-        ],
-        meshPos: [0, 0, 0], camPos: [0, 1.2, 4.0], lookAt: [0, 1.0, 0],
-        createFn() {
-            const g = new THREE.Group();
-            const add = (geo, col, x, y, z) => { const m = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ color: col })); m.position.set(x,y,z); g.add(m); return m; };
-            const s = 0.80; // smaller scale
-            g.scale.set(s, s, s);
-            add(new THREE.BoxGeometry(0.84, 0.76, 0.48), 0x226611, 0, 1.22, 0); // torso
-            add(new THREE.BoxGeometry(0.58, 0.38, 0.51), 0x113300, 0, 1.26, 0); // plate
-            add(new THREE.BoxGeometry(0.30, 0.14, 0.52), 0xffff00, 0, 1.48, 0); // yellow stripe
-            add(new THREE.BoxGeometry(0.52, 0.50, 0.52), 0x113300, 0, 1.76, 0); // head
-            add(new THREE.BoxGeometry(0.38, 0.16, 0.10), 0xffff00, 0, 1.79, 0.29); // yellow visor
-            add(new THREE.BoxGeometry(0.30, 0.76, 0.34), 0x113300, -0.18, 0.62, 0); // leg L
-            add(new THREE.BoxGeometry(0.30, 0.76, 0.34), 0x113300,  0.18, 0.62, 0); // leg R
-            add(new THREE.BoxGeometry(0.32, 0.20, 0.44), 0x0a1800, -0.18, 0.11, 0.05); // boot L
-            add(new THREE.BoxGeometry(0.32, 0.20, 0.44), 0x0a1800,  0.18, 0.11, 0.05); // boot R
-            add(new THREE.BoxGeometry(0.24, 0.68, 0.28), 0x226611, -0.57, 1.18, 0.04); // arm L
-            add(new THREE.BoxGeometry(0.24, 0.68, 0.28), 0x226611,  0.57, 1.18, 0.04); // arm R
-            return g;
-        },
-    },
-    {
-        id: 'toddler',
-        name: '3-YEAR-OLD',
-        subtitle: 'The Chaos Agent',
-        color: '#ffcc00',
-        desc: 'No strategy, no fear, infinite stamina. Tears across the battlefield at speeds that defy physics, double-dips on every coin, and shows up armed with something completely unreasonable.',
-        stats: [
-            { label: 'MAX HEALTH',   value: '60  (Critical)',   cls: 'cr' },
-            { label: 'SPEED',        value: '13  (Max)',        cls: 'cg' },
-            { label: 'SPRINT',       value: 'Infinite',         cls: 'cg' },
-            { label: 'COIN BONUS',   value: '+100% (×2)',       cls: 'cy' },
-            { label: 'START COINS',  value: '0',               cls: 'cr' },
-            { label: 'LOADOUT',      value: 'Random Rare + Pistol', cls: 'cy' },
-            { label: 'ROLE',         value: 'Chaos / Speedster', cls: 'cy' },
-        ],
-        meshPos: [0, 0, 0], camPos: [0, 0.9, 3.6], lookAt: [0, 0.75, 0],
-        createFn() {
-            const g = new THREE.Group();
-            const add = (geo, col, x, y, z) => { const m = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ color: col })); m.position.set(x,y,z); g.add(m); return m; };
-            const s = 0.58;
-            g.scale.set(s, s, s);
-            add(new THREE.BoxGeometry(0.90, 0.72, 0.54), 0xcc5500, 0, 1.18, 0); // torso (chubby)
-            add(new THREE.BoxGeometry(0.62, 0.34, 0.57), 0x993300, 0, 1.22, 0); // plate
-            add(new THREE.BoxGeometry(0.68, 0.56, 0.62), 0x993300, 0, 1.74, 0); // head (big round)
-            add(new THREE.BoxGeometry(0.44, 0.18, 0.10), 0xffffff, 0, 1.77, 0.34); // white visor
-            add(new THREE.BoxGeometry(0.24, 0.10, 0.64), 0xffcc00, 0, 1.44, 0); // gold stripe
-            add(new THREE.BoxGeometry(0.34, 0.68, 0.38), 0x993300, -0.17, 0.60, 0); // leg L
-            add(new THREE.BoxGeometry(0.34, 0.68, 0.38), 0x993300,  0.17, 0.60, 0); // leg R
-            add(new THREE.BoxGeometry(0.36, 0.20, 0.46), 0x220800, -0.17, 0.10, 0.05); // boot L
-            add(new THREE.BoxGeometry(0.36, 0.20, 0.46), 0x220800,  0.17, 0.10, 0.05); // boot R
-            add(new THREE.BoxGeometry(0.28, 0.58, 0.30), 0xcc5500, -0.64, 1.14, 0.04); // arm L
-            add(new THREE.BoxGeometry(0.28, 0.58, 0.30), 0xcc5500,  0.64, 1.14, 0.04); // arm R
-            return g;
-        },
-    },
-];
-
-let cmdViewerRenderer = null;
-let cmdViewerScene    = null;
-let cmdViewerCamera   = null;
-let cmdViewerMesh     = null;
-let cmdViewerLight    = null;
-let cmdViewerIdx      = 0;
-let cmdViewerAnimId   = null;
-
-function openCommanderViewer() {
-    document.getElementById('cmd-viewer-overlay').classList.remove('hidden');
-    const wrap   = document.getElementById('cmd-canvas-wrap');
-    const canvas = document.getElementById('cmd-viewer-canvas');
-    const w = wrap.clientWidth, h = wrap.clientHeight;
-    canvas.width = w; canvas.height = h;
-
-    cmdViewerRenderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-    cmdViewerRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    cmdViewerRenderer.setSize(w, h, false);
-    cmdViewerRenderer.setClearColor(0x020c06, 1);
-
-    cmdViewerScene = new THREE.Scene();
-    cmdViewerScene.fog = new THREE.FogExp2(0x020c06, 0.055);
-    cmdViewerScene.add(new THREE.AmbientLight(0x113322, 1.4));
-    const keyL = new THREE.DirectionalLight(0xccffdd, 2.0);
-    keyL.position.set(4, 10, 6);
-    cmdViewerScene.add(keyL);
-    const fillL = new THREE.DirectionalLight(0x22ff88, 0.5);
-    fillL.position.set(-5, 2, -3);
-    cmdViewerScene.add(fillL);
-
-    cmdViewerCamera = new THREE.PerspectiveCamera(50, w / h, 0.1, 100);
-    cmdViewerIdx = 0;
-    loadCommanderInViewer(0);
-    cmdViewerLoop();
-}
-
-function closeCommanderViewer() {
-    document.getElementById('cmd-viewer-overlay').classList.add('hidden');
-    if (cmdViewerAnimId)  { cancelAnimationFrame(cmdViewerAnimId); cmdViewerAnimId = null; }
-    if (cmdViewerLight && cmdViewerScene) { cmdViewerScene.remove(cmdViewerLight); cmdViewerLight = null; }
-    if (cmdViewerMesh  && cmdViewerScene) { cmdViewerScene.remove(cmdViewerMesh);  cmdViewerMesh  = null; }
-    if (cmdViewerRenderer) { cmdViewerRenderer.dispose(); cmdViewerRenderer = null; }
-    cmdViewerScene = null; cmdViewerCamera = null;
-}
-
-function loadCommanderInViewer(idx) {
-    if (cmdViewerLight && cmdViewerScene) { cmdViewerScene.remove(cmdViewerLight); cmdViewerLight = null; }
-    if (cmdViewerMesh  && cmdViewerScene) { cmdViewerScene.remove(cmdViewerMesh);  cmdViewerMesh  = null; }
-    cmdViewerIdx = ((idx % COMMANDER_DEFS.length) + COMMANDER_DEFS.length) % COMMANDER_DEFS.length;
-    const def = COMMANDER_DEFS[cmdViewerIdx];
-
-    cmdViewerMesh = def.createFn();
-    const [mx, my, mz] = def.meshPos;
-    cmdViewerMesh.position.set(mx, my, mz);
-    cmdViewerScene.add(cmdViewerMesh);
-
-    const [cx, cy, cz] = def.camPos;
-    const [lx, ly, lz] = def.lookAt;
-    cmdViewerCamera.position.set(cx, cy, cz);
-    cmdViewerCamera.lookAt(lx, ly, lz);
-
-    const accentCol = parseInt(def.color.replace('#', ''), 16);
-    cmdViewerLight = new THREE.PointLight(accentCol, 2.0, 16);
-    cmdViewerLight.position.set(0, ly + 1, 2.5);
-    cmdViewerScene.add(cmdViewerLight);
-
-    const nameEl = document.getElementById('cmd-viewer-name');
-    nameEl.textContent = def.name;
-    nameEl.style.color = def.color;
-    nameEl.style.textShadow = `0 0 24px ${def.color}99`;
-    document.getElementById('cmd-viewer-subtitle').textContent = def.subtitle;
-    document.getElementById('cmd-viewer-desc').textContent     = def.desc;
-    document.getElementById('cmd-viewer-stats').innerHTML = def.stats.map(s =>
-        `<div class="vstat"><span class="vstat-label">${s.label}</span><span class="vstat-value${s.cls ? ' '+s.cls : ''}">${s.value}</span></div>`
-    ).join('');
-    document.getElementById('cmd-viewer-counter').textContent = `${cmdViewerIdx + 1} / ${COMMANDER_DEFS.length}`;
-}
-
-function cmdViewerNext() { loadCommanderInViewer(cmdViewerIdx + 1); }
-function cmdViewerPrev() { loadCommanderInViewer(cmdViewerIdx - 1); }
-
-function cmdViewerLoop() {
-    cmdViewerAnimId = requestAnimationFrame(cmdViewerLoop);
-    if (!cmdViewerRenderer || !cmdViewerScene || !cmdViewerCamera) return;
-    if (cmdViewerMesh) cmdViewerMesh.rotation.y += 0.009;
-    cmdViewerRenderer.render(cmdViewerScene, cmdViewerCamera);
-}
-
 // ─── SECTION 11 & 12: Bootstrap + Main Loop ──────────────────────────────────
 buildArena();
 setupLighting();
@@ -7442,6 +7311,7 @@ function mainLoop(ts) {
         updateProjectiles(delta);
         updateHitParticles(delta);
         updateCompanion(delta, ts / 1000);
+        updatePixelClones(delta, ts / 1000);
         drawMinimap();
 
         if (thirdPerson) {
@@ -7489,12 +7359,37 @@ requestAnimationFrame(mainLoop);
 let sandboxMode = false;
 let sandboxGodMode = false;
 let sandboxInfiniteAmmo = false;
+let sandboxStartWave = null;        // null = empty arena; otherwise wave 1-30 to start on
+let sandboxPendingWaveSpawn = false; // one-shot: spawn the chosen start wave normally
+let sandboxWaveOptionsBuilt = false;
 
 function setGameMode(mode) {
     sandboxMode = mode === 'sandbox';
     document.getElementById('mode-normal-btn').classList.toggle('active', !sandboxMode);
     document.getElementById('mode-sandbox-btn').classList.toggle('sandbox-active', sandboxMode);
     document.getElementById('mode-sandbox-btn').classList.toggle('active', false);
+    const waveSel = document.getElementById('sandbox-wave-select');
+    if (waveSel) {
+        if (sandboxMode) buildSandboxWaveOptions();
+        waveSel.style.display = sandboxMode ? 'block' : 'none';
+    }
+}
+
+function buildSandboxWaveOptions() {
+    if (sandboxWaveOptionsBuilt) return;
+    const sel = document.getElementById('sandbox-start-wave-input');
+    if (!sel) return;
+    let opts = '<option value="">EMPTY — SPAWN MANUALLY</option>';
+    for (let w = 1; w <= 30; w++) {
+        const boss = w % 3 === 0 ? ' ★ BOSS' : '';
+        opts += `<option value="${w}">WAVE ${w}${boss}</option>`;
+    }
+    sel.innerHTML = opts;
+    sandboxWaveOptionsBuilt = true;
+}
+
+function setSandboxStartWave(val) {
+    sandboxStartWave = val ? parseInt(val, 10) : null;
 }
 
 function toggleSandboxPanel() {
@@ -7629,7 +7524,9 @@ function sandboxSpawnBoss(type) {
         type === 'megalodon' ? 'MEGALODON' : type === 'trex' ? 'THE T-REX' : 'THE WARLORD';
     Audio.setBossMode(true);
     if (type === 'trex') Audio.trexRoar();
-    if (type === 'megalodon') zombifyEnemies();
+    if (type === 'megalodon') {
+        for (let i = 0; i < 6; i++) { const [px, pz] = getSpawnPosition(); enemies.push(createPiranha(px, pz, lvl)); }
+    }
 }
 
 function sandboxClearInventory() {
