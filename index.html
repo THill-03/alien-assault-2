@@ -377,6 +377,33 @@ body {
     animation: low-health-pulse 1.5s ease-in-out infinite;
 }
 
+/* Zombie poison — sickly green edge tint + HUD status */
+@keyframes poison-pulse {
+    0%, 100% { opacity: 0.55; }
+    50%      { opacity: 1; }
+}
+#poison-vignette {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 8;
+    background: radial-gradient(ellipse at center, transparent 45%, #39ff6a55 100%);
+    opacity: 0;
+    transition: opacity 0.4s;
+}
+#poison-vignette.show { animation: poison-pulse 1.8s ease-in-out infinite; }
+#poison-status {
+    display: none;
+    margin-top: 2px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    color: #7dff3a;
+    text-shadow: 0 0 6px #39ff6a;
+    animation: poison-pulse 1.2s ease-in-out infinite;
+}
+#poison-status.show { display: block; }
+
 /* ─── Gun HUD ───────────────────────────────────────────────── */
 #gun-hud {
     position: fixed;
@@ -567,6 +594,8 @@ body {
 #pickup-notice.shop     { color: #ffcc00; }
 #pickup-notice.shield   { color: #44aaff; }
 #pickup-notice.gameboy  { color: #9bbc0f; }
+#pickup-notice.poison   { color: #7dff3a; text-shadow: 0 0 10px #39ff6a; }
+#pickup-notice.zombiekit{ color: #39ff6a; }
 
 /* ─── Dual Pistols overlay ──────────────────────────────────── */
 #gun-hud.dual #gun-barrel {
@@ -1983,6 +2012,7 @@ body.mobile.portrait #rotate-overlay { display: flex; }
 
 <!-- Damage vignette -->
 <div id="damage-vignette"></div>
+<div id="poison-vignette"></div>
 
 <!-- ─── Menu Overlay ─── -->
 <div id="menu-overlay" class="overlay">
@@ -2219,6 +2249,7 @@ body.mobile.portrait #rotate-overlay { display: flex; }
         <div id="health-label">HEALTH</div>
         <div id="health-bar-bg"><div id="health-bar-fill"></div></div>
         <div id="health-value">100</div>
+        <div id="poison-status">&#9763; POISONED</div>
         <div id="shield-container">
             <div id="shield-label">SHIELD</div>
             <div id="shield-bar-bg"><div id="shield-bar-fill"></div></div>
@@ -2779,6 +2810,18 @@ const COIN_BERSERKER = 25;
 const COIN_OCTOPUS   = 40;
 const COIN_PSYCHO    = 35;
 const COIN_MALIEN    = 45;
+const COIN_ZOMBIE    = 20;
+
+// ─── Zombie Alien + poison tuning ───
+const ZOMBIE_WAVES        = [5, 12, 30]; // wave 5: ~40% of the mix; 12 & 30: the Warlord's whole escort
+const ZOMBIE_WAVE_SHARE   = 0.4;
+const ZOMBIE_SPEED_MULT   = 0.7;         // slow shuffle vs. a Grunt
+const POISON_DPS          = 3;           // HP drained per second while poisoned
+const POISON_FLOOR_FRAC   = 0.5;         // poison stops at 50% of max HP — it can never kill
+const ZOMBIEKIT_BONUS_HP  = 25;          // med kit heals this much if you're not poisoned
+const ZOMBIEKIT_RESPAWN_S = 10;          // a fresh kit appears this long after one is grabbed
+let poisonActive    = false;
+let zombieKitTimers = [];                // seconds until each pending med-kit respawn
 const COIN_BOSS      = 150;
 const SHOP_DURATION  = 30;
 
@@ -4584,9 +4627,167 @@ function getSpawnPosition() {
     }
 }
 
-function spawnEnemies(count, level) {
+// Zombie Alien — slow shuffler, arms locked straight out with fists, glowing red eyes,
+// left half of the head (top + jaw) is bare skull. Hits poison the player.
+function createZombie(x, z, level) {
+    const cfg = getLevelConfig(level);
+
+    const skinMat   = new THREE.MeshLambertMaterial({ color: 0x6f8a5c });
+    const skinDark  = new THREE.MeshLambertMaterial({ color: 0x4d6340 });
+    const ragMat    = new THREE.MeshLambertMaterial({ color: 0x3b3a30 });
+    const boneMat   = new THREE.MeshLambertMaterial({ color: 0xe8e2c8, emissive: 0x1a1810 });
+    const socketMat = new THREE.MeshBasicMaterial({ color: 0x050202 });
+    const eyeMat    = new THREE.MeshBasicMaterial({ color: 0xff1a1a });
+
+    // Body — grunt-sized, slightly hunched
+    const body = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.8, 0.9), skinMat);
+    body.castShadow = true;
+
+    // Tattered rag band across the torso + a torn flap
+    const rag = new THREE.Mesh(new THREE.BoxGeometry(0.93, 0.36, 0.93), ragMat);
+    rag.position.y = 0.15;
+    body.add(rag);
+    const flap = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.32, 0.04), ragMat);
+    flap.position.set(-0.22, -0.12, 0.47);
+    flap.rotation.z = 0.25;
+    body.add(flap);
+
+    // Exposed ribs on the chest (front face)
+    for (let r = 0; r < 3; r++) {
+        const rib = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.045, 0.03), boneMat);
+        rib.position.set(0.18, 0.52 - r * 0.11, 0.465);
+        body.add(rib);
+    }
+    // Rotting patches
+    [[-0.3, -0.5], [0.25, -0.62]].forEach(([px, py]) => {
+        const patch = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.14, 0.03), skinDark);
+        patch.position.set(px, py, 0.46);
+        body.add(patch);
+    });
+
+    // ── Head: flesh right half, skull left half (zombie's own left = +x) ──
+    const head = new THREE.Group();
+    head.position.y = 1.25;
+    head.rotation.z = -0.12; // lolling tilt
+    body.add(head);
+
+    const R = 0.42;
+    // Flesh half (x < 0) — phi 3π/2 → 5π/2
+    const flesh = new THREE.Mesh(new THREE.SphereGeometry(R, 12, 9, -Math.PI / 2, Math.PI), skinMat);
+    flesh.castShadow = true;
+    head.add(flesh);
+    // Skull half (x > 0) — phi π/2 → 3π/2, a hair smaller so the seam reads as a ragged edge
+    const skull = new THREE.Mesh(new THREE.SphereGeometry(R * 0.97, 12, 9, Math.PI / 2, Math.PI), boneMat);
+    skull.castShadow = true;
+    head.add(skull);
+    // Ragged flesh strips hanging over the seam
+    [0.22, 0.02, -0.18].forEach((sy, i) => {
+        const strip = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.13, 0.05), skinDark);
+        const a = 0.55 + i * 0.25; // around the front
+        strip.position.set(0.02, sy, Math.cos(a - 0.55) * R * 0.98);
+        head.add(strip);
+    });
+
+    // Eyes — flesh side: normal eye; skull side: deep black socket with a red ember
+    const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.1, 7, 6), eyeMat);   // flesh side (−x)
+    eyeL.position.set(-0.17, 0.1, 0.36);
+    head.add(eyeL);
+    const socket = new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 6), socketMat);
+    socket.position.set(0.17, 0.1, 0.33);
+    head.add(socket);
+    const ember = new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 5), eyeMat);
+    ember.position.set(0.17, 0.1, 0.4);
+    head.add(ember);
+    const eyeGlow = new THREE.PointLight(0xff1111, 0.9, 5);
+    eyeGlow.position.set(0, 0.1, 0.55);
+    head.add(eyeGlow);
+
+    // Nasal cavity on the skull side
+    const nose = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.09, 3), socketMat);
+    nose.position.set(0.06, -0.04, 0.41);
+    nose.rotation.x = Math.PI;
+    head.add(nose);
+
+    // Lower jaw: flesh lip on the right, bare bone jaw + teeth on the left
+    const lip = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.06, 0.06), skinDark);
+    lip.position.set(-0.11, -0.2, 0.37);
+    head.add(lip);
+    const jawBone = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.07, 0.2), boneMat);
+    jawBone.position.set(0.13, -0.3, 0.28);
+    head.add(jawBone);
+    for (let t = 0; t < 5; t++) {
+        const tooth = new THREE.Mesh(new THREE.BoxGeometry(0.034, 0.06, 0.03), boneMat);
+        tooth.position.set(0.03 + t * 0.045, -0.235, 0.38);
+        head.add(tooth);
+    }
+    // Cranial crack on top of the skull
+    const crack = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.02, 0.22), socketMat);
+    crack.position.set(0.2, 0.34, 0.05);
+    crack.rotation.y = 0.5;
+    head.add(crack);
+
+    // ── Arms: locked straight out in front, ending in fists ──
+    const armPivots = [];
+    [-1, 1].forEach(side => {
+        const sx = side * 0.58;
+        const shoulder = new THREE.Mesh(new THREE.SphereGeometry(0.14, 7, 6), skinDark);
+        shoulder.position.set(sx, 0.55, 0);
+        body.add(shoulder);
+
+        const pivot = new THREE.Object3D();
+        pivot.position.set(sx, 0.55, 0);
+        pivot.rotation.x = -Math.PI / 2; // arm (built hanging along −y) now points forward (+z)
+        body.add(pivot);
+
+        const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.105, 0.52, 7), skinMat);
+        upper.position.y = -0.26;
+        pivot.add(upper);
+        const elbow = new THREE.Mesh(new THREE.SphereGeometry(0.095, 6, 5), skinDark);
+        elbow.position.y = -0.52;
+        pivot.add(elbow);
+        const fore = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.09, 0.46, 7), side < 0 ? skinMat : skinDark);
+        fore.position.y = -0.76;
+        pivot.add(fore);
+        // Clenched fist + knuckle ridge
+        const fist = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.2), skinDark);
+        fist.position.y = -1.08;
+        pivot.add(fist);
+        const knuckles = new THREE.Mesh(new THREE.BoxGeometry(0.21, 0.06, 0.08), boneMat);
+        knuckles.position.set(0, -1.17, 0.05);
+        pivot.add(knuckles);
+
+        armPivots.push(pivot);
+    });
+
+    body.position.set(x, 0.9, z);
+    scene.add(body);
+
+    const speed = cfg.speedBase * ZOMBIE_SPEED_MULT;
+    return {
+        mesh: body,
+        health: cfg.healthBase - 3,
+        maxHealth: cfg.healthBase - 3,
+        speed,
+        baseSpeed: speed,
+        damage: 12 + (level - 1) * 3,
+        attackRange: 1.4,
+        dead: false,
+        type: 'zombie',
+        zombieArms: armPivots, // own key so the generic arm-swing animation leaves them out-stretched
+        animOffset: Math.random() * Math.PI * 2,
+    };
+}
+
+function spawnEnemies(count, level, zombieShare = 0) {
     enemies.forEach(e => scene.remove(e.mesh));
     enemies = [];
+    // Exact share of zombies first (positions are random, so order doesn't matter)
+    const zombieCount = Math.round(count * zombieShare);
+    for (let i = 0; i < zombieCount; i++) {
+        const [x, z] = getSpawnPosition();
+        enemies.push(createZombie(x, z, level));
+    }
+    count -= zombieCount;
     const octopusChance   = level >= 2 ? Math.min(0.35, 0.10 + (level - 2) * 0.05)  : 0;
     const malienChance    = level >= 3 ? Math.min(0.18, 0.07 + (level - 3) * 0.022) : 0;
     const psychoChance    = level >= 4 ? Math.min(0.15, 0.05 + (level - 4) * 0.022) : 0;
@@ -4811,6 +5012,17 @@ function updateEnemies(delta, time) {
                 e.mesh.position.y = 4.5 + Math.sin(t * e.speed * 0.5) * 0.2;
                 if (hg) hg.rotation.x = Math.sin(t * e.speed * 0.38) * 0.07;
             }
+        } else if (e.type === 'zombie') {
+            // Slow, lurching shuffle — side-to-side sway, uneven bob, arms stay locked forward
+            const step = t * 2.2;
+            e.mesh.position.y = 0.9 + Math.abs(Math.sin(step)) * 0.05;
+            e.mesh.rotateZ(Math.sin(step) * 0.09);
+            e.mesh.rotateX(0.08); // hunched forward lean
+            if (e.zombieArms) {
+                const sway = Math.sin(step * 0.5) * 0.07;
+                e.zombieArms[0].rotation.x = -Math.PI / 2 + sway;
+                e.zombieArms[1].rotation.x = -Math.PI / 2 - sway;
+            }
         } else {
             const baseY = e.type === 'berserker' ? 0.95 : 0.9;
             e.mesh.position.y = baseY + Math.sin(t * e.speed * 0.8) * 0.06;
@@ -4853,6 +5065,7 @@ function updateEnemies(delta, time) {
                 }
             } else {
                 damagePlayer(e.damage * delta);
+                if (e.type === 'zombie') poisonPlayer();
                 showDamageFlash();
                 updateHUD();
             }
@@ -4893,6 +5106,9 @@ function killEnemy(enemy) {
     } else if (enemy.type === 'malien') {
         player.score += 190 + (currentLevel - 1) * 75;
         playerCoins += Math.round(COIN_MALIEN * player.coinMult);
+    } else if (enemy.type === 'zombie') {
+        player.score += 125 + (currentLevel - 1) * 55;
+        playerCoins += Math.round(COIN_ZOMBIE * player.coinMult);
     } else {
         player.score += 100 + (currentLevel - 1) * 50;
         playerCoins += Math.round(COIN_ALIEN * player.coinMult);
@@ -4915,6 +5131,7 @@ function checkLevelComplete() {
     const alive = enemies.filter(e => !e.dead).length;
     if (alive === 0) {
         levelTransition = true;
+        curePoison(); // wave over — poison doesn't follow you into the ship / next wave
         setTimeout(() => {
             showLevelBanner(`LEVEL ${currentLevel} CLEAR!`);
             Audio.levelClear();
@@ -5179,12 +5396,90 @@ function createShieldPackMesh() {
     return g;
 }
 
+// Zombie Med Kit — white case with a toxic-green cross, pulsing glow halo, and a tall
+// light beam so it can be spotted from anywhere in the arena.
+function createZombieKitMesh() {
+    const g = new THREE.Group();
+    const caseMat  = new THREE.MeshLambertMaterial({ color: 0xf2f2f2, emissive: 0x1a3a1a });
+    const crossMat = new THREE.MeshBasicMaterial({ color: 0x39ff6a });
+    const trimMat  = new THREE.MeshLambertMaterial({ color: 0x1f7a33 });
+
+    g.add(new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.5, 0.32), caseMat));
+    const handle = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.07, 0.1), trimMat);
+    handle.position.y = 0.31;
+    g.add(handle);
+    [0.165, -0.165].forEach(fz => {
+        const v = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.34, 0.02), crossMat);
+        v.position.z = fz; g.add(v);
+        const h = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.11, 0.02), crossMat);
+        h.position.z = fz; g.add(h);
+    });
+
+    const halo = new THREE.Mesh(
+        new THREE.SphereGeometry(0.62, 12, 10),
+        new THREE.MeshBasicMaterial({ color: 0x39ff6a, transparent: true, opacity: 0.22, depthWrite: false })
+    );
+    g.add(halo);
+
+    const beam = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.16, 0.3, 9, 10, 1, true),
+        new THREE.MeshBasicMaterial({ color: 0x39ff6a, transparent: true, opacity: 0.18,
+                                      depthWrite: false, side: THREE.DoubleSide,
+                                      blending: THREE.AdditiveBlending })
+    );
+    beam.position.y = 3.2;
+    g.add(beam);
+
+    const light = new THREE.PointLight(0x39ff6a, 2.2, 10);
+    g.add(light);
+    g.userData = { halo, beam, light };
+    return g;
+}
+
+function spawnZombieKit(x, z) {
+    if (x === undefined) {
+        const a = Math.random() * Math.PI * 2;
+        const r = 8 + Math.random() * 14;
+        x = Math.cos(a) * r; z = Math.sin(a) * r;
+    }
+    spawnPowerup('zombiekit', x, z);
+}
+
+// ─── Poison (from Zombie Alien hits) — state lives with the tuning constants ───
+
+function poisonPlayer() {
+    if (sandboxGodMode || poisonActive) return;
+    poisonActive = true;
+    document.getElementById('poison-status').classList.add('show');
+    document.getElementById('poison-vignette').classList.add('show');
+    showPickupNotice('☣ POISONED — FIND A ZOMBIE MED KIT!', 'poison');
+    updateHUD();
+}
+
+function curePoison() {
+    poisonActive = false;
+    const st = document.getElementById('poison-status');
+    const vg = document.getElementById('poison-vignette');
+    if (st) st.classList.remove('show');
+    if (vg) vg.classList.remove('show');
+}
+
+function updatePoison(delta) {
+    if (!poisonActive) return;
+    const floor = player.maxHealth * POISON_FLOOR_FRAC;
+    if (player.health > floor) {
+        player.health = Math.max(floor, player.health - POISON_DPS * delta);
+        updateHUD();
+    }
+}
+
 function spawnPowerup(type, x, z) {
-    const mesh = type === 'health'   ? createHealthPackMesh()
-               : type === 'shield'   ? createShieldPackMesh()
-               : type === 'rocket'   ? createRocketPackMesh()
-               : type === 'fireball' ? createFireballPackMesh()
-               : type === 'gameboy'  ? createGameboyMesh()
+    const mesh = type === 'health'    ? createHealthPackMesh()
+               : type === 'shield'    ? createShieldPackMesh()
+               : type === 'rocket'    ? createRocketPackMesh()
+               : type === 'fireball'  ? createFireballPackMesh()
+               : type === 'gameboy'   ? createGameboyMesh()
+               : type === 'zombiekit' ? createZombieKitMesh()
                : createSpaceshipMesh();
     mesh.position.set(x, 1.3, z);
     scene.add(mesh);
@@ -5228,6 +5523,15 @@ function spawnLevelPowerups(level) {
         const rG = 8 + Math.random() * 10;
         spawnPowerup('gameboy', Math.cos(angleG) * rG, Math.sin(angleG) * rG);
     }
+
+    // Zombie Med Kits — two on opposite sides whenever zombies are in the wave
+    zombieKitTimers = [];
+    if (enemies.some(e => e.type === 'zombie' && !e.dead)) {
+        const aK = Math.random() * Math.PI * 2;
+        const rK = 14 + Math.random() * 8;
+        spawnZombieKit(Math.cos(aK) * rK, Math.sin(aK) * rK);
+        spawnZombieKit(-Math.cos(aK) * rK, -Math.sin(aK) * rK);
+    }
 }
 
 function updatePowerups(delta, time) {
@@ -5238,17 +5542,35 @@ function updatePowerups(delta, time) {
         if (p.dead) continue;
         p.mesh.position.y = p.baseY + Math.sin(time * 2.2 + i * 1.3) * 0.2;
         p.mesh.rotation.y += delta * 1.8;
+        if (p.type === 'zombiekit') {
+            const pulse = 0.5 + 0.5 * Math.sin(time * 4);
+            const u = p.mesh.userData;
+            u.light.intensity  = 1.4 + pulse * 2.2;
+            u.halo.material.opacity = 0.12 + pulse * 0.22;
+            u.halo.scale.setScalar(0.9 + pulse * 0.25);
+            u.beam.material.opacity = 0.1 + pulse * 0.14;
+        }
         const dx = px - p.mesh.position.x;
         const dz = pz - p.mesh.position.z;
         if (dx * dx + dz * dz < 1.8 * 1.8) collectPowerup(p);
     }
     powerups = powerups.filter(p => !p.dead);
+
+    // Respawn grabbed med kits after a delay, but only while zombies are still alive
+    if (zombieKitTimers.length) {
+        const zombiesAlive = enemies.some(e => e.type === 'zombie' && !e.dead);
+        if (!zombiesAlive) { zombieKitTimers = []; return; }
+        for (let k = zombieKitTimers.length - 1; k >= 0; k--) {
+            zombieKitTimers[k] -= delta;
+            if (zombieKitTimers[k] <= 0) { zombieKitTimers.splice(k, 1); spawnZombieKit(); }
+        }
+    }
 }
 
 function collectPowerup(p) {
     p.dead = true;
     Audio.pickup();
-    const flashCol = p.type === 'health' ? 0x22ff44 : p.type === 'shield' ? 0x44aaff : p.type === 'laser' ? 0x00ccff : p.type === 'gameboy' ? 0x9bbc0f : 0xff6600;
+    const flashCol = p.type === 'health' ? 0x22ff44 : p.type === 'shield' ? 0x44aaff : p.type === 'laser' ? 0x00ccff : p.type === 'gameboy' ? 0x9bbc0f : p.type === 'zombiekit' ? 0x39ff6a : 0xff6600;
     const flash = new THREE.PointLight(flashCol, 6, 14);
     flash.position.copy(p.mesh.position);
     scene.add(flash);
@@ -5264,6 +5586,15 @@ function collectPowerup(p) {
     } else if (p.type === 'gameboy') {
         spawnPixelClones();
         showPickupNotice('GAMEBOY — PIXEL SQUAD!', 'gameboy');
+    } else if (p.type === 'zombiekit') {
+        if (poisonActive) {
+            curePoison();
+            showPickupNotice('POISON CURED!', 'zombiekit');
+        } else {
+            player.health = Math.min(player.maxHealth, player.health + ZOMBIEKIT_BONUS_HP);
+            showPickupNotice(`+ ${ZOMBIEKIT_BONUS_HP} HEALTH`, 'zombiekit');
+        }
+        zombieKitTimers.push(ZOMBIEKIT_RESPAWN_S);
     } else {
         const ammoMap = { rocket: ROCKET_AMMO, fireball: FIREBALL_AMMO, laser: LASER_AMMO };
         addToInventory(p.type, ammoMap[p.type]);
@@ -6181,7 +6512,8 @@ function showDamageFlash() {
 function updateHUD() {
     const pct = Math.max(0, player.health / player.maxHealth * 100);
     document.getElementById('health-bar-fill').style.width = pct + '%';
-    document.getElementById('health-bar-fill').style.background = `hsl(${pct * 1.2}, 80%, 45%)`;
+    document.getElementById('health-bar-fill').style.background =
+        poisonActive ? 'linear-gradient(90deg, #2f8f1f, #7dff3a)' : `hsl(${pct * 1.2}, 80%, 45%)`;
     document.getElementById('health-value').textContent = Math.ceil(player.health);
 
     const shPct = Math.max(0, player.shield / SHIELD_MAX * 100);
@@ -6554,6 +6886,7 @@ function initLevel(level) {
     levelTransition = false;
     clearPowerups();
     clearPixelClones();
+    curePoison();
     setOceanTheme(false);  // default arena look; King Piranha waves switch it on below
 
     const isBossLevel = level % 3 === 0;
@@ -6576,7 +6909,8 @@ function initLevel(level) {
             spawnPiranhas(12 + Math.floor(level / 9) * 4, level);
         } else {
             const regularCount = Math.max(2, Math.floor(cfg.enemies * 0.4));
-            spawnEnemies(regularCount, level);
+            // Zombie waves (12, 30): the whole escort is Zombie Aliens
+            spawnEnemies(regularCount, level, ZOMBIE_WAVES.includes(level) ? 1 : 0);
         }
         const boss = bossType === 'kingpiranha' ? createKingPiranha(level)
                    : bossType === 'trex'      ? createTRex(level)
@@ -6621,7 +6955,7 @@ function initLevel(level) {
         if (bossType !== 'kingpiranha') setTimeout(() => showLevelBanner('BOSS WAVE!'), 100);
     } else {
         Audio.setBossMode(false);
-        spawnEnemies(cfg.enemies, level);
+        spawnEnemies(cfg.enemies, level, ZOMBIE_WAVES.includes(level) ? ZOMBIE_WAVE_SHARE : 0);
         setTimeout(() => showLevelBanner(`LEVEL ${level}`), 100);
     }
 
@@ -6633,6 +6967,7 @@ function triggerGameOver() {
     if (gameState !== 'PLAYING') return;
     resetToFirstPerson();
     gameState = 'GAME_OVER';
+    curePoison();
     Audio.playerDeath();
     intentionalUnlock = true;
     document.exitPointerLock();
@@ -6723,6 +7058,7 @@ function returnToMenu() {
     document.getElementById('gameover-overlay').classList.add('hidden');
     document.getElementById('pause-overlay').classList.add('hidden');
     document.getElementById('menu-overlay').classList.remove('hidden');
+    curePoison();
     gameState = 'MENU';
     // Reset menu sound button to match current mute state
     const btn = document.getElementById('menu-sound-btn');
@@ -7055,10 +7391,21 @@ function drawMinimap() {
         if (e.dead) return;
         const ex = cx + e.mesh.position.x * scale;
         const ey = cy + e.mesh.position.z * scale;
-        ctx.fillStyle = e.isBoss ? '#ff3333' : e.type === 'malien' ? '#ff1188' : e.type === 'psycho' ? '#ff44ee' : e.type === 'octopus' ? '#cc55ff' : e.type === 'berserker' ? '#ff6622' : '#22ff44';
+        ctx.fillStyle = e.isBoss ? '#ff3333' : e.type === 'zombie' ? '#9acd32' : e.type === 'malien' ? '#ff1188' : e.type === 'psycho' ? '#ff44ee' : e.type === 'octopus' ? '#cc55ff' : e.type === 'berserker' ? '#ff6622' : '#22ff44';
         ctx.beginPath();
         ctx.arc(ex, ey, e.isBoss ? 4.5 : 2.5, 0, Math.PI * 2);
         ctx.fill();
+    });
+
+    // Zombie Med Kits — pulsing green cross so they're easy to find
+    const kitPulse = 0.55 + 0.45 * Math.sin(performance.now() / 160);
+    powerups.forEach(p => {
+        if (p.dead || p.type !== 'zombiekit') return;
+        const kx = cx + p.mesh.position.x * scale;
+        const ky = cy + p.mesh.position.z * scale;
+        ctx.fillStyle = `rgba(57,255,106,${kitPulse})`;
+        ctx.fillRect(kx - 1.5, ky - 4.5, 3, 9);
+        ctx.fillRect(kx - 4.5, ky - 1.5, 9, 3);
     });
 
     // Player position & direction
@@ -7172,6 +7519,24 @@ const ALIEN_DEFS = [
             { label: 'FIRE RATE',     value: 'Every 2.2 sec',       cls: ''    },
             { label: 'NO MELEE',      value: 'Range only',          cls: ''    },
             { label: 'FIRST APPEARS', value: 'Wave 3',              cls: 'cy'  },
+            { label: 'THREAT',        value: '★★★☆☆  Medium',     cls: 'cy'  },
+        ],
+    },
+    {
+        name: 'ZOMBIE ALIEN',
+        subtitle: 'Undead Shambler',
+        desc: 'Half rotting flesh, half bare skull, arms locked out in front. Slow — but one touch poisons you, draining health down to half until you grab a glowing Zombie Med Kit.',
+        color: '#9acd32',
+        createFn() { const e = createZombie(0, 0, 5); scene.remove(e.mesh); return e.mesh; },
+        meshPos: [0, 0.9, 0], camPos: [0, 2.1, 5.2], lookAt: [0, 1.8, 0],
+        stats: [
+            { label: 'HP',            value: `${getLevelConfig(5).healthBase - 3} (Grunt − 3)`, cls: 'cg' },
+            { label: 'SPEED',         value: 'Slow Shuffle (0.7×)', cls: ''    },
+            { label: 'ATTACK TYPE',   value: 'Melee + Poison',      cls: 'cg'  },
+            { label: 'DAMAGE',        value: '24 / sec',            cls: 'co'  },
+            { label: 'POISON',        value: 'Drains to 50% HP',    cls: 'cg'  },
+            { label: 'CURE',          value: 'Zombie Med Kit',      cls: 'cy'  },
+            { label: 'APPEARS',       value: 'Waves 5, 12, 30',     cls: 'cy'  },
             { label: 'THREAT',        value: '★★★☆☆  Medium',     cls: 'cy'  },
         ],
     },
@@ -7643,6 +8008,15 @@ const BUFF_DATA = [
         desc: 'Summons 3 pixelated copies of you that auto-fire green lasers at nearby enemies for a short time',
         spawns: 'Wave 2, then every 4th wave',
     },
+    {
+        id: 'zombiekit',
+        name: 'ZOMBIE MED KIT',
+        color: '#39ff6a',
+        orbSvg: `<svg width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="24" fill="#39ff6a" opacity="0.15"/><rect x="30" y="4" width="4" height="22" fill="#39ff6a" opacity="0.35"/><rect x="18" y="24" width="28" height="20" rx="3" fill="#f2f2f2"/><rect x="27" y="20" width="10" height="4" fill="#1f7a33"/><rect x="29.5" y="27" width="5" height="14" fill="#39ff6a"/><rect x="25" y="31.5" width="14" height="5" fill="#39ff6a"/></svg>`,
+        effect: 'CURES POISON',
+        desc: 'Glowing kit with a light beam. Cures Zombie Alien poison — or gives +25 HP if you aren\'t poisoned. A new one appears 10s after pickup while zombies remain.',
+        spawns: '2 per zombie wave (5, 12, 30)',
+    },
 ];
 
 function openBuffViewer() {
@@ -7965,6 +8339,7 @@ function mainLoop(ts) {
         updateHitParticles(delta);
         updateCompanion(delta, ts / 1000);
         updatePixelClones(delta, ts / 1000);
+        updatePoison(delta);
         // Shimmer the water surface ceiling during King Piranha (freshwater) waves
         if (oceanThemeOn && waterCeilTex) {
             const tt = ts / 1000;
@@ -8168,8 +8543,13 @@ function sandboxSpawn(type) {
         case 'octopus':   e = createOctopus(x, z, lvl);     break;
         case 'psycho':    e = createPsychoAlien(x, z, lvl); break;
         case 'malien':    e = createMaLien(x, z, lvl);      break;
+        case 'zombie':    e = createZombie(x, z, lvl);      break;
     }
     if (e) enemies.push(e);
+    // Zombies come with their cure — drop 2 med kits if none are out
+    if (type === 'zombie' && !powerups.some(p => p.type === 'zombiekit' && !p.dead)) {
+        spawnZombieKit(); spawnZombieKit();
+    }
 }
 
 function sandboxSpawnBoss(type) {
@@ -8228,6 +8608,7 @@ function sandboxClearInventory() {
             <button class="sb-btn sb-green" onclick="sandboxSpawn('octopus')">OCTOPUS</button>
             <button class="sb-btn sb-green" onclick="sandboxSpawn('psycho')">PSYCHO ALIEN</button>
             <button class="sb-btn sb-green" onclick="sandboxSpawn('malien')">MALIEN</button>
+            <button class="sb-btn sb-green" onclick="sandboxSpawn('zombie')">ZOMBIE</button>
             <button class="sb-btn" onclick="sandboxSpawn('mixed5')">5&times; MIXED</button>
         </div>
     </div>
