@@ -2652,6 +2652,51 @@ const Audio = (() => {
         noise.start(t); noise.stop(t + 2.5);
     }
 
+    // Low, wet zombie groan — buzzy voice through "uhhh" vowel formants with a wavering pitch.
+    // vol 0..1 (distance-scaled). Globally throttled so a horde doesn't stack into noise.
+    let lastGroanTime = 0;
+    function zombieGroan(vol = 1) {
+        if (!ctx || muted || vol <= 0.02) return;
+        const now = performance.now();
+        if (now - lastGroanTime < 900) return;
+        lastGroanTime = now;
+        const t = ctx.currentTime;
+        const dur = 1.1 + Math.random() * 0.8;
+        const base = 72 + Math.random() * 28;
+
+        const out = g(0);
+        out.gain.setValueAtTime(0, t);
+        out.gain.linearRampToValueAtTime(0.32 * vol, t + 0.25);
+        out.gain.setValueAtTime(0.32 * vol, t + dur * 0.6);
+        out.gain.linearRampToValueAtTime(0, t + dur);
+        out.connect(sfx);
+        const wet = g(0.5 * vol); out.connect(wet); wet.connect(srev());
+
+        // Voice source: sawtooth with a slow downward sag and a wobble
+        const o = ctx.createOscillator(); o.type = 'sawtooth';
+        o.frequency.setValueAtTime(base * 1.15, t);
+        o.frequency.linearRampToValueAtTime(base, t + dur * 0.4);
+        o.frequency.linearRampToValueAtTime(base * 0.82, t + dur);
+        const lfo = ctx.createOscillator(); lfo.frequency.value = 5 + Math.random() * 2;
+        const lfoG = g(base * 0.05); lfo.connect(lfoG); lfoG.connect(o.frequency);
+        const dst = ctx.createWaveShaper(); dst.curve = makeDistortion(30);
+        o.connect(dst);
+
+        // "Uhh" formants
+        [[420, 6, 1.0], [780, 8, 0.55], [2400, 10, 0.12]].forEach(([fq, q, lv]) => {
+            const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = fq; bp.Q.value = q;
+            const lg = g(lv * 2.2); dst.connect(bp); bp.connect(lg); lg.connect(out);
+        });
+
+        // Breathy rasp
+        const n = ctx.createBufferSource(); n.buffer = makeNoise(dur);
+        const nf = ctx.createBiquadFilter(); nf.type = 'bandpass'; nf.frequency.value = 900; nf.Q.value = 1.2;
+        const ng = g(0.25); n.connect(nf); nf.connect(ng); ng.connect(out);
+
+        o.start(t); lfo.start(t); n.start(t);
+        o.stop(t + dur + 0.05); lfo.stop(t + dur + 0.05); n.stop(t + dur + 0.05);
+    }
+
     function playerHit() {
         if (!ctx || muted) return;
         const now = performance.now();
@@ -2742,7 +2787,7 @@ const Audio = (() => {
 
     function isMuted() { return muted; }
 
-    return { boot, shoot, alienDeath, bossSpawn, trexRoar, playerHit, playerDeath, levelClear, pickup, reload, setBossMode, toggleMute, isMuted };
+    return { boot, shoot, alienDeath, bossSpawn, trexRoar, zombieGroan, playerHit, playerDeath, levelClear, pickup, reload, setBossMode, toggleMute, isMuted };
 })();
 
 function toggleMuteBtn() {
@@ -4627,144 +4672,186 @@ function getSpawnPosition() {
     }
 }
 
-// Zombie Alien — slow shuffler, arms locked straight out with fists, glowing red eyes,
-// left half of the head (top + jaw) is bare skull. Hits poison the player.
+// Zombie Alien — hunched, limping corpse in torn clothes. Arms locked straight out with
+// bloodied fists, glowing red eyes, left half of the head (top + jaw) is bare skull,
+// slack hanging jaw, exposed ribs/forearm bone/shin bone. Hits poison the player.
+// Root origin sits 0.9 above the floor (same convention as the Grunt), so the floor is local y = -0.9.
 function createZombie(x, z, level) {
     const cfg = getLevelConfig(level);
 
-    const skinMat   = new THREE.MeshLambertMaterial({ color: 0x6f8a5c });
-    const skinDark  = new THREE.MeshLambertMaterial({ color: 0x4d6340 });
-    const ragMat    = new THREE.MeshLambertMaterial({ color: 0x3b3a30 });
-    const boneMat   = new THREE.MeshLambertMaterial({ color: 0xe8e2c8, emissive: 0x1a1810 });
+    const L = (c, e) => new THREE.MeshLambertMaterial(e ? { color: c, emissive: e } : { color: c });
+    const skinMat   = L(0x8a9a78);           // pale rotting grey-green
+    const skinDark  = L(0x5e6b4e);           // bruised / decayed skin
+    const shirtMat  = L(0x55606e);           // faded, filthy shirt
+    const shirtDark = L(0x3c434d);
+    const pantsMat  = L(0x3a3328);           // dirt-brown trousers
+    const shoeMat   = L(0x1e1a16);
+    const boneMat   = L(0xe8e2c8, 0x1a1810);
+    const bloodMat  = L(0x5a0a0a, 0x1a0000); // dried dark blood
     const socketMat = new THREE.MeshBasicMaterial({ color: 0x050202 });
     const eyeMat    = new THREE.MeshBasicMaterial({ color: 0xff1a1a });
+    const hairMat   = L(0x22201a);
 
-    // Body — grunt-sized, slightly hunched
-    const body = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.8, 0.9), skinMat);
-    body.castShadow = true;
+    const box = (w, h, d, m, px, py, pz, parent) => {
+        const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m);
+        o.position.set(px, py, pz); parent.add(o); return o;
+    };
+    const cyl = (rt, rb, h, m, px, py, pz, parent) => {
+        const o = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, 7), m);
+        o.position.set(px, py, pz); parent.add(o); return o;
+    };
 
-    // Tattered rag band across the torso + a torn flap
-    const rag = new THREE.Mesh(new THREE.BoxGeometry(0.93, 0.36, 0.93), ragMat);
-    rag.position.y = 0.15;
-    body.add(rag);
-    const flap = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.32, 0.04), ragMat);
-    flap.position.set(-0.22, -0.12, 0.47);
-    flap.rotation.z = 0.25;
-    body.add(flap);
+    const root = new THREE.Group();
 
-    // Exposed ribs on the chest (front face)
-    for (let r = 0; r < 3; r++) {
-        const rib = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.045, 0.03), boneMat);
-        rib.position.set(0.18, 0.52 - r * 0.11, 0.465);
-        body.add(rib);
-    }
-    // Rotting patches
-    [[-0.3, -0.5], [0.25, -0.62]].forEach(([px, py]) => {
-        const patch = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.14, 0.03), skinDark);
-        patch.position.set(px, py, 0.46);
-        body.add(patch);
+    // ── Hips + legs (one leg drags — animated in updateEnemies) ──
+    box(0.6, 0.26, 0.36, pantsMat, 0, -0.02, 0, root);
+    box(0.62, 0.06, 0.38, shoeMat, 0, 0.1, 0, root);          // belt
+    const legPivots = [];
+    [-1, 1].forEach(side => {
+        const hip = new THREE.Object3D();
+        hip.position.set(side * 0.18, -0.08, 0);
+        root.add(hip);
+        cyl(0.12, 0.1, 0.42, pantsMat, 0, -0.21, 0, hip);      // thigh
+        const knee = new THREE.Object3D();
+        knee.position.y = -0.42;
+        hip.add(knee);
+        if (side > 0) {
+            // Right shin: trouser leg ripped away — rotting skin with bone showing
+            cyl(0.085, 0.07, 0.4, skinDark, 0, -0.2, 0, knee);
+            cyl(0.03, 0.03, 0.26, boneMat, 0.02, -0.2, 0.07, knee);
+            box(0.05, 0.12, 0.02, bloodMat, -0.04, -0.12, 0.08, knee);
+            box(0.2, 0.08, 0.2, pantsMat, 0, -0.03, 0, knee);   // ragged hem at the knee
+        } else {
+            cyl(0.1, 0.09, 0.4, pantsMat, 0, -0.2, 0, knee);
+        }
+        box(0.16, 0.08, 0.28, shoeMat, 0, -0.44, 0.05, knee); // shoe
+        legPivots.push({ hip, knee });
     });
+
+    // ── Torso — hunched forward ──
+    const TORSO_LEAN = 0.32;
+    const torso = new THREE.Group();
+    torso.position.y = 0.08;
+    torso.rotation.x = TORSO_LEAN;
+    root.add(torso);
+
+    const chest = box(0.72, 0.92, 0.42, shirtMat, 0, 0.5, 0, torso);
+    chest.castShadow = true;
+    // Torn chest hole: dark cavity, exposed ribs, blood
+    box(0.3, 0.3, 0.02, socketMat, 0.15, 0.62, 0.212, torso);
+    for (let r = 0; r < 3; r++) box(0.28, 0.04, 0.03, boneMat, 0.15, 0.72 - r * 0.09, 0.225, torso);
+    box(0.08, 0.26, 0.02, bloodMat, 0.26, 0.38, 0.214, torso);   // drip below the hole
+    box(0.18, 0.12, 0.02, bloodMat, -0.2, 0.25, 0.214, torso);   // stain
+    box(0.12, 0.2, 0.02, skinDark, -0.18, 0.66, 0.214, torso);   // rip showing skin
+    // Ragged shirt hem — tatters hanging at uneven lengths
+    [-0.3, -0.16, -0.02, 0.12, 0.27].forEach((tx, i) => {
+        const len = 0.1 + ((i * 37) % 5) * 0.035;
+        const tat = box(0.11, len, 0.4, i % 2 ? shirtDark : shirtMat, tx, 0.04 - len / 2, 0, torso);
+        tat.rotation.z = (i % 2 ? 0.12 : -0.1);
+    });
+    // Neck
+    const neck = cyl(0.11, 0.13, 0.22, skinDark, 0, 1.02, 0.04, torso);
+    neck.rotation.x = 0.25;
 
     // ── Head: flesh right half, skull left half (zombie's own left = +x) ──
     const head = new THREE.Group();
-    head.position.y = 1.25;
-    head.rotation.z = -0.12; // lolling tilt
-    body.add(head);
+    head.position.set(0, 1.3, 0.1);
+    head.rotation.set(-TORSO_LEAN * 0.6, 0, -0.25);  // pushed forward, lolling sideways
+    torso.add(head);
 
-    const R = 0.42;
-    // Flesh half (x < 0) — phi 3π/2 → 5π/2
+    const R = 0.38;
     const flesh = new THREE.Mesh(new THREE.SphereGeometry(R, 12, 9, -Math.PI / 2, Math.PI), skinMat);
     flesh.castShadow = true;
     head.add(flesh);
-    // Skull half (x > 0) — phi π/2 → 3π/2, a hair smaller so the seam reads as a ragged edge
     const skull = new THREE.Mesh(new THREE.SphereGeometry(R * 0.97, 12, 9, Math.PI / 2, Math.PI), boneMat);
     skull.castShadow = true;
     head.add(skull);
-    // Ragged flesh strips hanging over the seam
-    [0.22, 0.02, -0.18].forEach((sy, i) => {
-        const strip = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.13, 0.05), skinDark);
-        const a = 0.55 + i * 0.25; // around the front
-        strip.position.set(0.02, sy, Math.cos(a - 0.55) * R * 0.98);
-        head.add(strip);
-    });
+    // Ragged flesh strips over the seam
+    [0.2, 0.02, -0.16].forEach(sy => box(0.07, 0.12, 0.05, skinDark, 0.02, sy, Math.sqrt(R * R - sy * sy) * 0.98, head));
+    // Stringy hair tufts on the flesh side only
+    [[-0.12, 0.33, 0.1, 0.3], [-0.24, 0.27, -0.06, 0.55], [-0.08, 0.35, -0.14, 0.15], [-0.3, 0.16, 0.08, 0.9]]
+        .forEach(([hx, hy, hz, rz]) => { const h = box(0.04, 0.2, 0.04, hairMat, hx, hy, hz, head); h.rotation.z = rz; });
 
-    // Eyes — flesh side: normal eye; skull side: deep black socket with a red ember
-    const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.1, 7, 6), eyeMat);   // flesh side (−x)
-    eyeL.position.set(-0.17, 0.1, 0.36);
+    // Eyes — flesh side: sunken red eye; skull side: black socket with a red ember
+    box(0.16, 0.1, 0.04, skinDark, -0.15, 0.1, 0.33, head);      // dark bag under the sunken eye
+    const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.085, 7, 6), eyeMat);
+    eyeL.position.set(-0.15, 0.12, 0.33);
     head.add(eyeL);
-    const socket = new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 6), socketMat);
-    socket.position.set(0.17, 0.1, 0.33);
+    const socket = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 6), socketMat);
+    socket.position.set(0.15, 0.1, 0.3);
     head.add(socket);
-    const ember = new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 5), eyeMat);
-    ember.position.set(0.17, 0.1, 0.4);
+    const ember = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 5), eyeMat);
+    ember.position.set(0.15, 0.1, 0.37);
     head.add(ember);
-    const eyeGlow = new THREE.PointLight(0xff1111, 0.9, 5);
-    eyeGlow.position.set(0, 0.1, 0.55);
-    head.add(eyeGlow);
-
-    // Nasal cavity on the skull side
-    const nose = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.09, 3), socketMat);
-    nose.position.set(0.06, -0.04, 0.41);
+    // Glow halos (additive, unlit — cheaper than a PointLight per zombie on big waves)
+    const glowMat = new THREE.MeshBasicMaterial({ color: 0xff2222, transparent: true, opacity: 0.45,
+                                                  blending: THREE.AdditiveBlending, depthWrite: false });
+    [[-0.15, 0.12, 0.34], [0.15, 0.1, 0.37]].forEach(([gx, gy, gz]) => {
+        const halo = new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 6), glowMat);
+        halo.position.set(gx, gy, gz);
+        head.add(halo);
+    });
+    const nose = new THREE.Mesh(new THREE.ConeGeometry(0.035, 0.08, 3), socketMat);
+    nose.position.set(0.05, -0.03, 0.37);
     nose.rotation.x = Math.PI;
     head.add(nose);
 
-    // Lower jaw: flesh lip on the right, bare bone jaw + teeth on the left
-    const lip = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.06, 0.06), skinDark);
-    lip.position.set(-0.11, -0.2, 0.37);
-    head.add(lip);
-    const jawBone = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.07, 0.2), boneMat);
-    jawBone.position.set(0.13, -0.3, 0.28);
-    head.add(jawBone);
-    for (let t = 0; t < 5; t++) {
-        const tooth = new THREE.Mesh(new THREE.BoxGeometry(0.034, 0.06, 0.03), boneMat);
-        tooth.position.set(0.03 + t * 0.045, -0.235, 0.38);
-        head.add(tooth);
-    }
-    // Cranial crack on top of the skull
-    const crack = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.02, 0.22), socketMat);
-    crack.position.set(0.2, 0.34, 0.05);
+    // Slack, hanging jaw — open mouth cavity, upper teeth, dropped lower jaw (bone on the skull side)
+    box(0.3, 0.14, 0.06, socketMat, 0, -0.2, 0.32, head);       // open mouth
+    for (let t = 0; t < 6; t++) box(0.03, 0.05, 0.03, boneMat, -0.1 + t * 0.042, -0.15, 0.345, head);
+    const jaw = new THREE.Group();
+    jaw.position.set(0, -0.22, 0.05);
+    jaw.rotation.x = 0.38; // hangs open
+    head.add(jaw);
+    box(0.15, 0.07, 0.28, skinDark, -0.08, -0.04, 0.15, jaw);   // flesh half of jaw
+    box(0.15, 0.06, 0.28, boneMat, 0.08, -0.04, 0.15, jaw);     // bone half of jaw
+    for (let t = 0; t < 4; t++) box(0.028, 0.045, 0.028, boneMat, -0.06 + t * 0.042, 0.0, 0.27, jaw);
+    box(0.08, 0.05, 0.02, bloodMat, -0.1, -0.05, 0.3, jaw);     // blood on the chin
+    box(0.03, 0.16, 0.02, bloodMat, -0.12, -0.14, 0.29, jaw);   // drip
+    // Cranial crack
+    const crack = box(0.02, 0.02, 0.2, socketMat, 0.18, 0.31, 0.04, head);
     crack.rotation.y = 0.5;
-    head.add(crack);
 
-    // ── Arms: locked straight out in front, ending in fists ──
+    // ── Arms: locked straight out in front (compensating for the hunch), bloodied fists ──
+    const ARM_REST = -Math.PI / 2 - TORSO_LEAN;
     const armPivots = [];
     [-1, 1].forEach(side => {
-        const sx = side * 0.58;
-        const shoulder = new THREE.Mesh(new THREE.SphereGeometry(0.14, 7, 6), skinDark);
-        shoulder.position.set(sx, 0.55, 0);
-        body.add(shoulder);
+        const sx = side * 0.45;
+        const shoulderBall = new THREE.Mesh(new THREE.SphereGeometry(0.13, 7, 6), shirtMat);
+        shoulderBall.position.set(sx, 0.88, 0);
+        torso.add(shoulderBall);
 
         const pivot = new THREE.Object3D();
-        pivot.position.set(sx, 0.55, 0);
-        pivot.rotation.x = -Math.PI / 2; // arm (built hanging along −y) now points forward (+z)
-        body.add(pivot);
+        pivot.position.set(sx, 0.88, 0);
+        pivot.rotation.x = ARM_REST;
+        torso.add(pivot);
 
-        const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.105, 0.52, 7), skinMat);
-        upper.position.y = -0.26;
-        pivot.add(upper);
-        const elbow = new THREE.Mesh(new THREE.SphereGeometry(0.095, 6, 5), skinDark);
-        elbow.position.y = -0.52;
+        cyl(0.11, 0.11, 0.26, shirtMat, 0, -0.12, 0, pivot);   // torn short sleeve
+        box(0.08, 0.1, 0.03, shirtDark, 0.06, -0.28, 0.09, pivot); // dangling sleeve rag
+        cyl(0.08, 0.09, 0.3, skinMat, 0, -0.38, 0, pivot);     // upper arm skin
+        const elbow = new THREE.Mesh(new THREE.SphereGeometry(0.085, 6, 5), skinDark);
+        elbow.position.y = -0.53;
         pivot.add(elbow);
-        const fore = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.09, 0.46, 7), side < 0 ? skinMat : skinDark);
-        fore.position.y = -0.76;
-        pivot.add(fore);
-        // Clenched fist + knuckle ridge
-        const fist = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.2), skinDark);
-        fist.position.y = -1.08;
-        pivot.add(fist);
-        const knuckles = new THREE.Mesh(new THREE.BoxGeometry(0.21, 0.06, 0.08), boneMat);
-        knuckles.position.set(0, -1.17, 0.05);
-        pivot.add(knuckles);
+        if (side < 0) {
+            // Right forearm torn open to the bone
+            cyl(0.07, 0.08, 0.44, skinDark, 0, -0.76, 0, pivot);
+            cyl(0.03, 0.03, 0.3, boneMat, 0.06, -0.78, 0.0, pivot);
+            box(0.04, 0.26, 0.05, bloodMat, 0.07, -0.74, 0.03, pivot);
+        } else {
+            cyl(0.07, 0.08, 0.44, skinMat, 0, -0.76, 0, pivot);
+        }
+        box(0.19, 0.19, 0.19, skinDark, 0, -1.07, 0, pivot);   // clenched fist
+        box(0.2, 0.06, 0.08, bloodMat, 0, -1.16, 0.05, pivot); // bloody knuckles
 
         armPivots.push(pivot);
     });
 
-    body.position.set(x, 0.9, z);
-    scene.add(body);
+    root.position.set(x, 0.9, z);
+    scene.add(root);
 
     const speed = cfg.speedBase * ZOMBIE_SPEED_MULT;
     return {
-        mesh: body,
+        mesh: root,
         health: cfg.healthBase - 3,
         maxHealth: cfg.healthBase - 3,
         speed,
@@ -4773,7 +4860,11 @@ function createZombie(x, z, level) {
         attackRange: 1.4,
         dead: false,
         type: 'zombie',
-        zombieArms: armPivots, // own key so the generic arm-swing animation leaves them out-stretched
+        zombieArms: armPivots,   // own key so the generic arm-swing animation leaves them out-stretched
+        zombieArmRest: ARM_REST,
+        zombieLegs: legPivots,
+        zombieHead: head,
+        groanTimer: 1 + Math.random() * 4,
         animOffset: Math.random() * Math.PI * 2,
     };
 }
@@ -5013,15 +5104,36 @@ function updateEnemies(delta, time) {
                 if (hg) hg.rotation.x = Math.sin(t * e.speed * 0.38) * 0.07;
             }
         } else if (e.type === 'zombie') {
-            // Slow, lurching shuffle — side-to-side sway, uneven bob, arms stay locked forward
+            // Limping shuffle: left leg steps, right leg drags behind; body lurches
+            // toward the bad leg, head lolls, arms stay locked forward.
             const step = t * 2.2;
-            e.mesh.position.y = 0.9 + Math.abs(Math.sin(step)) * 0.05;
-            e.mesh.rotateZ(Math.sin(step) * 0.09);
-            e.mesh.rotateX(0.08); // hunched forward lean
+            const s = Math.sin(step);
+            const moving = dist > stopDist && !isFrozen;
+            const amt = moving ? 1 : 0.25;
+            e.mesh.position.y = 0.9 + Math.max(0, s) * 0.05 * amt - (s < 0 ? -s * 0.04 * amt : 0);
+            e.mesh.rotateZ(-(0.06 + s * 0.08) * amt); // lean/lurch toward the dragging (right) leg
+            if (e.zombieLegs) {
+                const [good, bad] = e.zombieLegs;
+                good.hip.rotation.x  = -s * 0.5 * amt;
+                good.knee.rotation.x = Math.max(0, s) * 0.6 * amt;
+                bad.hip.rotation.x   = (0.22 + Math.sin(step + 0.6) * 0.06) * amt; // trails behind
+                bad.knee.rotation.x  = 0.05;
+                bad.hip.rotation.z   = 0.08;                                        // splayed out
+            }
+            if (e.zombieHead) {
+                e.zombieHead.rotation.z = -0.25 + Math.sin(step * 0.5) * 0.14;
+                e.zombieHead.rotation.y = Math.sin(step * 0.37) * 0.12;
+            }
             if (e.zombieArms) {
                 const sway = Math.sin(step * 0.5) * 0.07;
-                e.zombieArms[0].rotation.x = -Math.PI / 2 + sway;
-                e.zombieArms[1].rotation.x = -Math.PI / 2 - sway;
+                e.zombieArms[0].rotation.x = e.zombieArmRest + sway;
+                e.zombieArms[1].rotation.x = e.zombieArmRest - sway;
+            }
+            // Groan now and then when close enough to hear
+            e.groanTimer -= delta;
+            if (e.groanTimer <= 0) {
+                if (dist < 16) Audio.zombieGroan(1 - dist / 16);
+                e.groanTimer = 3.5 + Math.random() * 4.5;
             }
         } else {
             const baseY = e.type === 'berserker' ? 0.95 : 0.9;
